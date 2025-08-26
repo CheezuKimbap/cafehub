@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Customer Table
+model Customer {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String         @unique
+  password      String
+  isLoyal       Boolean        @default(false)
+  profile       Profile?
+  freeItems     FreeItem[]
+  orders        Order[]
+  reviews       Review[]
+  notifications Notification[]
+}
+
+// Profile Table
+model Profile {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  customerId  String   @unique @db.ObjectId
+  phoneNumber String
+  preferences String
+  address     String
+
+  customer    Customer @relation(fields: [customerId], references: [id])
+}
+
+// FreeItem Table
+model FreeItem {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  customerId String   @db.ObjectId
+  productId  String   @db.ObjectId
+  dateIssued DateTime
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+}
+
+// Discount Table
+model Discount {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  description        String
+  discountAmount     Int
+  isForLoyalCustomer Boolean
+}
+
+// Product Table
+model Product {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  price       Int
+  freeItems   FreeItem[]
+  orderItems  OrderItem[]
+  reviews     Review[]
+}
+
+// Order Table
+model Order {
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  customerId      String      @db.ObjectId
+  orderDate       DateTime
+  totalAmount     Int
+  discountApplied Int?
+
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  orderItems      OrderItem[]
+}
+
+// OrderItem Table
+model OrderItem {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId        String   @db.ObjectId
+  productId      String   @db.ObjectId
+  quantity       Int
+  priceAtPurchase Int
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+// Review Table
+model Review {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  customerId String   @db.ObjectId
+  productId  String   @db.ObjectId
+  rating     Int
+  comment    String
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+}
+
+// Admin Table
+model Admin {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  username String   @unique
+  password String
+}
+
+// Notification Table
+model Notification {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  customerId String   @db.ObjectId
+  message    String
+  dateSent   DateTime
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+}
