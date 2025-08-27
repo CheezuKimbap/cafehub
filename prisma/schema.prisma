@@ -8,21 +8,112 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// -------------------------
+// User Table (NextAuth)
+// -------------------------
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?  @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  role          Role     @default(CUSTOMER)   // enum for stricter type safety
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  customerId    String?   @db.ObjectId
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  deletedBy     String?  @db.ObjectId
+}
+
+// Role enum
+enum Role {
+  CUSTOMER
+  ADMIN
+  STAFF
+}
+
+// -------------------------
+// Account Table (NextAuth)
+// -------------------------
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// -------------------------
+// Session Table (NextAuth)
+// -------------------------
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// -------------------------
+// VerificationToken Table (NextAuth)
+// -------------------------
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// -------------------------
 // Customer Table
+// -------------------------
 model Customer {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   email         String         @unique
-  password      String
+  password      String?        // nullable for OAuth users
   isLoyal       Boolean        @default(false)
   profile       Profile?
   freeItems     FreeItem[]
   orders        Order[]
   reviews       Review[]
   notifications Notification[]
+
+  users User[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+  deletedBy     String?  @db.ObjectId
 }
 
-// Profile Table
+// -------------------------
+// Profile Table (1:1)
+// -------------------------
 model Profile {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   customerId  String   @unique @db.ObjectId
@@ -30,21 +121,25 @@ model Profile {
   preferences String
   address     String
 
-  customer    Customer @relation(fields: [customerId], references: [id])
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
+// -------------------------
 // FreeItem Table
+// -------------------------
 model FreeItem {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   customerId String   @db.ObjectId
   productId  String   @db.ObjectId
   dateIssued DateTime
 
-  customer   Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   product    Product  @relation(fields: [productId], references: [id])
 }
 
+// -------------------------
 // Discount Table
+// -------------------------
 model Discount {
   id                 String   @id @default(auto()) @map("_id") @db.ObjectId
   description        String
@@ -52,7 +147,9 @@ model Discount {
   isForLoyalCustomer Boolean
 }
 
+// -------------------------
 // Product Table
+// -------------------------
 model Product {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
   name        String
@@ -63,7 +160,9 @@ model Product {
   reviews     Review[]
 }
 
+// -------------------------
 // Order Table
+// -------------------------
 model Order {
   id              String      @id @default(auto()) @map("_id") @db.ObjectId
   customerId      String      @db.ObjectId
@@ -71,11 +170,13 @@ model Order {
   totalAmount     Int
   discountApplied Int?
 
-  customer        Customer    @relation(fields: [customerId], references: [id])
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   orderItems      OrderItem[]
 }
 
+// -------------------------
 // OrderItem Table
+// -------------------------
 model OrderItem {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
   orderId        String   @db.ObjectId
@@ -83,11 +184,13 @@ model OrderItem {
   quantity       Int
   priceAtPurchase Int
 
-  order   Order   @relation(fields: [orderId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
 }
 
+// -------------------------
 // Review Table
+// -------------------------
 model Review {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   customerId String   @db.ObjectId
@@ -95,23 +198,18 @@ model Review {
   rating     Int
   comment    String
 
-  customer   Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   product    Product  @relation(fields: [productId], references: [id])
 }
 
-// Admin Table
-model Admin {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  username String   @unique
-  password String
-}
-
+// -------------------------
 // Notification Table
+// -------------------------
 model Notification {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   customerId String   @db.ObjectId
   message    String
   dateSent   DateTime
 
-  customer   Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
