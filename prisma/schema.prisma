@@ -154,6 +154,7 @@ model Product {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String
+  isDeleted   Boolean     @default(false)  // new soft delete field
   price       Int
   freeItems   FreeItem[]
   orderItems  OrderItem[]
@@ -169,6 +170,7 @@ model Order {
   orderDate       DateTime
   totalAmount     Int
   discountApplied Int?
+  isDeleted      Boolean  @default(false)
 
   customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   orderItems      OrderItem[]
@@ -183,6 +185,7 @@ model OrderItem {
   productId      String   @db.ObjectId
   quantity       Int
   priceAtPurchase Int
+  isDeleted      Boolean  @default(false) 
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
