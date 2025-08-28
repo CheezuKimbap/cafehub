@@ -12,22 +12,22 @@ datasource db {
 // User Table (NextAuth)
 // -------------------------
 model User {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id            String      @id @default(uuid()) @map("_id")
   name          String?
-  email         String?  @unique
+  email         String?     @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
 
-  role          Role     @default(CUSTOMER)   // enum for stricter type safety
-  customer      Customer? @relation(fields: [customerId], references: [id])
-  customerId    String?   @db.ObjectId
+  role          Role        @default(CUSTOMER)
+  customer      Customer?   @relation(fields: [customerId], references: [id])
+  customerId    String?
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   deletedAt     DateTime?
-  deletedBy     String?  @db.ObjectId
+  deletedBy     String?
 }
 
 // Role enum
@@ -41,17 +41,17 @@ enum Role {
 // Account Table (NextAuth)
 // -------------------------
 model Account {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String  @db.ObjectId
+  id                String  @id @default(uuid()) @map("_id")
+  userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.String
-  access_token      String? @db.String
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.String
+  id_token          String?
   session_state     String?
 
   createdAt DateTime @default(now())
@@ -66,9 +66,9 @@ model Account {
 // Session Table (NextAuth)
 // -------------------------
 model Session {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           String   @id @default(uuid()) @map("_id")
   sessionToken String   @unique
-  userId       String   @db.ObjectId
+  userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -80,7 +80,7 @@ model Session {
 // VerificationToken Table (NextAuth)
 // -------------------------
 model VerificationToken {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(uuid()) @map("_id")
   identifier String
   token      String
   expires    DateTime
@@ -92,31 +92,32 @@ model VerificationToken {
 // Customer Table
 // -------------------------
 model Customer {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  email         String         @unique
-  password      String?        // nullable for OAuth users
-  isLoyal       Boolean        @default(false)
-  profile       Profile?
-  freeItems     FreeItem[]
-  orders        Order[]
-  reviews       Review[]
+  id           String         @id @default(uuid()) @map("_id")
+  firstName    String?
+  lastName     String?
+  email        String         @unique
+  password     String?
+  isLoyal      Boolean        @default(false)
+  profile      Profile?
+  freeItems    FreeItem[]
+  orders       Order[]
+  reviews      Review[]
   notifications Notification[]
 
-  users User[]
+  users        User[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
-  deletedBy     String?  @db.ObjectId
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+  deletedBy    String?
 }
 
 // -------------------------
 // Profile Table (1:1)
 // -------------------------
 model Profile {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  customerId  String   @unique @db.ObjectId
+  id          String   @id @default(uuid()) @map("_id")
+  customerId  String   @unique
   phoneNumber String
   preferences String
   address     String
@@ -128,9 +129,9 @@ model Profile {
 // FreeItem Table
 // -------------------------
 model FreeItem {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  customerId String   @db.ObjectId
-  productId  String   @db.ObjectId
+  id         String   @id @default(uuid()) @map("_id")
+  customerId String
+  productId  String
   dateIssued DateTime
 
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -141,7 +142,7 @@ model FreeItem {
 // Discount Table
 // -------------------------
 model Discount {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                 String   @id @default(uuid()) @map("_id")
   description        String
   discountAmount     Int
   isForLoyalCustomer Boolean
@@ -151,10 +152,10 @@ model Discount {
 // Product Table
 // -------------------------
 model Product {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  id          String      @id @default(uuid()) @map("_id")
   name        String
   description String
-  isDeleted   Boolean     @default(false)  // new soft delete field
+  isDeleted   Boolean     @default(false)
   price       Int
   freeItems   FreeItem[]
   orderItems  OrderItem[]
@@ -165,12 +166,12 @@ model Product {
 // Order Table
 // -------------------------
 model Order {
-  id              String      @id @default(auto()) @map("_id") @db.ObjectId
-  customerId      String      @db.ObjectId
+  id              String      @id @default(uuid()) @map("_id")
+  customerId      String
   orderDate       DateTime
   totalAmount     Int
   discountApplied Int?
-  isDeleted      Boolean  @default(false)
+  isDeleted       Boolean     @default(false)
 
   customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   orderItems      OrderItem[]
@@ -180,12 +181,12 @@ model Order {
 // OrderItem Table
 // -------------------------
 model OrderItem {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  orderId        String   @db.ObjectId
-  productId      String   @db.ObjectId
-  quantity       Int
+  id              String   @id @default(uuid()) @map("_id")
+  orderId         String
+  productId       String
+  quantity        Int
   priceAtPurchase Int
-  isDeleted      Boolean  @default(false) 
+  isDeleted       Boolean  @default(false) 
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
@@ -195,9 +196,9 @@ model OrderItem {
 // Review Table
 // -------------------------
 model Review {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  customerId String   @db.ObjectId
-  productId  String   @db.ObjectId
+  id         String   @id @default(uuid()) @map("_id")
+  customerId String
+  productId  String
   rating     Int
   comment    String
 
@@ -209,8 +210,8 @@ model Review {
 // Notification Table
 // -------------------------
 model Notification {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  customerId String   @db.ObjectId
+  id         String   @id @default(uuid()) @map("_id")
+  customerId String
   message    String
   dateSent   DateTime
 

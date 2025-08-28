@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@theme{
+  --color-cf-background: #F3E6C9;
+  --color-cf-foreground: rgba(221, 195, 165, 0.5);
+  --font-sans: 'Sora', sans-serif;
+;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
