@@ -9,10 +9,29 @@ export default {
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages:{
-    signIn: 'auth/signin',
+    signIn: '/signin',
     newUser: '/' // Redirect new users to the home page
   },
   callbacks:{
+    async jwt({token, user}){
+
+      if(user){
+        token.role = user.role
+      }
+      return token
+    },
+     async session({ session, token }) {
+      // ✅ MUST return session, not void
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.role = token.role as "CUSTOMER" | "ADMIN" | "STAFF"
+        session.user.customerId = token.customerId as string | null
+      }
+      return session
+    },
+    async authorized({auth}){
+       return !!auth 
+    },
     async signIn({user}){
         await prisma.customer.create({
           data: {
@@ -24,5 +43,6 @@ export default {
         });
         return true
     }
+
   }
 } satisfies NextAuthConfig
