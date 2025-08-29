@@ -43,7 +43,7 @@ export default function SignIn() {
         {/* Google Sign-In */}
         <button
           className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 rounded-xl py-2 hover:bg-gray-100 transition"
-          onClick={() => signIn("google")}
+          onClick={() => signIn("google", { callbackUrl: "/" })}
         >
           <Image
             src="/google.png"

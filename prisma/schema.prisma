@@ -102,10 +102,12 @@ model Customer {
   profile      Profile?
   freeItems    FreeItem[]
   orders       Order[]
+  carts             Cart[] 
   reviews      Review[]
   notifications Notification[]
 
   users        User[]
+
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -160,6 +162,7 @@ model Product {
   price       Int
   freeItems   FreeItem[]
   orderItems  OrderItem[]
+  cartItems   CartItem[]
   reviews     Review[]
 }
 
@@ -176,6 +179,8 @@ model Order {
 
   customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   orderItems      OrderItem[]
+  
+  paymentMethod   PaymentMethod?
 }
 
 // -------------------------
@@ -193,6 +198,68 @@ model OrderItem {
   product Product @relation(fields: [productId], references: [id])
 }
 
+// -------------------------
+// Cart Table
+// -------------------------
+model Cart {
+  id         String      @id @default(uuid()) @map("_id")
+  customerId String @unique
+  items      CartItem[]
+  status     CartStatus  @default(ACTIVE)   // ACTIVE, CHECKED_OUT, ABANDONED
+  isDeleted  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  deletedAt  DateTime?
+  deletedBy  String?
+
+  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+// -------------------------
+// CartItem Table
+// -------------------------
+model CartItem {
+  id         String   @id @default(uuid()) @map("_id")
+  cartId     String
+  productId  String
+  quantity   Int      @default(1)
+  price      Int      // price at the time of adding to cart
+  isDeleted  Boolean  @default(false)
+  addedAt    DateTime @default(now())
+  deletedAt DateTime?
+  deletedBy String?
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+// -------------------------
+// Cart Status Enum
+// -------------------------
+enum CartStatus {
+  ACTIVE
+  CHECKED_OUT
+  ABANDONED
+}
+
+
+
+// -------------------------
+// PaymentMethod Table
+// -------------------------
+model PaymentMethod {
+  id        String   @id @default(uuid()) @map("_id")
+  orderId   String @unique
+  type      String   // e.g., CREDIT_CARD, PAYPAL, GCASH
+  provider  String?  // e.g., Visa, Mastercard
+  details   String?  // e.g., masked card number or transaction reference
+  status    String   // e.g., PENDING, SUCCESS, FAILED
+  paidAt    DateTime?
+  deletedAt DateTime?
+  deletedBy String?
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
 // -------------------------
 // Review Table
 // -------------------------
@@ -218,3 +285,5 @@ model Notification {
 
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
+
+
