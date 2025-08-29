@@ -176,7 +176,10 @@ model Order {
   totalAmount     Int
   discountApplied Int?
   isDeleted       Boolean     @default(false)
+  deletedAt       DateTime?
+  deletedBy       String?
 
+  status          OrderStatus @default(PENDING) // NEW FIELD
   customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   orderItems      OrderItem[]
   
@@ -193,9 +196,20 @@ model OrderItem {
   quantity        Int
   priceAtPurchase Int
   isDeleted       Boolean  @default(false) 
-
+  deletedAt DateTime?
+  deletedBy String?
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
+}
+
+// -------------------------
+// Order Status Enum
+// -------------------------
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  CANCELLED
 }
 
 // -------------------------
