@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../lib/prisma";
+import { validateApiKey } from "@/app/lib/apiKeyGuard";
 
 // -------------------------
 // POST: Create Payment Method
 // -------------------------
 export async function POST(req: NextRequest) {
+  const authError = validateApiKey(req)
+  if (authError) return authError  
   try {
     const { orderId, type, provider, details, status } = await req.json();
 

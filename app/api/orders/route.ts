@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../lib/prisma";
 import { OrderStatus } from "@/app/generated/prisma";
+import { validateApiKey } from "@/app/lib/apiKeyGuard";
 
 // GET: Fetch all non-deleted orders with items + customer
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const authError = validateApiKey(req)
+    if (authError) return authError  
   try {
     const orders = await prisma.order.findMany({
       where: { isDeleted: false },
@@ -21,6 +24,8 @@ export async function GET() {
 
 // PUT: Update order status (e.g., mark as PAID, SHIPPED, CANCELLED)
 export async function PUT(req: NextRequest) {
+  const authError = validateApiKey(req)
+  if (authError) return authError  
   try {
     const { customerId, status } = await req.json();
 

@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../lib/prisma";
+import { validateApiKey } from "@/app/lib/apiKeyGuard";
+
 
 export async function GET(req: NextRequest) {
+  const authError = validateApiKey(req)
+  if (authError) return authError  
   const products = await prisma.product.findMany();
   return NextResponse.json(products);
 }
 
 export async function POST(req: NextRequest) {
+  const authError = validateApiKey(req)
+  if (authError) return authError  
   try {
     const body = await req.json();
     const { name, description, price } = body;
@@ -38,6 +44,8 @@ export async function POST(req: NextRequest) {
 
 
 export async function PUT(req: NextRequest) {
+  const authError = validateApiKey(req)
+  if (authError) return authError  
   const { id, name, description, price } = await req.json();
 
   if (!id) {
@@ -53,6 +61,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const authError = validateApiKey(req)
+  if (authError) return authError  
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 

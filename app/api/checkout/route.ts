@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { validateApiKey } from "@/app/lib/apiKeyGuard";
 
 export async function POST(req: NextRequest) {
+  const authError = validateApiKey(req)
+  if (authError) return authError  
   try {
     const { customerId, discountApplied } = await req.json();
 
