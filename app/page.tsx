@@ -9,11 +9,6 @@ const playfair = Playfair_Display({
 });
 
 export default async function Home() {
-  const session = await auth();
-
-  if (!session) {
-    return <div>Not authenticated</div>;
-  }
   return (
     <main className="w-full scroll-smooth">
       {/* Hero Section */}
