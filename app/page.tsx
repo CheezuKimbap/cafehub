@@ -51,7 +51,7 @@ export default async function Home() {
           <div className="flex flex-col lg:flex-row items-center justify-between">
             <div className="lg:w-1/2 relative flex justify-center lg:justify-start mb-8 lg:mb-0">
               <img
-                src="/home/home/drinks.png"
+                src="/home/drinks.png"
                 alt="Assortment of coffee and drinks"
                 className="max-w-full h-auto rounded-lg"
               />
