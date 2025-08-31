@@ -1,5 +1,12 @@
 import { auth } from "@/auth";
-import Image from "next/image";
+import { Playfair_Display } from "next/font/google";
+import { MoveDown, Star, MoveLeft, MoveRight } from "lucide-react";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-playfair",
+});
 
 export default async function Home() {
   const session = await auth();
@@ -8,106 +15,242 @@ export default async function Home() {
     return <div>Not authenticated</div>;
   }
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <h1 className="text-2xl font-bold">
-        Welcome, {session.user?.name || "User"}!
-      </h1>
-      <h1></h1>
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="w-full scroll-smooth">
+      {/* Hero Section */}
+      <section className=" w-full pt-16  flex flex-col lg:flex-row items-center justify-between">
+        <div className="text-center lg:text-left mb-8 lg:mb-0 lg:w-1/2 ml-16 ">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+            A cup of <br />
+            <span className="text-black">Happiness</span>
+          </h1>
+          <p className="mt-4 text-lg sm:text-xl text-gray-700">
+            for coffee & conversation
+          </p>
+          <div className="mt-8 flex justify-center lg:justify-start space-x-4">
+            <button className="bg-[#F0A35B] text-white font-medium py-3 px-6 rounded-md hover:bg-[#754a21] transition-colors duration-300">
+              Order Now
+            </button>
+            <button className="bg-[#1C1306] text-white font-medium py-3 px-6 rounded-md hover:bg-[#030200] transition-colors duration-300">
+              Explore
+            </button>
+          </div>
+        </div>
+        <div className="lg:w-1/2 flex justify-center lg:justify-end">
+          <img
+            src="/home/hero-img.png"
+            alt="Various cups of coffee, including a latte with art, a macchiato, and a layered coffee drink."
+            className="max-w-full h-auto"
+          />
+        </div>
+      </section>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
+      <section className="bg-[#DDC3A5] w-full  relative overflow-hidden">
+        {/* Content wrapper */}
+        <div className="relative z-10  mx-auto">
+          {/* Drinks Section */}
+          <div className="flex flex-col lg:flex-row items-center justify-between">
+            <div className="lg:w-1/2 relative flex justify-center lg:justify-start mb-8 lg:mb-0">
+              <img
+                src="/home/home/drinks.png"
+                alt="Assortment of coffee and drinks"
+                className="max-w-full h-auto rounded-lg"
+              />
+            </div>
+            <div className="lg:w-1/2 text-center lg:text-left lg:pl-16 mr-12">
+              <h2
+                className={`${playfair.className} text-5xl font-serif text-gray-800 mb-4`}
+              >
+                Food & Snacks
+              </h2>
+              <p className="text-gray-700 leading-relaxed mb-6">
+                Lorem ipsum dolor sit amet. Et laboriosam voluptatem aut numquam
+                officia et dolor voluptate. Cum eveniet galisum vel repellendus
+                atque aut harum minus.
+              </p>
+              <button className="bg-stone-800 text-white font-medium py-3 px-6 rounded-md hover:bg-stone-900 transition-colors duration-300">
+                View more
+              </button>
+            </div>
+          </div>
+
+          {/* Food & Snacks Section */}
+          <div className="flex flex-col lg:flex-row-reverse items-center justify-between">
+            <div className="lg:w-1/2 relative flex justify-center lg:justify-end mb-8 lg:mb-0">
+              <img
+                src="/home/snacks.png"
+                alt="Burger, fries, and fried chicken"
+                className="max-w-full h-auto rounded-lg"
+              />
+            </div>
+            <div className="lg:w-1/2 text-center lg:text-left lg:pr-16  ml-12">
+              <h2
+                className={`${playfair.className} text-5xl font-serif text-gray-800 mb-4`}
+              >
+                Food & Snacks
+              </h2>
+              <p className="text-gray-700 leading-relaxed mb-6">
+                Lorem ipsum dolor sit amet. Et laboriosam voluptatem aut numquam
+                officia et dolor voluptate. Cum eveniet galisum vel repellendus
+                atque aut harum minus.
+              </p>
+              <button className="bg-stone-800 text-white font-medium py-3 px-6 rounded-md hover:bg-stone-900 transition-colors duration-300">
+                View more
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative bg-[#DDC3A5] w-full overflow-hidden">
+        {/* Background beans top */}
+        <img
+          src="/home/beans-bg.png"
+          alt="beans-vector"
+          className="absolute top-0 left-0 transform -translate-y-1/4 -translate-x-1/4 z-0"
+        />
+
+        {/* Title */}
+        <div
+          className={`${playfair.className} text-center text-4xl mx-auto w-full pt-10 relative z-10`}
+        >
+          <h1>Best Selling Items</h1>
+        </div>
+
+        {/* Products */}
+        <div className="w-full flex justify-evenly relative z-10">
+          <div>
+            <img src="/home/coffee-1.png" alt="Coffee 1" />
+          </div>
+          <div>
+            <img src="/home/coffee-2.png" alt="Coffee 2" />
+          </div>
+          <div>
+            <img src="/home/coffee-3.png" alt="Coffee 3" />
+          </div>
+        </div>
+
+        {/* Background beans bottom */}
+        <img
+          src="/home/beans-bg.png"
+          alt="beans-vector"
+          className="absolute bottom-0 right-0 transform translate-y-2/4 rotate-180 z-0"
+        />
+
+        {/* Button */}
+        <div className="w-full mx-auto text-center py-12 relative z-10">
+          <a href="#reviews">
+            <button className="bg-[#5E4430] rounded-full p-4 cursor-pointer">
+              <MoveDown className="text-white" />
+            </button>
           </a>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      </section>
+
+      <section
+        id="reviews"
+        className="relative w-full bg-[#5E4430] pb-24 overflow-hidden"
+      >
+        <img
+          src="/home/beans-bg-1.png"
+          alt="beans-vector"
+          className="absolute top-0 left-0 transform -translate-y-1/4 -translate-x-1/4 z-0"
+        />
+        <div
+          className={`${playfair.className}  mx-auto w-full pt-10 relative z-10 text-white`}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <h2 className="text-center text-4xl pt-8 font-bold">
+            Our customers reviews
+          </h2>
+        </div>
+        <div className="flex items-center justify-center">
+          {/* Left button */}
+          <button className="px-4 bg-[#A78868] rounded-lg cursor-pointer border-black border-3">
+            <MoveLeft className="w-8 h-8 " />
+          </button>
+
+          {/* Card */}
+          <div className="bg-[#A78868] w-8/12 relative text-center mx-6 my-12">
+            <div className="w-[80px] h-[80px] p-6 rounded-full bg-white border-4 border-[#A78868] mx-auto text-center transform -translate-y-8"></div>
+            <p>Chad Chungus</p>
+
+            <div className="rating mt-2 mb-5 space-x-1">
+              <Star className="inline fill-yellow-500 text-yellow-500" />
+              <Star className="inline fill-yellow-500 text-yellow-500" />
+              <Star className="inline fill-yellow-500 text-yellow-500" />
+              <Star className="inline fill-yellow-500 text-yellow-500" />
+              <Star className="inline fill-yellow-500 text-yellow-500" />
+            </div>
+
+            <p className="w-7/12 mx-auto text-white pt-4 pb-24">
+              Creamy and well-balanced, with smooth espresso and velvety milk.
+              Subtle notes of caramel and chocolate. Comfort in a cup.
+            </p>
+          </div>
+
+          {/* Right button */}
+          <button className="px-4 bg-[#A78868] rounded-lg cursor-pointer border-black border-3">
+            <MoveRight className="w-8 h-8" />
+          </button>
+        </div>
+
+        <img
+          src="/home/beans-bg-1.png"
+          alt="beans-vector"
+          className="absolute bottom-0 right-0 transform translate-y-2/4 rotate-180 z-0"
+        />
+      </section>
+
+      <section className="relative w-full bg-[#5E4430] pt-12  overflow-hidden">
+        <img
+          src="/home/beans-bg-1.png"
+          alt="beans-vector"
+          className="absolute top-0 left-0 transform -translate-y-1/4 -translate-x-1/4 z-0"
+        />
+        <div className="flex mx-8 justify-center space-x-8">
+          <div className="">
+            <img
+              src="/home/logo.png"
+              alt="Coffeesentials Logo"
+              className="w-[320px] h-[320px]"
+            />
+          </div>
+          <div className="py-8 w-7/12">
+            <h3
+              className={`${playfair.className} text-4xl font-bold text-white`}
+            >
+              About Us
+            </h3>
+            <div className="flex w-full mt-8 text-white space-x-2">
+              <div className="w-6/12">
+                <p className="font-bold text-2xl">Services:</p>
+
+                <div>
+                  <p>Takeout</p>
+                  <p>Dine-in</p>
+                  <p>In-store pickup</p>
+                </div>
+              </div>
+              <div className="w-6/12">
+                <p className="font-bold text-2xl">Contact:</p>
+
+                <div>
+                  <p>0976 013 4330</p>
+                  <p>coffeesentials@gmail.com</p>
+                </div>
+              </div>
+              <div className="w-6/12">
+                <p className="font-bold text-2xl">Socials:</p>
+                <div>facebook.com/coffeeentials</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <img
+          src="/home/beans-bg-1.png"
+          alt="beans-vector"
+          className="absolute bottom-0 right-0 transform translate-y-[200px] translate-x-[400px]  z-0"
+        />
+      </section>
+    </main>
   );
 }

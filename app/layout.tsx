@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Sora } from "next/font/google";
-
+import Navigation from "@/components/layout/client/navigation";
 const sora = Sora({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata: Metadata = {
@@ -20,7 +20,10 @@ export default function RootLayout({
       <body
         className={`${sora.className} antialiased min-h-screen bg-[var(--color-cf-background)]`}
       >
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <Navigation />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );
