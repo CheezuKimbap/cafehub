@@ -165,6 +165,12 @@ model Product {
   orderItems  OrderItem[]
   cartItems   CartItem[]
   reviews     Review[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  deletedAt   DateTime?
+  deletedBy   String?
+  status     String      @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
 }
 
 // -------------------------

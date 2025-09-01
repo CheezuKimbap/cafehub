@@ -1,6 +1,7 @@
 import { Playfair_Display } from "next/font/google";
 import { MoveDown, Star, MoveLeft, MoveRight } from "lucide-react";
 import Navigation from "@/components/layout/client/navigation";
+import Link from "next/link";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -24,9 +25,11 @@ export default async function Home() {
               for coffee & conversation
             </p>
             <div className="mt-8 flex justify-center lg:justify-start space-x-4">
-              <button className="bg-[#F0A35B] text-white font-medium py-3 px-6 rounded-md hover:bg-[#754a21] transition-colors duration-300">
-                Order Now
-              </button>
+              <Link href="/menu">
+                <button className="bg-[#F0A35B] text-white font-medium py-3 px-6 rounded-md hover:bg-[#754a21] transition-colors duration-300">
+                  Order Now
+                </button>
+              </Link>
               <button className="bg-[#1C1306] text-white font-medium py-3 px-6 rounded-md hover:bg-[#030200] transition-colors duration-300">
                 Explore
               </button>

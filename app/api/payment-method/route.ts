@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../lib/prisma";
-import { validateApiKey } from "@/app/lib/apiKeyGuard";
+import { prisma } from "@/lib/prisma";
+import { validateApiKey } from "@/lib/apiKeyGuard";
 
 // -------------------------
 // POST: Create Payment Method

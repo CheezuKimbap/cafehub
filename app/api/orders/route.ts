@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "../../lib/prisma";
-import { OrderStatus } from "@/app/generated/prisma";
-import { validateApiKey } from "@/app/lib/apiKeyGuard";
+import { prisma } from "@/lib/prisma";
+import { OrderStatus } from "@/prisma/generated/prisma";
+import { validateApiKey } from "@/lib/apiKeyGuard";
 
 // GET: Fetch all non-deleted orders with items + customer
 export async function GET(req: NextRequest) {

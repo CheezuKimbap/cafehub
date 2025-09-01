@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { validateApiKey } from "@/app/lib/apiKeyGuard";
+import { prisma } from "@/lib/prisma";
+import { validateApiKey } from "@/lib/apiKeyGuard";
 
 export async function POST(req: NextRequest) {
   const authError = validateApiKey(req)
