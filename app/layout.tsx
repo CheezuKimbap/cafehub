@@ -20,10 +20,7 @@ export default function RootLayout({
       <body
         className={`${sora.className} antialiased min-h-screen bg-[var(--color-cf-background)]`}
       >
-        <SessionProvider>
-          <Navigation />
-          {children}
-        </SessionProvider>
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );

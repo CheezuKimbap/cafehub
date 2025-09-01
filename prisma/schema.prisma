@@ -157,6 +157,7 @@ model Discount {
 model Product {
   id          String      @id @default(uuid()) @map("_id")
   name        String
+  image       String?
   description String
   isDeleted   Boolean     @default(false)
   price       Int
