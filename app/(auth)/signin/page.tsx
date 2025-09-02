@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { redirect } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { SignInForm } from "@/components/forms/SignInForm";
+import { SignInForm } from "@/components/forms/signinForm";
 
 export default function SignIn() {
   const session = useSession();
