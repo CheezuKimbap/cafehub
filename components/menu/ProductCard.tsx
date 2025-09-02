@@ -28,7 +28,7 @@ export function ProductCard({ id, name, description, price, imageUrl }: Props) {
   return (
     <Card className="flex flex-col justify-between hover:shadow-md transition bg-[#F4F4F4] shadow-sm">
       <CardHeader>
-        <Link href={`/products/${id}`}>
+        <Link href={`/menu/${id}`}>
           <img
             src={imageUrl ?? "/placeholder.png"}
             alt={name}

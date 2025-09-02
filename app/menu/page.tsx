@@ -5,7 +5,7 @@ import { fetchProducts } from "@/redux/features/products/productsSlice";
 import { Breadcrumbs } from "@/components/common/Breadcrumbs";
 import { ProductList } from "@/components/menu/ProductList";
 
-function Page() {
+function ProductPage() {
   const dispatch = useAppDispatch();
   const { items, loading, error } = useAppSelector((state) => state.products);
 
@@ -27,4 +27,4 @@ function Page() {
   );
 }
 
-export default Page;
+export default ProductPage;

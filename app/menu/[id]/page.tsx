@@ -1,7 +1,11 @@
-import React from "react";
+import { ProductDetails } from "@/components/menu/ProductDetails";
 
-function page() {
-  return <div>Test</div>;
+function ProductDetailsPage() {
+  return (
+    <div>
+      <ProductDetails />
+    </div>
+  );
 }
 
-export default page;
+export default ProductDetailsPage;

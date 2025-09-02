@@ -17,7 +17,7 @@ export const fetchProducts = createAsyncThunk("products/fetch", async () => {
 export const fetchProductById = createAsyncThunk<Product, string>(
   "products/fetchById",
   async (id) => {
-    const res = await fetch(`/api/products/${id}`, {
+    const res = await fetch(`/api/products?productId=${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
