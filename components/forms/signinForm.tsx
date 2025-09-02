@@ -18,7 +18,7 @@ import { signIn } from "next-auth/react";
 
 type SignupSchema = z.infer<typeof signInSchema>;
 
-export function signInForm() {
+export function SignInForm() {
   const form = useForm<SignupSchema>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
