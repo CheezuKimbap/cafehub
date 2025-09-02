@@ -3,6 +3,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Sora } from "next/font/google";
 import Navigation from "@/components/layout/client/navigation";
+import { ReduxProvider } from "@/components/layout/client/redux/prover";
 const sora = Sora({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata: Metadata = {
@@ -20,7 +21,9 @@ export default function RootLayout({
       <body
         className={`${sora.className} antialiased min-h-screen bg-[var(--color-cf-background)]`}
       >
-        <SessionProvider>{children}</SessionProvider>
+        <ReduxProvider>
+          <SessionProvider>{children}</SessionProvider>
+        </ReduxProvider>
       </body>
     </html>
   );

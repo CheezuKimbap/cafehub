@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { signupSchema } from "@/schema/signupSchema"; // adjust path
+import { signInSchema } from "@/schema/signupSchema"; // adjust path
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,14 +16,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { signIn } from "next-auth/react";
 
-type SignupSchema = z.infer<typeof signupSchema>;
+type SignupSchema = z.infer<typeof signInSchema>;
 
-export function SignupForm() {
+export function signInForm() {
   const form = useForm<SignupSchema>({
-    resolver: zodResolver(signupSchema),
+    resolver: zodResolver(signInSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -32,8 +30,6 @@ export function SignupForm() {
 
   const onSubmit = async (values: SignupSchema) => {
     const result = await signIn("credentials", {
-      firstName: values.firstName,
-      lastName: values.lastName,
       email: values.email,
       password: values.password,
       redirect: false,
@@ -52,36 +48,6 @@ export function SignupForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-6 max-w-md mx-auto p-6 bg-card rounded-2xl shadow"
       >
-        {/* First Name */}
-        <FormField
-          control={form.control}
-          name="firstName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>First Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Last Name */}
-        <FormField
-          control={form.control}
-          name="lastName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Last Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {/* Email */}
         <FormField
           control={form.control}

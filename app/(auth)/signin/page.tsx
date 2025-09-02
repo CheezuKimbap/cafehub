@@ -5,15 +5,10 @@ import { Poppins } from "next/font/google";
 import Image from "next/image";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { redirect } from "next/navigation";
-import { Form, FormField } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { SignupForm } from "@/components/forms/signinForm";
-const sora = Sora({ subsets: ["latin"], weight: ["400", "700"] });
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "700"] });
+import { SignInForm } from "@/components/forms/SignInForm";
 
 export default function SignIn() {
-  const form = useForm();
-
   const session = useSession();
 
   if (!session) {
@@ -32,7 +27,7 @@ export default function SignIn() {
             Sign in
           </a>
         </CardDescription>
-        <SignupForm />
+        <SignInForm />
         {/* Divider */}
         <div className="flex items-center gap-2 w-full my-3">
           <span className="flex-1 h-px bg-gray-400"></span>
