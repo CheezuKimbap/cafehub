@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-interface RouteParams {
-  params: {
-    itemId: string;
-  };
-}
-
 // ✅ Update cart item
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { itemId: string } }
+) {
   const { itemId } = params;
 
   if (!itemId) {
@@ -48,7 +45,10 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 }
 
 // ✅ Delete cart item
-export async function DELETE(_req: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { itemId: string } }
+) {
   const { itemId } = params;
 
   if (!itemId) {
