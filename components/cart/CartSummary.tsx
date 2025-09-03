@@ -13,7 +13,7 @@ export function CartSummary({ total, onCheckout }: CartSummaryProps) {
       <h2 className="text-xl font-bold mb-4">Summary</h2>
       <div className="flex justify-between mb-4">
         <span>Total:</span>
-        <span className="font-semibold">${total.toFixed(2)}</span>
+        <span className="font-semibold">P {total.toFixed(2)}</span>
       </div>
       <Button onClick={onCheckout} className="w-full">
         Checkout

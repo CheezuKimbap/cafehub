@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Search, ShoppingBasket, User } from "lucide-react";
+import { useAppSelector } from "@/redux/hook";
 
 function Navigation() {
   const { data: session } = useSession();
@@ -15,6 +16,9 @@ function Navigation() {
     { label: "Menu", href: "/menu" },
     { label: "About", href: "/about" },
   ];
+
+  const cart = useAppSelector((state) => state.cart.cart);
+  const cartCount = cart?.items?.length ?? 0;
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -68,10 +72,18 @@ function Navigation() {
           </div>
 
           {/* Shopping Basket */}
+          {/* Shopping Basket */}
           <Link href={"/cart"}>
-            <button className="flex items-center justify-center rounded-2xl p-2 bg-[#FF9500] hover:bg-orange-500 transition-colors">
-              <ShoppingBasket className="w-6 h-6 fill-black" />
-            </button>{" "}
+            <div className="relative">
+              <button className="flex items-center justify-center rounded-2xl p-2 bg-[#FF9500] hover:bg-orange-500 transition-colors">
+                <ShoppingBasket className="w-6 h-6 fill-black" />
+              </button>
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </div>
           </Link>
 
           {/* Profile button + popup wrapper */}
