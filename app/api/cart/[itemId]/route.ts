@@ -1,43 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-interface Params {
-  itemId: string;
+interface RouteParams {
+  params: {
+    itemId: string;
+  };
 }
 
-// PUT: Update cart item quantity
-export async function PUT(req: NextRequest, { params }: { params: Params }) {
+// ✅ Update cart item
+export async function PUT(req: NextRequest, { params }: RouteParams) {
   const { itemId } = params;
-  const { quantity } = await req.json();
 
-  if (!itemId || quantity <= 0) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  if (!itemId) {
+    return NextResponse.json({ error: "cartItemId required" }, { status: 400 });
   }
 
   try {
+    const { quantity } = await req.json();
+
+    if (!quantity || quantity <= 0) {
+      return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
+    }
+
     const existingItem = await prisma.cartItem.findUnique({
       where: { id: itemId },
       include: { product: true },
     });
 
-    if (!existingItem) return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
+    if (!existingItem) {
+      return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
+    }
 
     const updatedItem = await prisma.cartItem.update({
       where: { id: itemId },
-      data: { quantity, price: existingItem.product.price * quantity },
+      data: {
+        quantity,
+        price: existingItem.product.price * quantity,
+      },
       include: { product: true },
     });
 
-    return NextResponse.json(updatedItem);
+    return NextResponse.json(updatedItem, { status: 200 });
   } catch (error) {
     console.error("Failed to update cart item:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-export async function DELETE(req: NextRequest, { params }: { params: { itemId: string } }) {
-  const { itemId } = params;
-  if (!itemId) return NextResponse.json({ error: "cartItemId required" }, { status: 400 });
 
-  await prisma.cartItem.delete({ where: { id: itemId } });
-  return NextResponse.json({ message: "Item removed from cart" });
+// ✅ Delete cart item
+export async function DELETE(_req: NextRequest, { params }: RouteParams) {
+  const { itemId } = params;
+
+  if (!itemId) {
+    return NextResponse.json({ error: "cartItemId required" }, { status: 400 });
+  }
+
+  try {
+    await prisma.cartItem.delete({ where: { id: itemId } });
+    return NextResponse.json({ message: "Item removed from cart" }, { status: 200 });
+  } catch (error) {
+    console.error("Failed to delete cart item:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
