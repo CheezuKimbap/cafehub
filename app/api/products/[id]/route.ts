@@ -2,18 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
 // ✅ GET single product
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(req: NextRequest, context: any) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
-  const { id } = params;
+  const { id } = context.params as { id: string };
 
   try {
     const product = await prisma.product.findUnique({ where: { id } });
@@ -28,11 +22,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 // ✅ PUT update product
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(req: NextRequest, context: any) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
-  const { id } = params;
+  const { id } = context.params as { id: string };
 
   try {
     const body = await req.json();
@@ -61,17 +55,17 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 }
 
 // ✅ DELETE product (soft delete recommended)
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(req: NextRequest, context: any) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
-  const { id } = params;
+  const { id } = context.params as { id: string };
 
   try {
     // Hard delete:
     // await prisma.product.delete({ where: { id } });
 
-    // 🔄 Soft delete (safer for e-commerce apps)
+    // 🔄 Soft delete (requires `deletedAt` in Prisma schema)
     await prisma.product.update({
       where: { id },
       data: { deletedAt: new Date() },
