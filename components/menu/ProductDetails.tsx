@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,11 +14,25 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { useParams } from "next/navigation";
 import { fetchProductById } from "@/redux/features/products/productsSlice";
+import { useSession } from "next-auth/react";
+import { addItemToCart, fetchCart } from "@/redux/features/cart/cartSlice";
 
 export function ProductDetails() {
   const params = useParams();
   const productId = Array.isArray(params.id) ? params.id[0] : params.id;
   const dispatch = useAppDispatch();
+  const { data: session } = useSession();
+  const customerId = session?.user.customerId;
+
+  const handleAddToCart = (productId: string) => {
+    if (!customerId) return alert("Please log in to add items to cart.");
+
+    dispatch(addItemToCart({ customerId, productId, quantity }))
+      .unwrap()
+      .then(() => dispatch(fetchCart(customerId)))
+      .catch(() => alert("Failed to add item to cart"));
+  };
+
   const {
     selected: product,
     loading,
@@ -111,23 +125,35 @@ export function ProductDetails() {
             <li>Only affects 1 item</li>
           </ul>
         </div>
+        {/* Quantity + Add to Cart */}
+        <div className="flex items-center gap-6 mt-4">
+          {/* Quantity controls */}
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            >
+              -
+            </Button>
+            <span className="text-lg font-semibold w-8 text-center">
+              {quantity}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setQuantity((q) => q + 1)}
+            >
+              +
+            </Button>
+          </div>
 
-        {/* Quantity */}
-        <div className="flex items-center justify-start mt-4 gap-4">
+          {/* Add to Cart button */}
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            onClick={() => handleAddToCart(product.id)}
+            className="rounded-xl bg-green-600 hover:bg-green-700 text-white px-6"
           >
-            -
-          </Button>
-          <span className="text-lg font-semibold">{quantity}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setQuantity((q) => q + 1)}
-          >
-            +
+            Add to Cart
           </Button>
         </div>
       </CardContent>

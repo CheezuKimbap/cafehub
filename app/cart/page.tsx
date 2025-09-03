@@ -6,13 +6,10 @@ import {
   fetchCart,
   updateCartItem,
   removeCartItem,
-  addItemToCart,
 } from "@/redux/features/cart/cartSlice";
 
-import { Cart, CartItem as CartItemType } from "@/redux/features/cart/cart";
-
-import { CartItem } from "@/components/cart/CartItem";
 import { CartSummary } from "@/components/cart/CartSummary";
+import { CartList } from "@/components/cart/CartList";
 import { useSession } from "next-auth/react";
 
 export default function CartPage() {
@@ -20,9 +17,8 @@ export default function CartPage() {
   const { data: session } = useSession();
   const { cart, status } = useAppSelector((state) => state.cart);
 
-  const customerId = session?.user.customerId; // replace with logged-in customer
+  const customerId = session?.user.customerId;
 
-  // Fetch cart on mount
   useEffect(() => {
     if (!customerId) return;
     dispatch(fetchCart(customerId));
@@ -52,19 +48,11 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto py-10 px-4 flex flex-col md:flex-row gap-8">
-      <div className="flex-1 flex flex-col gap-4">
-        {cart.items.map((item: CartItemType) => (
-          <CartItem
-            key={item.id}
-            id={item.id}
-            product={item.product}
-            quantity={item.quantity}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemove={handleRemove}
-          />
-        ))}
-      </div>
-
+      <CartList
+        items={cart.items}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemove={handleRemove}
+      />
       <CartSummary total={total} onCheckout={handleCheckout} />
     </div>
   );
