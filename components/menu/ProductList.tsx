@@ -5,9 +5,11 @@ import type { Product } from "@/redux/features/products/product";
 export function ProductList({
   products,
   loading,
+  onAddToCart,
 }: {
   products?: Product[];
   loading?: boolean;
+  onAddToCart?: (productId: string) => void;
 }) {
   if (loading) {
     return (
@@ -37,6 +39,7 @@ export function ProductList({
           description={p.description}
           price={p.price}
           imageUrl={p.image ?? undefined}
+          onAddToCart={onAddToCart}
         />
       ))}
     </div>
