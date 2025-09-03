@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 // ✅ Update cart item
 export async function PUT(req: NextRequest, context: any) {
-  const { itemId } = context.params as { itemId: string };
+  const { itemId } = await context.params as { itemId: string };
 
   if (!itemId) {
     return NextResponse.json({ error: "cartItemId required" }, { status: 400 });
@@ -43,7 +43,7 @@ export async function PUT(req: NextRequest, context: any) {
 
 // ✅ Delete cart item
 export async function DELETE(req: NextRequest, context: any) {
-  const { itemId } = context.params as { itemId: string };
+  const { itemId } = await context.params as { itemId: string };
 
   if (!itemId) {
     return NextResponse.json({ error: "cartItemId required" }, { status: 400 });
