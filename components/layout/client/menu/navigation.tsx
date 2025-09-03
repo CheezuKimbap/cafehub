@@ -68,9 +68,11 @@ function Navigation() {
           </div>
 
           {/* Shopping Basket */}
-          <button className="flex items-center justify-center rounded-2xl p-2 bg-[#FF9500] hover:bg-orange-500 transition-colors">
-            <ShoppingBasket className="w-6 h-6 fill-black" />
-          </button>
+          <Link href={"/cart"}>
+            <button className="flex items-center justify-center rounded-2xl p-2 bg-[#FF9500] hover:bg-orange-500 transition-colors">
+              <ShoppingBasket className="w-6 h-6 fill-black" />
+            </button>{" "}
+          </Link>
 
           {/* Profile button + popup wrapper */}
           <div className="relative inline-block">
