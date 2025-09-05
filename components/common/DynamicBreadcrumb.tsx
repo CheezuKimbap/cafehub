@@ -34,7 +34,7 @@ export function DynamicBreadcrumb() {
   });
 
   return (
-    <Breadcrumb className="my-4">
+    <Breadcrumb className="">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>

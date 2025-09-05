@@ -3,25 +3,39 @@ import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@/prisma/generated/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
-// GET: Fetch all non-deleted orders with items + customer
 export async function GET(req: NextRequest) {
-  const authError = validateApiKey(req)
-    if (authError) return authError  
+  const authError = validateApiKey(req);
+  if (authError) return authError;
+
   try {
+    const url = new URL(req.url);
+    const customerId = url.searchParams.get("customerId");
+
+    // Build the where condition explicitly
+    const whereCondition: any = { isDeleted: false };
+    if (customerId) {
+      whereCondition.customerId = customerId;
+    }
+
     const orders = await prisma.order.findMany({
-      where: { isDeleted: false },
+      where: whereCondition,
       include: {
         customer: true,
         orderItems: { include: { product: true } },
       },
+      orderBy: { orderDate: "desc" },
     });
 
+    if (!orders.length) {
+      return NextResponse.json({ error: "No orders found" }, { status: 404 });
+    }
+
     return NextResponse.json(orders);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to fetch orders:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
-
 // PUT: Update order status (e.g., mark as PAID, SHIPPED, CANCELLED)
 export async function PUT(req: NextRequest) {
   const authError = validateApiKey(req)
