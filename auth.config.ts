@@ -50,13 +50,30 @@ export default {
       if (url.startsWith(baseUrl)) return url
       return baseUrl
     },
-    async jwt({ token, user }) {
+   async jwt({ token, user }) {
       if (user) {
-        token.role = user.role
-        token.id = user.id
-        token.customerId = user.customerId
+        token.id = user.id;
+        token.role = user.role;
+        token.customerId = user.customerId;
+      } else if (!token.customerId && token.email) {
+        // Ensure customer exists for OAuth logins
+        let customer = await prisma.customer.findUnique({ where: { email: token.email } });
+        if (!customer) {
+          customer = await prisma.customer.create({
+            data: {
+              email: token.email!,
+              firstName: "Customer",
+            },
+          });
+        }
+        // Link the user record to the customer if not linked
+        await prisma.user.updateMany({
+          where: { email: token.email, customerId: null },
+          data: { customerId: customer.id },
+        });
+        token.customerId = customer.id;
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
       if (session.user) {
@@ -68,34 +85,6 @@ export default {
     },
     async authorized({ auth }) {
       return !!auth
-    },
-  },
-  events: {
-    async createUser({ user }) {
-      // split into first + last
-      const [firstName = "Customer", ...lastParts] = (user.name || "Customer").split(" ")
-      const lastName = lastParts.join(" ") || null
-
-      // ensure customer exists
-      let customer = await prisma.customer.findUnique({
-        where: { email: user.email! },
-      })
-
-      if (!customer) {
-        customer = await prisma.customer.create({
-          data: {
-            email: user.email!,
-            firstName,
-            lastName,
-          },
-        })
-      }
-
-      // now safely update user → guaranteed to exist at this point
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { customerId: customer.id },
-      })
     }
   }
 } satisfies NextAuthConfig
