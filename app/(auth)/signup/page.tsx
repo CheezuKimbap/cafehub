@@ -46,12 +46,13 @@ export default function Signup() {
   const onSubmit = async (data: SignupFormData) => {
     try {
       await dispatch(registerCustomer(data)).unwrap();
-      console.log("✅ Signup successful");
-      // Optionally redirect
-      router.push("/signin");
-    } catch (err) {
-      console.error("❌ Signup failed:", err);
-    }
+      const result = await signIn("credentials", {
+        redirect: false, // don't redirect automatically
+        email: data.email,
+        password: data.password,
+      });
+      router.push("/menu");
+    } catch (err) {}
   };
 
   return (
