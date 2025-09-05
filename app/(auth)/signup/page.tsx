@@ -15,7 +15,7 @@ import {
   selectCustomerStatus,
   selectCustomerError,
 } from "@/redux/features/customer/customerSlice";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 // 1️⃣ Define Zod schema
 const signupSchema = z.object({
