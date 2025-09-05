@@ -1,19 +1,13 @@
+// src/redux/store.ts
 import { configureStore } from "@reduxjs/toolkit";
-import productReducer from "./features/products/productsSlice";
-import cartReducer from "./features/cart/cartSlice";
-import checkoutReducer from "./features/checkout/checkoutSlice";
-import orderReducer from "./features/order/orderSlice"
-import { cartSlice } from "./features/cart/cartSlice";
-import { checkout } from "./features/checkout/checkoutSlice";
+import rootReducer from "./rootReducer";
 
 export const store = configureStore({
-  reducer: {
-    products: productReducer,
-    cart: cartReducer,
-    checkout: checkoutReducer,
-    order: orderReducer
-  },
+  reducer: rootReducer,
 });
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export const resetStore = () => {
+  store.dispatch({ type: "auth/signOut" });
+};

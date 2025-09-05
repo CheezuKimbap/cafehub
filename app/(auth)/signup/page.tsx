@@ -1,4 +1,5 @@
 "use client";
+
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import {
+  registerCustomer,
+  selectCustomerStatus,
+  selectCustomerError,
+} from "@/redux/features/customer/customerSlice";
+import { useRouter } from "next/router";
 
 // 1️⃣ Define Zod schema
 const signupSchema = z.object({
@@ -21,6 +29,11 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function Signup() {
+  const dispatch = useAppDispatch();
+  const status = useAppSelector(selectCustomerStatus);
+  const error = useAppSelector(selectCustomerError);
+
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -29,8 +42,16 @@ export default function Signup() {
     resolver: zodResolver(signupSchema),
   });
 
+  // 3️⃣ Handle form submit with Redux thunk
   const onSubmit = async (data: SignupFormData) => {
-    console.log("Signup form submitted:", data);
+    try {
+      await dispatch(registerCustomer(data)).unwrap();
+      console.log("✅ Signup successful");
+      // Optionally redirect
+      router.push("/signin");
+    } catch (err) {
+      console.error("❌ Signup failed:", err);
+    }
   };
 
   return (
@@ -44,30 +65,6 @@ export default function Signup() {
       </nav>
 
       <div className="min-h-screen flex items-center justify-center bg-[#f5e6cc] relative overflow-hidden">
-        {/* Left Food Image */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 translate-x-4/12 z-0 -rotate-12 hidden md:block">
-          <Image
-            src="/signup/signup-food-2.png"
-            alt="Food Left"
-            width={480}
-            height={480}
-            className="object-contain scale-125"
-            priority
-          />
-        </div>
-
-        {/* Right Food Image */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 -translate-x-4/12 z-0 rotate-12 hidden md:block">
-          <Image
-            src="/signup/signup-food-1.png"
-            alt="Food Right"
-            width={520}
-            height={520}
-            className="object-contain scale-125"
-            priority
-          />
-        </div>
-
         {/* Center Card */}
         <div className="relative z-10 flex justify-center w-full">
           <Card className="w-full max-w-md py-2 bg-[#f3e6c9] border border-[#d8ccb7] rounded-2xl shadow-lg p-6">
@@ -130,9 +127,14 @@ export default function Signup() {
                 <Button
                   type="submit"
                   className="w-full bg-black text-white rounded-full"
+                  disabled={status === "loading"}
                 >
-                  Sign Up
+                  {status === "loading" ? "Signing up..." : "Sign Up"}
                 </Button>
+
+                {error && (
+                  <p className="text-red-500 text-center mt-2">{error}</p>
+                )}
 
                 <p className="text-center text-sm text-gray-600">
                   Already have an account?{" "}
@@ -142,17 +144,10 @@ export default function Signup() {
                 </p>
               </form>
 
-              {/* Divider */}
-              <div className="flex items-center gap-2 w-full my-3">
-                <span className="flex-1 h-px bg-gray-400"></span>
-                <span className="text-gray-500 text-sm">Or sign up with</span>
-                <span className="flex-1 h-px bg-gray-400"></span>
-              </div>
-
               {/* Google Button */}
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 rounded-xl py-2 hover:bg-gray-100 transition"
+                className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 rounded-xl py-2 hover:bg-gray-100 transition mt-3"
                 onClick={() => signIn("google", { callbackUrl: "/" })}
               >
                 <Image

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ShoppingBasket, User } from "lucide-react";
 import { useAppSelector } from "@/redux/hook";
+import { resetStore } from "@/redux/store";
 
 interface NavItem {
   label: string;
@@ -170,7 +171,10 @@ function Navigation() {
                                     Orders
                                   </button>
                                   <button
-                                    onClick={() => signOut()}
+                                    onClick={async () => {
+                                      resetStore();
+                                      await signOut({ callbackUrl: "/" });
+                                    }}
                                     className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded transition-colors"
                                   >
                                     Sign out
