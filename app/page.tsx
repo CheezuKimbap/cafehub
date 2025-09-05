@@ -12,7 +12,6 @@ const playfair = Playfair_Display({
 export default async function Home() {
   return (
     <>
-      <Navigation />
       <main className="w-full scroll-smooth">
         {/* Hero Section */}
         <section className=" w-full pt-16  flex flex-col lg:flex-row items-center justify-between">

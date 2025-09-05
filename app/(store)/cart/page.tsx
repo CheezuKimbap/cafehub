@@ -11,6 +11,8 @@ import {
 import { CartSummary } from "@/components/cart/CartSummary";
 import { CartList } from "@/components/cart/CartList";
 import { useSession } from "next-auth/react";
+import { DynamicBreadcrumb } from "@/components/common/DynamicBreadcrumb";
+import { EmptyCart } from "@/components/cart/EmptyCart";
 
 export default function CartPage() {
   const dispatch = useAppDispatch();
@@ -44,7 +46,13 @@ export default function CartPage() {
     : 0;
 
   if (status === "loading") return <p>Loading cart...</p>;
-  if (!cart || cart.items.length === 0) return <p>Your cart is empty.</p>;
+  if (!cart || cart.items.length === 0)
+    return (
+      <div className="p-4">
+        <DynamicBreadcrumb />
+        <EmptyCart />
+      </div>
+    );
 
   return (
     <div className="container mx-auto py-10 px-4 flex flex-col md:flex-row gap-8">

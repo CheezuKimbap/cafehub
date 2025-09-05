@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { fetchProducts } from "@/redux/features/products/productsSlice";
 import { addItemToCart, fetchCart } from "@/redux/features/cart/cartSlice";
 import { useSession } from "next-auth/react";
-import { Breadcrumbs } from "@/components/common/Breadcrumbs";
+import { DynamicBreadcrumb } from "@/components/common/DynamicBreadcrumb";
 import { ProductList } from "@/components/menu/ProductList";
 
 function ProductPage() {
@@ -20,12 +20,7 @@ function ProductPage() {
 
   return (
     <section className="p-4">
-      <Breadcrumbs
-        items={[
-          { label: "Home", href: "/" },
-          { label: "Products", href: "/products" },
-        ]}
-      />
+      <DynamicBreadcrumb />
       {error && <p className="text-red-500">{error}</p>}
       <ProductList
         products={items}

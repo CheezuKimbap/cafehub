@@ -19,10 +19,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${sora.className} antialiased min-h-screen bg-[var(--color-cf-background)]`}
+        className={`${sora.className} antialiased  bg-[var(--color-cf-background)]`}
       >
         <ReduxProvider>
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            <Navigation></Navigation>
+            {children}
+          </SessionProvider>
         </ReduxProvider>
       </body>
     </html>
