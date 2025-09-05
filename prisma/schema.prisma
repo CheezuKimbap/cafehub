@@ -212,8 +212,8 @@ enum PaymentStatus {
 }
 enum OrderStatus {
   PENDING
-  PAID
-  SHIPPED
+  PROCESSING  
+  COMPLETED
   CANCELLED
 }
 

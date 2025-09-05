@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, context: any) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
-  const { id } = context.params as { id: string };
+  const { id } = await  context.params as { id: string };
 
   try {
     const order = await prisma.order.findUnique({

@@ -22,16 +22,6 @@ interface OrderCardProps {
 export function OrderCard({ order }: OrderCardProps) {
   const dispatch = useAppDispatch();
 
-  function handleMarkPaid() {
-    dispatch(
-      updateOrderStatus({
-        id: order.id,
-        status: "PAID",
-        paymentStatus: "PAID",
-      })
-    );
-  }
-
   return (
     <Card className="mb-4">
       <CardHeader>
