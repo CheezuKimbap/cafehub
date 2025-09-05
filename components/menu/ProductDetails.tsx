@@ -23,11 +23,12 @@ export function ProductDetails() {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
   const customerId = session?.user.customerId;
+  const [servingType, setServingType] = useState<"HOT" | "COLD">("HOT");
 
   const handleAddToCart = (productId: string) => {
     if (!customerId) return alert("Please log in to add items to cart.");
 
-    dispatch(addItemToCart({ customerId, productId, quantity }))
+    dispatch(addItemToCart({ customerId, productId, quantity, servingType }))
       .unwrap()
       .then(() => dispatch(fetchCart(customerId)))
       .catch(() => alert("Failed to add item to cart"));
@@ -79,15 +80,15 @@ export function ProductDetails() {
         {/* Temperature Options */}
         <div className="flex gap-3">
           <Button
-            variant={temperature === "Hot" ? "default" : "outline"}
-            onClick={() => setTemperature("Hot")}
+            variant={servingType === "HOT" ? "default" : "outline"}
+            onClick={() => setServingType("HOT")}
             className="px-6 rounded-xl"
           >
             Hot
           </Button>
           <Button
-            variant={temperature === "Iced" ? "default" : "outline"}
-            onClick={() => setTemperature("Iced")}
+            variant={servingType === "COLD" ? "default" : "outline"}
+            onClick={() => setServingType("COLD")}
             className="px-6 rounded-xl"
           >
             Iced

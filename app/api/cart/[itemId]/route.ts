@@ -28,7 +28,7 @@ export async function PUT(req: NextRequest, context: any) {
     const updatedItem = await prisma.cartItem.update({
       where: { id: itemId },
       data: {
-        quantity,
+        quantity,        
         price: existingItem.product.price * quantity,
       },
       include: { product: true },

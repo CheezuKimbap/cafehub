@@ -10,6 +10,7 @@ export interface CartItemProps {
   id: string;
   product: Product;
   quantity: number;
+  servingType: string;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onRemove: (id: string) => void;
 }
@@ -18,6 +19,7 @@ export function CartItem({
   id,
   product,
   quantity,
+  servingType,
   onUpdateQuantity,
   onRemove,
 }: CartItemProps) {
@@ -49,7 +51,9 @@ export function CartItem({
 
       <CardContent className="flex-1">
         <h3 className="text-lg font-semibold">{product.name}</h3>
+
         <p className="text-sm text-gray-600">P {product.price.toFixed(2)}</p>
+        <p className="text-sm text-gray-600 my-2">{servingType}</p>
 
         {/* Quantity controls */}
         <div className="flex items-center gap-2 mt-2">

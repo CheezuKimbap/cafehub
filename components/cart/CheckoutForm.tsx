@@ -27,6 +27,8 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
   const { data: session } = useSession();
   const customerId = session?.user.customerId;
 
+  const { cart } = useAppSelector((state) => state.cart);
+
   const { loading, error } = useAppSelector((state) => state.checkout);
 
   const handleCheckout = async () => {
@@ -48,43 +50,80 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
   };
 
   return (
-    <form className="space-y-6">
-      {/* Voucher input */}
-      <div>
-        <Label htmlFor="voucher">Discount Voucher</Label>
-        <Input
-          id="voucher"
-          type="text"
-          placeholder="Enter voucher code"
-          value={voucher}
-          onChange={(e) => setVoucher(e.target.value)}
+    <>
+      {/* Cart Items Preview */}
+      <div className="border rounded-lg p-4 space-y-2">
+        <h3 className="font-semibold mb-2">Your Cart</h3>
+
+        {cart?.items.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center justify-between text-sm text-gray-700"
+          >
+            {/* image + details */}
+            <div className="flex items-center gap-3">
+              <img
+                src={item.product.image!}
+                alt={item.product.name}
+                className="w-12 h-12 object-cover rounded"
+              />
+              <span>
+                {item.product.name} ({item.servingType}) x {item.quantity}
+              </span>
+            </div>
+
+            {/* line total */}
+            <span className="font-medium">₱{item.price.toFixed(2)}</span>
+          </div>
+        ))}
+
+        {/* total row */}
+        <div className="flex justify-between font-semibold border-t pt-2 mt-2">
+          <span>Total</span>
+          <span>
+            ₱{cart?.items.reduce((acc, item) => acc + item.price, 0).toFixed(2)}
+          </span>
+        </div>
+      </div>
+
+      <form className="space-y-6">
+        {/* Voucher input */}
+        <div>
+          <Label htmlFor="voucher">Discount Voucher</Label>
+          <Input
+            id="voucher"
+            type="text"
+            placeholder="Enter voucher code"
+            value={voucher}
+            onChange={(e) => setVoucher(e.target.value)}
+          />
+        </div>
+
+        {/* Payment Method */}
+        <div>
+          <Label>Payment Method</Label>
+          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Choose payment method" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="CASH">Cash</SelectItem>
+              <SelectItem value="GCASH">GCash</SelectItem>
+              <SelectItem value="CARD">Card</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Confirm / Cancel */}
+        <CheckoutConfirm
+          total={total}
+          onCheckout={handleCheckout}
+          onCancel={onCancel}
+          loading={loading}
         />
-      </div>
 
-      {/* Payment Method */}
-      <div>
-        <Label>Payment Method</Label>
-        <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose payment method" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="CASH">Cash</SelectItem>
-            <SelectItem value="GCASH">GCash</SelectItem>
-            <SelectItem value="CARD">Card</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Confirm / Cancel */}
-      <CheckoutConfirm
-        total={total}
-        onCheckout={handleCheckout}
-        onCancel={onCancel}
-        loading={loading}
-      />
-
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-    </form>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+      </form>
+    </>
   );
 }

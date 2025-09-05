@@ -17,6 +17,7 @@ export function CartList({ items, onUpdateQuantity, onRemove }: CartListProps) {
           key={item.id}
           id={item.id}
           product={item.product}
+          servingType={item.servingType}
           quantity={item.quantity}
           onUpdateQuantity={onUpdateQuantity}
           onRemove={onRemove}

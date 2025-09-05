@@ -7,7 +7,7 @@ export async function GET(req: NextRequest, context: any) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
-  const { id } = context.params as { id: string };
+  const { id } = await  context.params as { id: string };
 
   try {
     const product = await prisma.product.findUnique({ where: { id } });
@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest, context: any) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
-  const { id } = context.params as { id: string };
+  const { id } = await context.params as { id: string };
 
   try {
     const body = await req.json();
@@ -59,7 +59,7 @@ export async function DELETE(req: NextRequest, context: any) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
-  const { id } = context.params as { id: string };
+  const { id } = await  context.params as { id: string };
 
   try {
     // Hard delete:

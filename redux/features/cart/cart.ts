@@ -1,9 +1,10 @@
 import { Product } from "./../products/product";
-
+import { ServingType } from "@/prisma/generated/prisma";
 export interface CartItem {
   id: string;
   quantity: number;
-  price: number; // price at the time of adding
+  price: number;
+  servingType: ServingType // price at the time of adding
   product: Product;
 }
 

@@ -1,7 +1,10 @@
+import { ServingType } from "@/prisma/generated/prisma";
+
 export interface OrderItem {
   id: string;
   productId: string;
   quantity: number;
+  servingType: ServingType
   priceAtPurchase: number;
 }
 

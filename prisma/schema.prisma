@@ -31,7 +31,6 @@ model User {
   deletedBy     String?
 }
 
-// Role enum
 enum Role {
   CUSTOMER
   ADMIN
@@ -102,12 +101,11 @@ model Customer {
   profile      Profile?
   freeItems    FreeItem[]
   orders       Order[]
-  carts             Cart[] 
+  carts        Cart[] 
   reviews      Review[]
   notifications Notification[]
 
   users        User[]
-
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -148,29 +146,43 @@ model Discount {
   id                 String   @id @default(uuid()) @map("_id")
   description        String
   discountAmount     Int
-  isForLoyalCustomer Boolean
+  isForLoyalCustomer Boolean  @default(false)
 }
 
 // -------------------------
 // Product Table
 // -------------------------
 model Product {
-  id          String      @id @default(uuid()) @map("_id")
+  id          String        @id @default(uuid()) @map("_id")
   name        String
   image       String?
   description String
-  isDeleted   Boolean     @default(false)
+  isDeleted   Boolean       @default(false)
   price       Int
   freeItems   FreeItem[]
   orderItems  OrderItem[]
   cartItems   CartItem[]
   reviews     Review[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  addons      ProductAddon[]
 
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
   deletedBy   String?
-  status     String      @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
+
+  status      String        @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
+}
+
+// -------------------------
+// Product Addons
+// -------------------------
+model ProductAddon {
+  id          String   @id @default(uuid()) @map("_id")
+  productId   String
+  name        String
+  price       Int
+
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 // -------------------------
@@ -186,13 +198,29 @@ model Order {
   deletedAt       DateTime?
   deletedBy       String?
 
-  status          OrderStatus @default(PENDING) // NEW FIELD
+  status          OrderStatus @default(PENDING)
   customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   orderItems      OrderItem[]
-  
+  paymentStatus   PaymentStatus  @default(UNPAID) 
   paymentMethod   PaymentMethod?
 }
 
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  CANCELLED
+}
+
+enum ServingType {
+  HOT
+  COLD
+}
 // -------------------------
 // OrderItem Table
 // -------------------------
@@ -203,20 +231,11 @@ model OrderItem {
   quantity        Int
   priceAtPurchase Int
   isDeleted       Boolean  @default(false) 
-  deletedAt DateTime?
-  deletedBy String?
+  deletedAt       DateTime?
+  deletedBy       String?
+  servingType     ServingType
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
-}
-
-// -------------------------
-// Order Status Enum
-// -------------------------
-enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  CANCELLED
 }
 
 // -------------------------
@@ -236,6 +255,12 @@ model Cart {
   customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
+enum CartStatus {
+  ACTIVE
+  CHECKED_OUT
+  ABANDONED
+}
+
 // -------------------------
 // CartItem Table
 // -------------------------
@@ -247,23 +272,13 @@ model CartItem {
   price      Int      // price at the time of adding to cart
   isDeleted  Boolean  @default(false)
   addedAt    DateTime @default(now())
-  deletedAt DateTime?
-  deletedBy String?
+  servingType     ServingType
+  deletedAt  DateTime?
+  deletedBy  String?
 
   cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
 }
-
-// -------------------------
-// Cart Status Enum
-// -------------------------
-enum CartStatus {
-  ACTIVE
-  CHECKED_OUT
-  ABANDONED
-}
-
-
 
 // -------------------------
 // PaymentMethod Table
@@ -281,6 +296,7 @@ model PaymentMethod {
 
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
+
 // -------------------------
 // Review Table
 // -------------------------
@@ -306,5 +322,3 @@ model Notification {
 
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
-
-

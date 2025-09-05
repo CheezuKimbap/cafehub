@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
 // POST: Add item to cart
 export async function POST(req: NextRequest) {
-  const { customerId, productId, quantity } = await req.json();
+  const { customerId, productId, quantity , servingType} = await req.json();
 
   if (!customerId || !productId || quantity <= 0) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
           cartId: cart.id,
           productId,
           quantity,
+          servingType,
           price: product.price * quantity,
         },
       });

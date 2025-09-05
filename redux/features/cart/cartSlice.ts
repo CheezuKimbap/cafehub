@@ -27,7 +27,7 @@ export const fetchCart = createAsyncThunk(
 // Add item to cart
 export const addItemToCart = createAsyncThunk(
   "cart/addItem",
-  async (payload: { customerId: string; productId: string; quantity: number }) => {
+  async (payload: { customerId: string; productId: string; quantity: number, servingType: string  }) => {
     const res = await fetch(`/api/cart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,7 +41,7 @@ export const addItemToCart = createAsyncThunk(
 // Update cart item quantity
 export const updateCartItem = createAsyncThunk(
   "cart/updateItem",
-  async (payload: { itemId: string; quantity: number }) => {
+  async (payload: { itemId: string; quantity: number}) => {
     const res = await fetch(`/api/cart/${payload.itemId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
