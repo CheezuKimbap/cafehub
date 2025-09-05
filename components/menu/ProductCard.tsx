@@ -22,17 +22,9 @@ type Props = {
   description?: string;
   price: number;
   imageUrl?: string;
-  onAddToCart?: (productId: string) => void;
 };
 
-export function ProductCard({
-  id,
-  name,
-  description,
-  price,
-  imageUrl,
-  onAddToCart,
-}: Props) {
+export function ProductCard({ id, name, description, price, imageUrl }: Props) {
   return (
     <Card className="flex flex-col justify-between hover:shadow-md transition bg-[#F4F4F4] shadow-sm">
       <CardHeader>
@@ -64,17 +56,6 @@ export function ProductCard({
           P {price}
         </p>
       </CardHeader>
-
-      <CardFooter className="flex justify-end gap-2">
-        <Button
-          onClick={() => onAddToCart?.(id)}
-          className="bg-[#94664C] p-1 rounded-full cursor-pointer "
-        >
-          <img src={"/bag.svg"} alt="Bag Icon" className="w-8 h-8 p-2" />
-        </Button>
-
-        {/* </AddToCartButton> */}
-      </CardFooter>
     </Card>
   );
 }

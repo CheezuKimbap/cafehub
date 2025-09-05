@@ -39,7 +39,6 @@ export function ProductList({
           description={p.description}
           price={p.price}
           imageUrl={p.image ?? undefined}
-          onAddToCart={onAddToCart}
         />
       ))}
     </div>

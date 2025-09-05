@@ -18,15 +18,6 @@ function ProductPage() {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  const handleAddToCart = (productId: string) => {
-    if (!customerId) return alert("Please log in to add items to cart.");
-
-    dispatch(addItemToCart({ customerId, productId, quantity: 1 }))
-      .unwrap()
-      .then(() => dispatch(fetchCart(customerId)))
-      .catch(() => alert("Failed to add item to cart"));
-  };
-
   return (
     <section className="p-4">
       <Breadcrumbs
@@ -39,7 +30,7 @@ function ProductPage() {
       <ProductList
         products={items}
         loading={loading}
-        onAddToCart={handleAddToCart} // pass the handler down
+        // pass the handler down
       />
     </section>
   );
