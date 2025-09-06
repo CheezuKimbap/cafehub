@@ -19,8 +19,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     dispatch(fetchOrders());
-    // pass user id if your thunk needs it
   }, [dispatch, session]);
+
   const totalRevenueData = [
     { month: "Jan", profit: 90000, loss: 60000 },
     { month: "Feb", profit: 75000, loss: 50000 },
@@ -69,7 +69,13 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* <LatestOrdersCard orders={order}> */}
+        {status === "success" && orders.length > 0 ? (
+          <LatestOrdersCard orders={orders} />
+        ) : status === "loading" ? (
+          <div>Loading...</div>
+        ) : (
+          <div>No orders yet</div>
+        )}
       </div>
     </div>
   );

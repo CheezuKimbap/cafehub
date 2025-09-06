@@ -1,4 +1,4 @@
-import { ServingType } from "@/prisma/generated/prisma";
+import { Customer, ServingType } from "@/prisma/generated/prisma";
 import { Product } from "@/redux/features/products/product";
 
 export type OrderStatus = "PENDING" | "COMPLETED" | "PICKEDUP" | "CANCELLED";
@@ -22,6 +22,7 @@ export interface Order {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   orderItems: OrderItem[];
+  customer: Customer;
   paymentMethod?: {
     type: string;
     provider?: string;

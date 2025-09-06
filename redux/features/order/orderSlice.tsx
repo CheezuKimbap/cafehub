@@ -53,7 +53,7 @@ export const updateOrderStatus = createAsyncThunk<
 
 export interface OrdersState {
   orders: Order[];
-  status: "idle" | "loading" | "failed";
+  status: "idle" | "loading" | "failed" | "success";
   error?: string;
 }
 
@@ -78,6 +78,17 @@ const ordersSlice = createSlice({
       .addCase(fetchOrdersbyCustomerId.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
+      })
+      .addCase(fetchOrders.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchOrders.fulfilled, (state, action) => {
+        state.status = "success"; // ✅ must match type
+        state.orders = action.payload;
+      })
+      .addCase(fetchOrders.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message ?? "Something went wrong";
       });
   },
 });

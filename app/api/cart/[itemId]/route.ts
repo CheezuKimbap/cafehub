@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest, context: any) {
       where: { id: itemId },
       data: {
         quantity,        
-        price: existingItem.product.price * quantity,
+        price: existingItem.product.price,
       },
       include: { product: true },
     });

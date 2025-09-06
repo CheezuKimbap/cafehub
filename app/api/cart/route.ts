@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
 // POST: Add item to cart
 export async function POST(req: NextRequest) {
-  const { customerId, productId, quantity , servingType} = await req.json();
+  const { customerId, productId, quantity, servingType } = await req.json();
 
   if (!customerId || !productId || quantity <= 0) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -34,7 +34,17 @@ export async function POST(req: NextRequest) {
   try {
     // Find or create cart
     let cart = await prisma.cart.findUnique({ where: { customerId } });
-    if (!cart) {
+
+    if (cart) {
+      // Ensure existing cart is ACTIVE
+      if (cart.status !== "ACTIVE") {
+        cart = await prisma.cart.update({
+          where: { id: cart.id },
+          data: { status: "ACTIVE" },
+        });
+      }
+    } else {
+      // Create new cart
       cart = await prisma.cart.create({ data: { customerId, status: "ACTIVE" } });
     }
 
@@ -73,3 +83,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+

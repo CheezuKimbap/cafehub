@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Calculate total
-    let totalAmount = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    let totalAmount = cart.items.reduce((sum, item) => sum + item.price, 0);
 
     // 3. Apply discount
      let discountApplied = 0;
