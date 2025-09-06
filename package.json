@@ -34,6 +34,7 @@
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
     "react-redux": "^9.2.0",
+    "recharts": "^2.15.4",
     "sass": "^1.91.0",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.1.4"

@@ -47,8 +47,6 @@ function Navigation() {
     NAV_HIDDEN_PATHS.some((path) => pathname.startsWith(path)) ||
     pathname.startsWith("/admin");
 
-  if (shouldHideNav) return null;
-
   // Hooks always run
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,7 +60,7 @@ function Navigation() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+  if (shouldHideNav) return <></>;
   return (
     <>
       {!shouldHideNav && (
