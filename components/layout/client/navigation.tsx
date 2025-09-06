@@ -18,7 +18,7 @@ const navItemsHome: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Sign In", href: "/signin" },
+  { label: "Login", href: "/login" },
 ];
 
 const navItemsOther: NavItem[] = [
@@ -42,10 +42,12 @@ function Navigation() {
   const isHome = pathname === "/";
   const navItems = isHome ? navItemsHome : navItemsOther;
 
-  const NAV_HIDDEN_PATHS = ["/signin", "/signup", "/forgot-password"];
-  const shouldHideNav = NAV_HIDDEN_PATHS.some((path) =>
-    pathname.startsWith(path)
-  );
+  const NAV_HIDDEN_PATHS = ["/register", "/login", "/forgot-password"];
+  const shouldHideNav =
+    NAV_HIDDEN_PATHS.some((path) => pathname.startsWith(path)) ||
+    pathname.startsWith("/admin");
+
+  if (shouldHideNav) return null;
 
   // Hooks always run
   useEffect(() => {
@@ -87,10 +89,10 @@ function Navigation() {
                   .filter((item) => !["cart", "profile"].includes(item.type!))
                   .map((item, idx) => {
                     // If we're on home and the item is "Sign In"
-                    if (isHome && item.label === "Sign In") {
+                    if (isHome && item.label === "Login") {
                       return session ? (
                         <span key="profile" className="px-2 py-1 font-medium">
-                          {session.user?.name}
+                          Hi, {session.user?.name}
                         </span>
                       ) : (
                         <Link
@@ -182,7 +184,7 @@ function Navigation() {
                                 </>
                               ) : (
                                 <Link
-                                  href="/signin"
+                                  href="/login"
                                   className="block px-4 py-2 hover:bg-gray-100 rounded transition-colors"
                                   onClick={() => setProfileOpen(false)}
                                 >

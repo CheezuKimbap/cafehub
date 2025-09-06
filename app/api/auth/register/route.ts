@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma"
-import { hash } from "bcrypt"
+import { hash } from "bcryptjs"
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { firstName, lastName, email, password } = body
+    const { firstName, lastName, email, password, role } = body
 
     if (!firstName || !lastName || !email || !password) {
       return new Response(JSON.stringify({ error: "All fields are required" }), {
@@ -26,16 +26,38 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await hash(password, 10)
 
+    if(role === "ADMIN"){
+
+      const admin =  await prisma.user.create({
+        data:{
+          name: `${firstName} ${lastName}`,
+          email,
+          role,
+          password: hashedPassword
+        }
+      })
+      return new Response(
+      JSON.stringify({
+        success: true,
+        user: {
+          id: admin.id,
+          email: admin.email
+          
+        },
+      }),
+      { status: 201 })
+    }
     // Create user + customer
     const user = await prisma.user.create({
       data: {
         email,
+        password: hashedPassword,
         customer: {
           create: {
             firstName,
             lastName,
             email,
-            password: hashedPassword,
+            password: hashedPassword
           },
         },
       },

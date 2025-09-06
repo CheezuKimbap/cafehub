@@ -19,7 +19,7 @@ export const registerCustomer = createAsyncThunk<
   Customer,
   { firstName: string; lastName: string; email: string; password: string }
 >("customer/registerCustomer", async (payload) => {
-  const res = await fetch("/api/auth/signup", {
+  const res = await fetch("/api/auth/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

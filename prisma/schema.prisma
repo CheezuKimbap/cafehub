@@ -20,7 +20,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-
+  password      String?
   role          Role        @default(CUSTOMER)
   customer      Customer?   @relation(fields: [customerId], references: [id])
   customerId    String?

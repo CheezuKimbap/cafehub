@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (!orders.length) {
-      return NextResponse.json({ error: "No orders found" }, { status: 404 });
+      return NextResponse.json(orders, { status: 201 });
     }
 
     return NextResponse.json(orders);

@@ -1,31 +1,30 @@
 // middleware.ts
 import NextAuth from "next-auth"
 import authConfig from "./auth.config"
-import { NextRequest } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-const allowedOrigins = [
-  "https://yourdomain.com",
-  "https://admin.yourdomain.com",
-  "http://localhost:3000"
-]
+
 // export the built-in middleware
 const { auth } = NextAuth(authConfig)
 export default auth(async function middleware(req) {  
-  const { origin } = req.nextUrl
+  const role = req.auth?.user?.role
+  const token = req.auth
 
-   if (!allowedOrigins.includes(origin)) {
-    return new Response("Forbidden", { status: 403 })
-    }
-    if (!req.auth && req.nextUrl.pathname !== "/signin") {
-    const newUrl = new URL("/signin", req.nextUrl.origin)
-    return Response.redirect(newUrl)
+
+  const { pathname } = req.nextUrl;
+  
+  if (pathname.startsWith("/admin") && role === "CUSTOMER") {
+    return NextResponse.redirect(new URL("/", req.url));
   }
-})
+
+  // Redirect unauthenticated users away from /admin
+  if (pathname.startsWith("/admin") && !token) {
+    return NextResponse.redirect(new URL("/admin/login", req.url));
+  }
+    return NextResponse.next();
+},
+)
 // Optional: restrict which routes it applies to
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"
-   
-  
-  
-  ], // protect only these
+ matcher: ["/admin/:path((?!login).*)"], // all /admin routes/ protect only these
 }
