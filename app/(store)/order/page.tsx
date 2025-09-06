@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import { fetchOrders } from "@/redux/features/order/orderSlice";
+import { fetchOrdersbyCustomerId } from "@/redux/features/order/orderSlice";
 import { OrderCard } from "@/components/order/orderCard";
 import { useSession } from "next-auth/react";
 
@@ -13,7 +13,9 @@ export default function OrdersPage() {
 
   useEffect(() => {
     if (authStatus === "authenticated" && session?.user?.id) {
-      dispatch(fetchOrders({ customerId: session.user.customerId! }));
+      dispatch(
+        fetchOrdersbyCustomerId({ customerId: session.user.customerId! })
+      );
       // pass user id if your thunk needs it
     }
   }, [dispatch, session, authStatus]);

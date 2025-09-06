@@ -6,11 +6,23 @@ import { OrderStatus, PaymentStatus } from "@/prisma/generated/prisma";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
+//get list orders
+export const fetchOrders = createAsyncThunk("orders/fetchOrders", async () => {
+  const result = await fetch("/api/orders", {
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+    },
+  });
+  if (!result.ok) throw new Error("Failed to fetch orders");
+  return result.json();
+});
+
 // orderSlice.ts
-export const fetchOrders = createAsyncThunk<
+export const fetchOrdersbyCustomerId = createAsyncThunk<
   Order[],
   { customerId?: string } | void
->("orders/fetchOrders", async (params) => {
+>("orders/fetchOrdersbyCustomerId", async (params) => {
   const query = params?.customerId ? `?customerId=${params.customerId}` : "";
   const res = await fetch(`/api/orders${query}`, {
     headers: {
@@ -21,7 +33,6 @@ export const fetchOrders = createAsyncThunk<
   if (!res.ok) throw new Error("Failed to fetch orders");
   return res.json();
 });
-
 // --- Thunks ---
 export const updateOrderStatus = createAsyncThunk<
   Order,
@@ -54,17 +65,17 @@ const ordersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchOrders.pending, (state) => {
+      .addCase(fetchOrdersbyCustomerId.pending, (state) => {
         state.status = "loading";
       })
       .addCase(
-        fetchOrders.fulfilled,
+        fetchOrdersbyCustomerId.fulfilled,
         (state, action: PayloadAction<Order[]>) => {
           state.status = "idle";
           state.orders = action.payload;
         }
       )
-      .addCase(fetchOrders.rejected, (state, action) => {
+      .addCase(fetchOrdersbyCustomerId.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       });
