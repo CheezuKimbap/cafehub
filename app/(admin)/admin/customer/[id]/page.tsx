@@ -1,17 +1,15 @@
-import CustomerOrder from "@/components/admin/tables/CustomerOrder";
-
-interface CustomerHistoryPageProps {
-  params: { id: string };
+interface PageProps {
+  params: Promise<{ id: string }>; // Declare params as a Promise
 }
 
-export default function CustomerHistoryPage({
-  params,
-}: CustomerHistoryPageProps) {
-  const customerId = params.id;
+export default async function Page({ params }: PageProps) {
+  const { id } = await params; // Await the params Promise
 
+  // Now you can use 'id' as a string
   return (
-    <div className="p-4">
-      <CustomerOrder customerId={customerId} />
+    <div>
+      <h1>Customer ID: {id}</h1>
+      {/* ... rest of your component */}
     </div>
   );
 }
