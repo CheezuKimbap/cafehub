@@ -6,17 +6,24 @@ import { OrderStatus, PaymentStatus } from "@/prisma/generated/prisma";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
-//get list orders
-export const fetchOrders = createAsyncThunk("orders/fetchOrders", async () => {
-  const result = await fetch("/api/orders", {
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": API_KEY,
-    },
-  });
-  if (!result.ok) throw new Error("Failed to fetch orders");
-  return result.json();
-});
+// get list of all orders
+export const fetchOrders = createAsyncThunk<Order[]>(
+  "orders/fetchOrders",
+  async () => {
+    const res = await fetch(`/api/orders`, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch orders");
+    }
+
+    return res.json();
+  }
+);
 
 // orderSlice.ts
 export const fetchOrdersByCustomerId = createAsyncThunk<
