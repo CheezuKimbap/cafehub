@@ -15,49 +15,49 @@ export default {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-    async authorize(credentials) {
-    const { email, password } = credentials as { email: string; password: string }
+      async authorize(credentials) {
+        const { email, password } = credentials as { email: string; password: string }
 
-    if (!email || !password) return null
+        if (!email || !password) return null
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: { customer: true },
-    })
-    if (!user?.password) return null   
+        const user = await prisma.user.findUnique({
+          where: { email },
+          include: { customer: true },
+        })
+        if (!user?.password) return null
 
-    const isValid = await compare(credentials.password as string, user.password)
-    if (!isValid) return null
+        const isValid = await compare(credentials.password as string, user.password)
+        if (!isValid) return null
 
-    const name =
-    user.role === "ADMIN"
-      ? user.name ?? "" // Admins: use user.name
-      : `${user.customer?.firstName ?? ""} ${user.customer?.lastName ?? ""}`.trim() // Customers
+        const name =
+          user.role === "ADMIN"
+            ? user.name ?? "" // Admins: use user.name
+            : `${user.customer?.firstName ?? ""} ${user.customer?.lastName ?? ""}`.trim() // Customers
 
-    return {
-      id: user.id,
-      email: user.email,
-      name: name,
-      role: user.role,
-      customerId: user.customerId,
-    }
-  }
-  ,
+        return {
+          id: user.id,
+          email: user.email,
+          name: name,
+          role: user.role,
+          customerId: user.customerId,
+        }
+      }
+      ,
     }),
   ],
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
-  pages:{
+  pages: {
     signIn: "/login"
 
   },
   callbacks: {
-    async redirect({ url, baseUrl }) {      
-      
+    async redirect({ url, baseUrl }) {
+
       if (url.startsWith(baseUrl)) return url
       return baseUrl
     },
-   async jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -89,7 +89,7 @@ export default {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.role = token.role as "CUSTOMER" | "ADMIN" | "STAFF"
+        session.user.role = token.role as "CUSTOMER" | "ADMIN" | "BARISTA"
         session.user.customerId = token.customerId as string | null
       }
       return session

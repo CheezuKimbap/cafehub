@@ -45,7 +45,8 @@ function Navigation() {
   const NAV_HIDDEN_PATHS = ["/register", "/login", "/forgot-password"];
   const shouldHideNav =
     NAV_HIDDEN_PATHS.some((path) => pathname.startsWith(path)) ||
-    pathname.startsWith("/admin");
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/barista");
 
   // Hooks always run
   useEffect(() => {
