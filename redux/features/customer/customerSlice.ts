@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/redux/store";
 import { Customer } from "./customer";
+import { OrderStatus, PaymentStatus } from "@/prisma/generated/prisma";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
@@ -144,6 +145,18 @@ const customerSlice = createSlice({
 export const { resetCustomers, resetSingleCustomer } = customerSlice.actions;
 
 export const selectCustomers = (state: RootState) => state.customer.customers;
+export const selectCustomerTotalSpend = (customerId: string) => (state: RootState) => {
+  const customer = state.customer.customers.find((c) => c.id === customerId);
+  if (!customer || !customer.orders) return 0;
+
+  return customer.orders
+    .filter(
+      (order) =>
+        order.status === OrderStatus.COMPLETED &&
+        order.paymentStatus === PaymentStatus.PAID
+    )
+    .reduce((sum, order) => sum + order.totalAmount, 0);
+};
 export const selectSingleCustomer = (state: RootState) => state.customer.singleCustomer;
 export const selectCustomerStatus = (state: RootState) => state.customer.status;
 export const selectCustomerError = (state: RootState) => state.customer.error;

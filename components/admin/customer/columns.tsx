@@ -35,11 +35,20 @@ export const customerColumns: ColumnDef<Customer>[] = [
   {
     id: "totalSpend",
     header: "Total Spend",
-    cell: ({ row }) =>
-      `$${(
-        row.original.orders?.reduce((sum, o) => sum + o.totalAmount, 0) ?? 0
-      ).toLocaleString()}`,
+    cell: ({ row }) => {
+      const total =
+        row.original.orders
+          ?.filter(
+            (o) =>
+              o.status === "COMPLETED" && // or OrderStatus.COMPLETED if you import enum
+              o.paymentStatus === "PAID" // or PaymentStatus.PAID
+          )
+          .reduce((sum, o) => sum + o.totalAmount, 0) ?? 0;
+
+      return `$${total.toLocaleString()}`;
+    },
   },
+
   {
     id: "actions",
     header: "Actions",
