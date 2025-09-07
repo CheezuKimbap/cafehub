@@ -5,7 +5,8 @@ export interface Product {
   description: string
   isDeleted: boolean
   price: number
-
+  stock: number // 👈 current stock level
+  lowStock: number
   // Relations (keep as arrays of any or define separately later)
   freeItems?: any[]
   orderItems?: any[]
@@ -17,5 +18,5 @@ export interface Product {
 
   deletedAt: string | null
   deletedBy: string | null
-  status: "AVAILABLE" | "OUT_OF_STOCK" | "DISCONTINUED"
+  status: "AVAILABLE" | "OUT_OF_STOCK" | "DISCONTINUED" | "INACTIVE"
 }

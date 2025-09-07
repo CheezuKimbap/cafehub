@@ -24,14 +24,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, description, price, image } = body;
+    const { name, description, price, image, stock } = body;
 
     if (!name || !description || price === undefined) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-
+    
     const product = await prisma.product.create({
-      data: { name, description, price, image },
+      data: { name, description, price, image, stock  },
     });
 
     return NextResponse.json(product, { status: 201 });

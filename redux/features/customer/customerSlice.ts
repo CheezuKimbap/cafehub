@@ -1,15 +1,6 @@
-// src/redux/features/customer/customerSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/redux/store";
 import { Customer } from "./customer";
-
-// --- Types ---
-
-export interface CustomerState {
-  customer: Customer | null;
-  status: "idle" | "loading" | "failed";
-  error?: string;
-}
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
@@ -42,11 +33,11 @@ export const registerCustomer = createAsyncThunk<
   };
 });
 
-// Optionally: fetch customer by ID
-export const fetchCustomer = createAsyncThunk<Customer, string>(
-  "customer/fetchCustomer",
-  async (id) => {
-    const res = await fetch(`/api/customers/${id}`, {
+// Fetch all customers
+export const fetchCustomers = createAsyncThunk<Customer[], void>(
+  "customer/fetchCustomers",
+  async () => {
+    const res = await fetch("/api/customer", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -54,16 +45,41 @@ export const fetchCustomer = createAsyncThunk<Customer, string>(
       },
     });
 
-    if (!res.ok) throw new Error("Failed to fetch customer");
-
-    return res.json();
+    if (!res.ok) throw new Error("Failed to fetch customers");
+    return (await res.json()) as Customer[];
   }
 );
 
+// // Fetch single customer by ID
+// export const fetchCustomerById = createAsyncThunk<Customer, string>(
+//   "customer/fetchCustomerById",
+//   async (customerId) => {
+//     const res = await fetch(`/api/customer/${customerId}`, {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "x-api-key": API_KEY,
+//       },
+//     });
+
+//     if (!res.ok) throw new Error("Failed to fetch customer");
+//     return (await res.json()) as Customer;
+//   }
+// );
+
 // --- State ---
+interface CustomerState {
+  customers: Customer[];
+  singleCustomer: Customer | null;
+  status: "idle" | "loading" | "failed";
+  error?: string;
+}
+
 const initialState: CustomerState = {
-  customer: null,
+  customers: [],
+  singleCustomer: null,
   status: "idle",
+  error: undefined,
 };
 
 // --- Slice ---
@@ -71,44 +87,64 @@ const customerSlice = createSlice({
   name: "customer",
   initialState,
   reducers: {
-    resetCustomer: (state) => {
-      state.customer = null;
+    resetCustomers: (state) => {
+      state.customers = [];
+      state.status = "idle";
+      state.error = undefined;
+    },
+    resetSingleCustomer: (state) => {
+      state.singleCustomer = null;
       state.status = "idle";
       state.error = undefined;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Register
+      // Register customer
       .addCase(registerCustomer.pending, (state) => {
         state.status = "loading";
       })
       .addCase(registerCustomer.fulfilled, (state, action: PayloadAction<Customer>) => {
         state.status = "idle";
-        state.customer = action.payload;
+        state.singleCustomer = action.payload;
+        state.customers.push(action.payload); // optional: add new customer to list
       })
       .addCase(registerCustomer.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })
-      // Fetch
-      .addCase(fetchCustomer.pending, (state) => {
+      // Fetch all customers
+      .addCase(fetchCustomers.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchCustomer.fulfilled, (state, action: PayloadAction<Customer>) => {
+      .addCase(fetchCustomers.fulfilled, (state, action: PayloadAction<Customer[]>) => {
         state.status = "idle";
-        state.customer = action.payload;
+        state.customers = action.payload;
       })
-      .addCase(fetchCustomer.rejected, (state, action) => {
+      .addCase(fetchCustomers.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-      });
+      })
+      // // Fetch single customer
+      // .addCase(fetchCustomerById.pending, (state) => {
+      //   state.status = "loading";
+      // })
+      // .addCase(fetchCustomerById.fulfilled, (state, action: PayloadAction<Customer>) => {
+      //   state.status = "idle";
+      //   state.singleCustomer = action.payload;
+      // })
+      // .addCase(fetchCustomerById.rejected, (state, action) => {
+      //   state.status = "failed";
+      //   state.error = action.error.message;
+      // });
   },
 });
 
 // --- Exports ---
-export const { resetCustomer } = customerSlice.actions;
-export const selectCustomer = (state: RootState) => state.customer.customer;
+export const { resetCustomers, resetSingleCustomer } = customerSlice.actions;
+
+export const selectCustomers = (state: RootState) => state.customer.customers;
+export const selectSingleCustomer = (state: RootState) => state.customer.singleCustomer;
 export const selectCustomerStatus = (state: RootState) => state.customer.status;
 export const selectCustomerError = (state: RootState) => state.customer.error;
 

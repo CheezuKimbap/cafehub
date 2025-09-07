@@ -5,7 +5,7 @@ import { RevenueChart } from "@/components/admin/charts/RevenueChart";
 import { TodayRevenue } from "@/components/admin/charts/TodayRevenue";
 import { TotalOrder } from "@/components/admin/charts/TotalOrders";
 import { WeekSales } from "@/components/admin/charts/WeeklySales";
-import { LatestOrdersCard } from "@/components/admin/tables/OrderTable";
+import { LatestOrdersCard } from "@/components/admin/customer/OrderTable";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { fetchOrders } from "@/redux/features/order/orderSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";

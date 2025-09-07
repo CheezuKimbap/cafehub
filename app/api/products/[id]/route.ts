@@ -30,7 +30,7 @@ export async function PUT(req: NextRequest, context: any) {
 
   try {
     const body = await req.json();
-    const { name, description, price, image } = body;
+    const { name, description, price, image ,stock} = body;
 
     if (!name && !description && price === undefined && !image) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
@@ -43,6 +43,7 @@ export async function PUT(req: NextRequest, context: any) {
         ...(description && { description }),
         ...(price !== undefined && { price }),
         ...(image && { image }),
+        ...(stock && {stock}),
         updatedAt: new Date(),
       },
     });

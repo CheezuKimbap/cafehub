@@ -159,6 +159,8 @@ model Product {
   description String
   isDeleted   Boolean       @default(false)
   price       Int
+  stock       Int           @default(0) // 👈 current stock level
+  lowStock    Int           @default(5) // 👈 threshold for low stock alerts
   freeItems   FreeItem[]
   orderItems  OrderItem[]
   cartItems   CartItem[]

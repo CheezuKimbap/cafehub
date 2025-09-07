@@ -19,20 +19,21 @@ export const fetchOrders = createAsyncThunk("orders/fetchOrders", async () => {
 });
 
 // orderSlice.ts
-export const fetchOrdersbyCustomerId = createAsyncThunk<
+export const fetchOrdersByCustomerId = createAsyncThunk<
   Order[],
-  { customerId?: string } | void
->("orders/fetchOrdersbyCustomerId", async (params) => {
-  const query = params?.customerId ? `?customerId=${params.customerId}` : "";
-  const res = await fetch(`/api/orders${query}`, {
+  { customerId: string }
+>("order/fetchOrdersByCustomerId", async ({ customerId }) => {
+  const res = await fetch(`/api/orders?customerId=${customerId}`, {
+    method: "GET",
     headers: {
       "Content-Type": "application/json",
       "x-api-key": API_KEY,
     },
   });
   if (!res.ok) throw new Error("Failed to fetch orders");
-  return res.json();
+  return (await res.json()) as Order[];
 });
+
 // --- Thunks ---
 export const updateOrderStatus = createAsyncThunk<
   Order,
@@ -62,30 +63,39 @@ const initialState: OrdersState = { orders: [], status: "idle" };
 const ordersSlice = createSlice({
   name: "orders",
   initialState,
-  reducers: {},
+  reducers: {
+    resetOrders: (state) => {
+      state.orders = [];
+      state.status = "idle";
+      state.error = undefined;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchOrdersbyCustomerId.pending, (state) => {
+      .addCase(fetchOrdersByCustomerId.pending, (state) => {
         state.status = "loading";
       })
       .addCase(
-        fetchOrdersbyCustomerId.fulfilled,
+        fetchOrdersByCustomerId.fulfilled,
         (state, action: PayloadAction<Order[]>) => {
-          state.status = "idle";
+          state.status = "success";
           state.orders = action.payload;
         }
       )
-      .addCase(fetchOrdersbyCustomerId.rejected, (state, action) => {
+      .addCase(fetchOrdersByCustomerId.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })
       .addCase(fetchOrders.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchOrders.fulfilled, (state, action) => {
-        state.status = "success"; // ✅ must match type
-        state.orders = action.payload;
-      })
+      .addCase(
+        fetchOrders.fulfilled,
+        (state, action: PayloadAction<Order[]>) => {
+          state.status = "success";
+          state.orders = action.payload;
+        }
+      )
       .addCase(fetchOrders.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message ?? "Something went wrong";
@@ -94,4 +104,5 @@ const ordersSlice = createSlice({
 });
 
 export const selectOrders = (state: RootState) => state.order.orders;
+export const selectOrderStatus = (state: RootState) => state.order.status;
 export default ordersSlice.reducer;
