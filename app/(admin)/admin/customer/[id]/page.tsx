@@ -1,3 +1,5 @@
+import CustomerOrders from "@/components/admin/customer/CustomerOrder";
+
 interface PageProps {
   params: Promise<{ id: string }>; // Declare params as a Promise
 }
@@ -9,7 +11,7 @@ export default async function Page({ params }: PageProps) {
   return (
     <div>
       <h1>Customer ID: {id}</h1>
-      {/* ... rest of your component */}
+      <CustomerOrders customerId={id} />
     </div>
   );
 }

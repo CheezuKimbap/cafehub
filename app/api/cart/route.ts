@@ -53,11 +53,13 @@ export async function POST(req: NextRequest) {
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
     // Check if product already exists in cart
+   // Check if product with the same servingType already exists in cart
     const existingItem = await prisma.cartItem.findFirst({
-      where: { cartId: cart.id, productId },
+      where: { cartId: cart.id, productId, servingType },
     });
 
     if (existingItem) {
+      // Update quantity & total price for this line item
       await prisma.cartItem.update({
         where: { id: existingItem.id },
         data: {
@@ -66,16 +68,18 @@ export async function POST(req: NextRequest) {
         },
       });
     } else {
+      // Create a new cart item
       await prisma.cartItem.create({
         data: {
           cartId: cart.id,
           productId,
           quantity,
           servingType,
-          price: product.price * quantity,
+          price: product.price * quantity, // total price for this line
         },
       });
     }
+
 
     return NextResponse.json({ message: "Item added to cart" });
   } catch (error) {

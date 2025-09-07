@@ -5,7 +5,11 @@ import { CartItem } from "@/components/cart/CartItem";
 
 interface CartListProps {
   items: CartItemType[];
-  onUpdateQuantity: (itemId: string, quantity: number) => void;
+  onUpdateQuantity: (
+    itemId: string,
+    quantity: number,
+    callAPI: boolean
+  ) => void;
   onRemove: (cartItemId: string) => void;
 }
 
@@ -19,7 +23,7 @@ export function CartList({ items, onUpdateQuantity, onRemove }: CartListProps) {
           product={item.product}
           servingType={item.servingType}
           quantity={item.quantity}
-          onUpdateQuantity={onUpdateQuantity}
+          onUpdateQuantity={onUpdateQuantity} // now passes callAPI from CartItem
           onRemove={onRemove}
         />
       ))}
