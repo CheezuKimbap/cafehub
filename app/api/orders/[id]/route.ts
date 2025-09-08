@@ -36,7 +36,7 @@ export async function PUT(req: NextRequest, context: any) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
-  const { id } = context.params as { id: string };
+  const { id } = await context.params as { id: string };
 
   try {
     const body = await req.json();

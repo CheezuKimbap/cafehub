@@ -214,7 +214,7 @@ enum PaymentStatus {
 }
 enum OrderStatus {
   PENDING
-  PREPAIRING
+  PREPARING
   READYTOPICKUP  
   COMPLETED
   CANCELLED

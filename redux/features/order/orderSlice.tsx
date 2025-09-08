@@ -62,11 +62,14 @@ export const updateOrderStatus = createAsyncThunk<
 export interface OrdersState {
   orders: Order[];
   status: "idle" | "loading" | "failed" | "success";
+  updatingOrderIds: string[]; // track which orders are being updated
   error?: string;
 }
-
-const initialState: OrdersState = { orders: [], status: "idle" };
-
+const initialState: OrdersState = {
+  orders: [],
+  status: "idle",
+  updatingOrderIds: [],
+};
 const ordersSlice = createSlice({
   name: "orders",
   initialState,
@@ -106,10 +109,44 @@ const ordersSlice = createSlice({
       .addCase(fetchOrders.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message ?? "Something went wrong";
+      })
+      .addCase(updateOrderStatus.pending, (state, action) => {
+        state.updatingOrderIds.push(action.meta.arg.id);
+      })
+      // ordersSlice.ts
+      .addCase(
+        updateOrderStatus.fulfilled,
+        (
+          state,
+          action: PayloadAction<{
+            id: string;
+            status: OrderStatus;
+            paymentStatus?: PaymentStatus;
+          }>
+        ) => {
+          const updated = action.payload;
+          const index = state.orders.findIndex((o) => o.id === updated.id);
+          if (index !== -1) {
+            // Merge the new status and paymentStatus into the existing order
+            state.orders[index] = {
+              ...state.orders[index],
+              status: updated.status,
+              paymentStatus:
+                updated.paymentStatus ?? state.orders[index].paymentStatus,
+            };
+          }
+        }
+      )
+
+      .addCase(updateOrderStatus.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message ?? "Failed to update order status";
       });
   },
 });
 
-export const selectOrders = (state: RootState) => state.order.orders;
-export const selectOrderStatus = (state: RootState) => state.order.status;
+export const selectOrders = (state: RootState) => state.order?.orders ?? [];
+export const selectOrderStatus = (state: RootState) =>
+  state.order?.status ?? "idle";
+
 export default ordersSlice.reducer;
