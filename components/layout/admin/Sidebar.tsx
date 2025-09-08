@@ -3,7 +3,7 @@
 import { Manrope, Sora } from "next/font/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Package, User, Settings, LogOut } from "lucide-react";
+import { LogOut, Home, Package, Settings, User, Menu } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { resetStore } from "@/redux/store";
 
@@ -18,18 +18,37 @@ const manrope = Manrope({
   display: "swap",
 });
 
-const navItems = [
-  { label: "Dashboard", href: "/admin/dashboard", icon: <Home size={20} /> },
-  { label: "Inventory", href: "/admin/inventory", icon: <Package size={20} /> },
-  { label: "Customer", href: "/admin/customer", icon: <User size={20} /> },
-];
+// map string → lucide icon
+const icons = {
+  home: Home,
+  package: Package,
+  user: User,
+  settings: Settings,
+  menu: Menu,
+};
 
-const bottomNavItems = [
-  { label: "Settings", href: "/admin/settings", icon: <Settings size={20} /> },
-];
+export interface NavItem {
+  label: string;
+  href: string;
+  icon: keyof typeof icons; // string key
+  position?: "top" | "bottom"; // default top
+}
 
-export function Sidebar() {
+type SidebarProps = {
+  items: NavItem[];
+  title?: string;
+  showLogout?: boolean;
+};
+
+export function Sidebar({
+  items,
+  title = "Coffeessentials",
+  showLogout = true,
+}: SidebarProps) {
   const pathname = usePathname();
+
+  const topNav = items.filter((i) => !i.position || i.position === "top");
+  const bottomNav = items.filter((i) => i.position === "bottom");
 
   return (
     <aside className="w-64 h-screen bg-white border-r-2 flex flex-col justify-between">
@@ -38,11 +57,12 @@ export function Sidebar() {
         <h1
           className={`${sora.className} font-extrabold text-2xl text-[#787878] p-4`}
         >
-          Coffeessentials
+          {title}
         </h1>
 
         <nav className="flex flex-col gap-2 p-4">
-          {navItems.map((item) => {
+          {topNav.map((item) => {
+            const Icon = icons[item.icon];
             const isActive = pathname.startsWith(item.href);
 
             return (
@@ -55,7 +75,7 @@ export function Sidebar() {
                     : "hover:bg-gray-100 text-gray-700"
                 }`}
               >
-                {item.icon}
+                <Icon size={20} />
                 <span className={manrope.className}>{item.label}</span>
               </Link>
             );
@@ -65,8 +85,10 @@ export function Sidebar() {
 
       {/* Bottom Section */}
       <nav className="flex flex-col gap-2 p-4 mb-4">
-        {bottomNavItems.map((item) => {
+        {bottomNav.map((item) => {
+          const Icon = icons[item.icon];
           const isActive = pathname === item.href;
+
           return (
             <Link
               key={item.href}
@@ -77,21 +99,24 @@ export function Sidebar() {
                   : "hover:bg-gray-100 text-gray-700"
               }`}
             >
-              {item.icon}
+              <Icon size={20} />
               <span className={manrope.className}>{item.label}</span>
             </Link>
           );
         })}
-        <button
-          onClick={async () => {
-            resetStore();
-            await signOut({ callbackUrl: "/admin/login" });
-          }}
-          className="flex items-center gap-2 px-4 py-2 rounded-md font-medium hover:bg-gray-100 text-gray-700"
-        >
-          <LogOut size={20} />
-          <span>Logout</span>
-        </button>
+
+        {showLogout && (
+          <button
+            onClick={async () => {
+              resetStore();
+              await signOut({ callbackUrl: "/admin/login" });
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-md font-medium hover:bg-gray-100 text-gray-700"
+          >
+            <LogOut size={20} />
+            <span>Logout</span>
+          </button>
+        )}
       </nav>
     </aside>
   );

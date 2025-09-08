@@ -21,6 +21,10 @@ export default auth(async function middleware(req) {
   if (pathname.startsWith("/admin") && !token) {
     return NextResponse.redirect(new URL("/admin/login", req.url));
   }
+
+  if (pathname.startsWith("/barista") && !token) {
+    return NextResponse.redirect(new URL("/barista/login", req.url));
+  }
     return NextResponse.next();
 },
 )
