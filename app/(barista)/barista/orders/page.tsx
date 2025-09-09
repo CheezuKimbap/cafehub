@@ -1,4 +1,5 @@
 "use client";
+import { Clock, Utensils, Package, CheckCircle } from "lucide-react";
 
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
@@ -62,7 +63,24 @@ export default function BaristaBoard() {
     <div className="grid grid-cols-4 gap-4">
       {columns.map((col) => (
         <div key={col.key} className="space-y-4">
-          <h2 className="text-lg font-semibold">{col.title}</h2>
+          <h2
+            className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border shadow-sm font-semibold uppercase text-sm tracking-wide
+    ${
+      col.key === "PENDING"
+        ? "bg-orange-100 text-orange-800 border-orange-300"
+        : col.key === "PREPARING"
+        ? "bg-orange-200 text-orange-900 border-orange-400"
+        : col.key === "READYTOPICKUP"
+        ? "bg-green-100 text-green-800 border-green-300"
+        : "bg-gray-100 text-gray-800 border-gray-300"
+    }`}
+          >
+            {col.key === "PENDING" && <Clock className="w-4 h-4" />}
+            {col.key === "PREPARING" && <Utensils className="w-4 h-4" />}
+            {col.key === "READYTOPICKUP" && <Package className="w-4 h-4" />}
+            {col.key === "COMPLETED" && <CheckCircle className="w-4 h-4" />}
+            {col.title}
+          </h2>
 
           {orders
             .filter((o) => o.status === col.key)
@@ -71,7 +89,13 @@ export default function BaristaBoard() {
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     <span>#{order.id}</span>
-                    <Badge>
+                    <Badge
+                      className={
+                        order.paymentStatus === "UNPAID"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-green-100 text-green-700"
+                      }
+                    >
                       {order.paymentStatus === "UNPAID"
                         ? "Unpaid"
                         : order.status}
@@ -82,61 +106,71 @@ export default function BaristaBoard() {
                   </p>
                 </CardHeader>
 
-                <CardContent>
-                  <p className="font-medium text-sm">
+                <CardContent className="pt-3 space-y-2">
+                  <p className="font-medium text-sm text-gray-800">
                     {order.customer?.firstName ?? "Guest"}
                   </p>
-                  <ul className="my-2 text-xs space-y-1">
+
+                  <ul className="text-xs text-gray-600 space-y-1">
                     {order.orderItems?.map((item) => (
-                      <li key={item.id}>
-                        {item.quantity}x{" "}
-                        {item.product?.name ?? "Unknown Product"}
+                      <li key={item.id} className="flex justify-between">
+                        <span>
+                          {item.quantity}×{" "}
+                          {item.product?.name ?? "Unknown Product"}
+                        </span>
+                        <span className="font-medium text-gray-700">
+                          ₱{(item.product?.price ?? 0) * item.quantity}
+                        </span>
                       </li>
                     ))}
                   </ul>
 
-                  {/* Payment Button (can be done anytime) */}
-                  {order.paymentStatus === "UNPAID" && (
-                    <Button
-                      onClick={() =>
-                        handleUpdateStatus(order.id, order.status, "PAID")
-                      }
-                      className="w-full mt-2"
-                      variant="destructive"
-                    >
-                      Mark as Paid
-                    </Button>
-                  )}
+                  {/* Actions */}
+                  <div className="pt-2 space-y-2">
+                    {order.paymentStatus === "UNPAID" && (
+                      <Button
+                        onClick={() =>
+                          handleUpdateStatus(order.id, order.status, "PAID")
+                        }
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      >
+                        Mark as Paid
+                      </Button>
+                    )}
 
-                  {/* Workflow buttons (independent of payment) */}
-                  {order.status === "PENDING" && (
-                    <Button
-                      onClick={() => handleUpdateStatus(order.id, "PREPARING")}
-                      className="w-full mt-2"
-                    >
-                      Start Preparing
-                    </Button>
-                  )}
-                  {order.status === "PREPARING" && (
-                    <Button
-                      onClick={() =>
-                        handleUpdateStatus(order.id, "READYTOPICKUP")
-                      }
-                      className="w-full mt-2"
-                      variant="secondary"
-                    >
-                      Mark Ready
-                    </Button>
-                  )}
-                  {order.status === "READYTOPICKUP" && (
-                    <Button
-                      onClick={() => handleUpdateStatus(order.id, "COMPLETED")}
-                      className="w-full mt-2"
-                      variant="outline"
-                    >
-                      Mark Picked Up
-                    </Button>
-                  )}
+                    {order.status === "PENDING" && (
+                      <Button
+                        onClick={() =>
+                          handleUpdateStatus(order.id, "PREPARING")
+                        }
+                        className="w-full bg-orange-400 hover:bg-orange-500 text-white"
+                      >
+                        Start Preparing
+                      </Button>
+                    )}
+
+                    {order.status === "PREPARING" && (
+                      <Button
+                        onClick={() =>
+                          handleUpdateStatus(order.id, "READYTOPICKUP")
+                        }
+                        className="w-full bg-green-500 hover:bg-green-600 text-white"
+                      >
+                        Mark Ready
+                      </Button>
+                    )}
+
+                    {order.status === "READYTOPICKUP" && (
+                      <Button
+                        onClick={() =>
+                          handleUpdateStatus(order.id, "COMPLETED")
+                        }
+                        className="w-full border border-gray-300 text-gray-700 hover:bg-gray-100"
+                      >
+                        Mark Picked Up
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}

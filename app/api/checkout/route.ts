@@ -58,6 +58,10 @@ export async function POST(req: NextRequest) {
       prisma.cart.update({
         where: { id: cart.id },
         data: { status: "CHECKED_OUT" },
+      }),     
+
+       prisma.cartItem.deleteMany({
+        where: { cartId: cart.id }, // delete all items in this cart
       }),
     ]);
 
@@ -73,6 +77,7 @@ export async function POST(req: NextRequest) {
           status: "PENDING",
         },
       });
+
     }
 
     return NextResponse.json({
