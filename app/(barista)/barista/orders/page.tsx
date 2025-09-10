@@ -165,7 +165,7 @@ export default function BaristaBoard() {
                         onClick={() =>
                           handleUpdateStatus(order.id, "COMPLETED")
                         }
-                        className="w-full border border-gray-300 text-gray-700 hover:bg-gray-100"
+                        className="w-full border border-gray-300 text-white hover:bg-gray-100"
                       >
                         Mark Picked Up
                       </Button>

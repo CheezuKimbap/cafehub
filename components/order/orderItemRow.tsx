@@ -12,7 +12,7 @@ export function OrderItemRow({ item }: OrderItemRowProps) {
       <td className="px-2 py-1">{item.product.name}</td>
       <td className="px-2 py-1 text-center">{item.quantity}</td>
       <td className="px-2 py-1 text-center">{item.servingType}</td>
-      <td className="px-2 py-1 text-right">${item.priceAtPurchase}</td>
+      <td className="px-2 py-1 text-right">P{item.priceAtPurchase}</td>
     </tr>
   );
 }

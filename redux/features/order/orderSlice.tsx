@@ -111,36 +111,40 @@ const ordersSlice = createSlice({
         state.error = action.error.message ?? "Something went wrong";
       })
       .addCase(updateOrderStatus.pending, (state, action) => {
-        state.updatingOrderIds.push(action.meta.arg.id);
-      })
-      // ordersSlice.ts
-      .addCase(
-        updateOrderStatus.fulfilled,
-        (
-          state,
-          action: PayloadAction<{
-            id: string;
-            status: OrderStatus;
-            paymentStatus?: PaymentStatus;
-          }>
-        ) => {
-          const updated = action.payload;
-          const index = state.orders.findIndex((o) => o.id === updated.id);
-          if (index !== -1) {
-            // Merge the new status and paymentStatus into the existing order
-            state.orders[index] = {
-              ...state.orders[index],
-              status: updated.status,
-              paymentStatus:
-                updated.paymentStatus ?? state.orders[index].paymentStatus,
-            };
-          }
-        }
-      )
+        const { id, status, paymentStatus } = action.meta.arg;
+        state.updatingOrderIds.push(id);
 
+        const index = state.orders.findIndex((o) => o.id === id);
+        if (index !== -1) {
+          // Optimistically update
+          state.orders[index] = {
+            ...state.orders[index],
+            status,
+            paymentStatus: paymentStatus ?? state.orders[index].paymentStatus,
+          };
+        }
+      })
+      .addCase(updateOrderStatus.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const index = state.orders.findIndex((o) => o.id === updated.id);
+        if (index !== -1) {
+          // Confirm with backend response (in case of mismatch)
+          state.orders[index] = updated;
+        }
+        state.updatingOrderIds = state.updatingOrderIds.filter(
+          (orderId) => orderId !== updated.id
+        );
+      })
       .addCase(updateOrderStatus.rejected, (state, action) => {
-        state.status = "failed";
+        const { id } = action.meta.arg;
+        state.updatingOrderIds = state.updatingOrderIds.filter(
+          (orderId) => orderId !== id
+        );
         state.error = action.error.message ?? "Failed to update order status";
+
+        // Rollback: could refetch or keep as-is
+        // Safer option: re-fetch orders
+        // (or you could snapshot previous state before optimistic update)
       });
   },
 });

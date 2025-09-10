@@ -5,6 +5,14 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { fetchOrdersByCustomerId } from "@/redux/features/order/orderSlice";
 import { OrderCard } from "@/components/order/orderCard";
 import { useSession } from "next-auth/react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+const STATUS_ORDER = [
+  "PENDING",
+  "PREPARING",
+  "READY_TO_PICKUP",
+  "COMPLETED",
+] as const;
 
 export default function OrdersPage() {
   const dispatch = useAppDispatch();
@@ -12,11 +20,10 @@ export default function OrdersPage() {
   const { data: session, status: authStatus } = useSession();
 
   useEffect(() => {
-    if (authStatus === "authenticated" && session?.user?.id) {
+    if (authStatus === "authenticated" && session?.user?.customerId) {
       dispatch(
-        fetchOrdersByCustomerId({ customerId: session.user.customerId! })
+        fetchOrdersByCustomerId({ customerId: session.user.customerId })
       );
-      // pass user id if your thunk needs it
     }
   }, [dispatch, session, authStatus]);
 
@@ -28,12 +35,33 @@ export default function OrdersPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Orders</h1>
-      {orders.length === 0 ? (
-        <p>No orders found.</p>
-      ) : (
-        orders.map((order) => <OrderCard key={order.id} order={order} />)
-      )}
+      <h1 className="text-2xl font-bold mb-6">My Orders</h1>
+
+      <Tabs defaultValue="PENDING" className="w-full">
+        {/* Tab buttons */}
+        <TabsList className="grid w-full grid-cols-4">
+          {STATUS_ORDER.map((s) => (
+            <TabsTrigger key={s} value={s}>
+              {s.replace("_", " ").toLowerCase()}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {/* Tab content */}
+        {STATUS_ORDER.map((s) => (
+          <TabsContent key={s} value={s} className="mt-4 space-y-4">
+            {orders.filter((o) => o.status === s).length === 0 ? (
+              <p className="text-sm text-gray-500">
+                No {s.toLowerCase()} orders.
+              </p>
+            ) : (
+              orders
+                .filter((o) => o.status === s)
+                .map((order) => <OrderCard key={order.id} order={order} />)
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }

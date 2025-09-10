@@ -26,7 +26,7 @@ type Props = {
 
 export function ProductCard({ id, name, description, price, imageUrl }: Props) {
   return (
-    <Link href={`/menu/${id}`}>
+    <Link href={`/menu/${id}`} className="">
       <Card className="flex flex-col justify-between hover:shadow-md transition bg-[#F4F4F4] shadow-sm">
         <CardHeader>
           <img
