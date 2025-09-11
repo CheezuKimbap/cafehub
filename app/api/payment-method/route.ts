@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
-
+    
     // Enforce 1:1 relationship
     const existingPayment = await prisma.paymentMethod.findUnique({
       where: { orderId },

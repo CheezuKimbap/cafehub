@@ -75,7 +75,63 @@ export async function PUT(req: NextRequest, context: any) {
         ...(status ? { status: status as OrderStatus } : {}),
         ...(paymentStatus ? { paymentStatus: paymentStatus as PaymentStatus } : {}),
       },
+      include:{
+        customer: true,
+        orderItems: {
+          include:{
+            product:true
+          }
+        }
+      }
+      
     });
+
+    console.log(updatedOrder)
+
+  
+
+   if (updatedOrder.status === OrderStatus.COMPLETED && updatedOrder.paymentStatus=== PaymentStatus.PAID) {
+   const stampsEarned = updatedOrder.orderItems.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+
+      const currentCustomer = await prisma.customer.findUnique({
+        where: { id: updatedOrder.customerId },
+        select: { currentStamps: true },
+      });
+
+      let updatedCustomer = await prisma.customer.update({
+        where: { id: updatedOrder.customerId },
+        data: {
+          currentStamps: currentCustomer?.currentStamps
+            ? { increment: stampsEarned }
+            : stampsEarned, // initialize directly if null
+        },
+      });
+
+      // Clamp to max 10 after increment
+      if (updatedCustomer.currentStamps > 10) {
+        updatedCustomer = await prisma.customer.update({
+          where: { id: updatedOrder.customerId },
+          data: { currentStamps: 10 },
+        });
+      }
+    else if (updatedCustomer.currentStamps >= 5) {
+      await prisma.discount.create({
+        data: {
+          description: "50% Discount",
+          discountAmount: 50,
+          isForLoyalCustomer: true,
+          customerId: updatedCustomer.id,
+        },
+      });
+      
+    }
+      console.log(updatedCustomer)
+  }
+
+
 
     return NextResponse.json(
       { message: "Order updated", order: updatedOrder },

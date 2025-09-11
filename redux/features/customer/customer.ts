@@ -10,5 +10,6 @@ export interface Customer {
   email: string;
   profile?: Profile;
   orders?: Order[]; // <-- add this
+  currentStamps?: number;
 }
 

@@ -104,9 +104,9 @@ model Customer {
   carts        Cart[] 
   reviews      Review[]
   notifications Notification[]
-
+  currentStamps Int      @default(0)   // balance 0–10
   users        User[]
-
+  discount     Discount[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   deletedAt    DateTime?
@@ -147,7 +147,13 @@ model Discount {
   description        String
   discountAmount     Int
   isForLoyalCustomer Boolean  @default(false)
+  isRedeemed         Boolean  @default(false)   // ✅ new field
+  customerId         String
+  customer           Customer @relation(fields: [customerId], references: [id])
+  createdAt          DateTime @default(now())
+  usedAt             DateTime?
 }
+
 
 // -------------------------
 // Product Table

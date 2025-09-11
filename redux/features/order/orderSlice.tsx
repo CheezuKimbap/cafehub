@@ -128,13 +128,16 @@ const ordersSlice = createSlice({
         const updated = action.payload;
         const index = state.orders.findIndex((o) => o.id === updated.id);
         if (index !== -1) {
-          // Confirm with backend response (in case of mismatch)
-          state.orders[index] = updated;
+          state.orders[index] = {
+            ...state.orders[index], // keep optimistic status
+            ...updated, // merge new fields from backend
+          };
         }
         state.updatingOrderIds = state.updatingOrderIds.filter(
           (orderId) => orderId !== updated.id
         );
       })
+
       .addCase(updateOrderStatus.rejected, (state, action) => {
         const { id } = action.meta.arg;
         state.updatingOrderIds = state.updatingOrderIds.filter(

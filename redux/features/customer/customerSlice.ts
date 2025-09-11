@@ -51,22 +51,22 @@ export const fetchCustomers = createAsyncThunk<Customer[], void>(
   }
 );
 
-// // Fetch single customer by ID
-// export const fetchCustomerById = createAsyncThunk<Customer, string>(
-//   "customer/fetchCustomerById",
-//   async (customerId) => {
-//     const res = await fetch(`/api/customer/${customerId}`, {
-//       method: "GET",
-//       headers: {
-//         "Content-Type": "application/json",
-//         "x-api-key": API_KEY,
-//       },
-//     });
+// Fetch single customer by ID
+export const fetchCustomerById = createAsyncThunk<Customer, string>(
+  "customer/fetchCustomerById",
+  async (customerId) => {
+    const res = await fetch(`/api/customer/${customerId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,
+      },
+    });
 
-//     if (!res.ok) throw new Error("Failed to fetch customer");
-//     return (await res.json()) as Customer;
-//   }
-// );
+    if (!res.ok) throw new Error("Failed to fetch customer");
+    return (await res.json()) as Customer;
+  }
+);
 
 // --- State ---
 interface CustomerState {
@@ -108,7 +108,12 @@ const customerSlice = createSlice({
       .addCase(registerCustomer.fulfilled, (state, action: PayloadAction<Customer>) => {
         state.status = "idle";
         state.singleCustomer = action.payload;
-        state.customers.push(action.payload); // optional: add new customer to list
+
+        // Prevent duplicates in the list
+        state.customers = [
+          ...state.customers.filter((c) => c.id !== action.payload.id),
+          action.payload,
+        ];
       })
       .addCase(registerCustomer.rejected, (state, action) => {
         state.status = "failed";
@@ -126,18 +131,19 @@ const customerSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
       })
-      // // Fetch single customer
-      // .addCase(fetchCustomerById.pending, (state) => {
-      //   state.status = "loading";
-      // })
-      // .addCase(fetchCustomerById.fulfilled, (state, action: PayloadAction<Customer>) => {
-      //   state.status = "idle";
-      //   state.singleCustomer = action.payload;
-      // })
-      // .addCase(fetchCustomerById.rejected, (state, action) => {
-      //   state.status = "failed";
-      //   state.error = action.error.message;
-      // });
+      // Fetch single customer
+    .addCase(fetchCustomerById.pending, (state) => {
+      state.status = "loading";
+    })
+    .addCase(fetchCustomerById.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.singleCustomer = action.payload;
+    })
+    .addCase(fetchCustomerById.rejected, (state, action) => {
+      state.status = "failed";
+      state.error = action.error.message;
+    })
+
   },
 });
 

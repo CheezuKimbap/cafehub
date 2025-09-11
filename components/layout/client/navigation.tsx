@@ -1,10 +1,16 @@
 "use client";
-
+import {
+  ShoppingBasket,
+  User,
+  ShoppingBag,
+  Star,
+  LogOut,
+  LogIn,
+} from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ShoppingBasket, User } from "lucide-react";
 import { useAppSelector } from "@/redux/hook";
 import { resetStore } from "@/redux/store";
 
@@ -156,38 +162,67 @@ function Navigation() {
                             <User className="w-6 h-6" />
                           </button>
                           {profileOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50 p-4">
+                            <div className="absolute top-full right-0 mt-4 w-56 bg-white border rounded-2xl shadow-lg z-50 p-4">
                               {session ? (
                                 <>
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <User className="w-6 h-6" />
-                                    <span className="font-semibold">
-                                      {session.user?.name}
+                                  {/* User Info */}
+                                  <div className="flex items-center gap-3 mb-4 p-2 rounded-lg bg-gray-50 px-4">
+                                    <span className="font-semibold text-gray-800 truncate">
+                                      Hi, {session?.user?.name ?? "Guest"}
                                     </span>
                                   </div>
+
+                                  {/* Profile */}
+                                  <button
+                                    onClick={() => router.push(`/profile`)}
+                                    className="flex items-center space-x-2 w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                  >
+                                    <User className="w-5 h-5 text-gray-500" />
+                                    <span>My Profile</span>
+                                  </button>
+
+                                  {/* Activity */}
                                   <button
                                     onClick={() => router.push("/order")}
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded transition-colors"
+                                    className="flex items-center space-x-2 w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
                                   >
-                                    Orders
+                                    <ShoppingBag className="w-5 h-5 text-gray-500" />
+                                    <span>Activity</span>
                                   </button>
+
+                                  {/* Stamps */}
+                                  <button
+                                    onClick={() =>
+                                      router.push(
+                                        `/stamp/${session.user.customerId}`
+                                      )
+                                    }
+                                    className="flex items-center space-x-2 w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                  >
+                                    <Star className="w-5 h-5 text-yellow-500" />
+                                    <span>Stamps</span>
+                                  </button>
+
+                                  {/* Sign Out */}
                                   <button
                                     onClick={async () => {
                                       resetStore();
                                       await signOut({ callbackUrl: "/" });
                                     }}
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded transition-colors"
+                                    className="flex items-center space-x-2 w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors text-red-600"
                                   >
-                                    Sign out
+                                    <LogOut className="w-5 h-5" />
+                                    <span>Sign out</span>
                                   </button>
                                 </>
                               ) : (
                                 <Link
                                   href="/login"
-                                  className="block px-4 py-2 hover:bg-gray-100 rounded transition-colors"
+                                  className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
                                   onClick={() => setProfileOpen(false)}
                                 >
-                                  Login
+                                  <LogIn className="w-5 h-5 text-gray-500" />
+                                  <span>Login</span>
                                 </Link>
                               )}
                             </div>

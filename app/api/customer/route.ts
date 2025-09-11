@@ -17,9 +17,20 @@ export async function GET(req: NextRequest) {
         orders: true, // include order history if needed
       },
     });
-
+  const safeCustomers = customers.map((c) => ({
+    id: c.id,
+    email: c.email,
+    firstName: c.firstName,
+    lastName: c.lastName,
+    currentStamps: c.currentStamps,
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
+    profile: c.profile,
+    orders: c.orders,
+    // 👇 don't include password (or any other private fields)
+  }));
     // 3. Return JSON response
-    return NextResponse.json(customers);
+    return NextResponse.json(safeCustomers);
   } catch (error) {
     console.error("Failed to fetch customers:", error);
     return NextResponse.json(
