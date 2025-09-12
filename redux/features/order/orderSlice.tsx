@@ -129,8 +129,10 @@ const ordersSlice = createSlice({
         const index = state.orders.findIndex((o) => o.id === updated.id);
         if (index !== -1) {
           state.orders[index] = {
-            ...state.orders[index], // keep optimistic status
-            ...updated, // merge new fields from backend
+            ...state.orders[index],
+            // trust optimistic update for status
+            ...updated,
+            status: state.orders[index].status,
           };
         }
         state.updatingOrderIds = state.updatingOrderIds.filter(
