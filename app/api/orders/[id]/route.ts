@@ -86,8 +86,6 @@ export async function PUT(req: NextRequest, context: any) {
       
     });
 
-    console.log(updatedOrder)
-
   
 
    if (updatedOrder.status === OrderStatus.COMPLETED && updatedOrder.paymentStatus=== PaymentStatus.PAID) {
@@ -106,33 +104,37 @@ export async function PUT(req: NextRequest, context: any) {
         data: {
           currentStamps: currentCustomer?.currentStamps
             ? { increment: stampsEarned }
-            : stampsEarned, // initialize directly if null
+            : stampsEarned, 
         },
       });
 
-      // Clamp to max 10 after increment
+     
       if (updatedCustomer.currentStamps > 10) {
         updatedCustomer = await prisma.customer.update({
           where: { id: updatedOrder.customerId },
           data: { currentStamps: 10 },
         });
+
+          await prisma.discount.create({
+          data: {
+            description: "Free Drinks",
+            discountAmount: 100,
+            isForLoyalCustomer: true,
+            customerId: updatedCustomer.id,
+          },
+        });
       }
-    else if (updatedCustomer.currentStamps >= 5) {
-      await prisma.discount.create({
-        data: {
-          description: "50% Discount",
-          discountAmount: 50,
-          isForLoyalCustomer: true,
-          customerId: updatedCustomer.id,
-        },
-      });
-      
-    }
-      console.log(updatedCustomer)
+      else if (updatedCustomer.currentStamps >= 5) {
+        await prisma.discount.create({
+          data: {
+            description: "50% Discount",
+            discountAmount: 50,
+            isForLoyalCustomer: true,
+            customerId: updatedCustomer.id,
+          },
+        });        
+    }      
   }
-
-
-
     return NextResponse.json(
       { message: "Order updated", order: updatedOrder },
       { status: 200 }

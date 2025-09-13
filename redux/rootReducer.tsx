@@ -5,13 +5,14 @@ import cartReducer from "./features/cart/cartSlice";
 import checkoutReducer from "./features/checkout/checkoutSlice";
 import orderReducer from "./features/order/orderSlice";
 import customerReducer from "./features/customer/customerSlice";
-
+import discountReducer from "./features/discount/discountSlice";
 const appReducer = combineReducers({
   products: productReducer,
   cart: cartReducer,
   checkout: checkoutReducer,
   order: orderReducer,
   customer: customerReducer,
+  discount: discountReducer,
 });
 
 const rootReducer = (state: any, action: any) => {

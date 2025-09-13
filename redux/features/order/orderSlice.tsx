@@ -139,7 +139,6 @@ const ordersSlice = createSlice({
           (orderId) => orderId !== updated.id
         );
       })
-
       .addCase(updateOrderStatus.rejected, (state, action) => {
         const { id } = action.meta.arg;
         state.updatingOrderIds = state.updatingOrderIds.filter(

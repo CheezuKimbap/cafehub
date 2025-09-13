@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   if (authError) return authError;
 
   try {
-    const { customerId, discountCode, paymentType, paymentProvider, paymentDetails } = await req.json();
+    const { customerId, discountId, paymentType, paymentProvider, paymentDetails } = await req.json();
 
     if (!customerId) {
       return NextResponse.json({ error: "CustomerId required" }, { status: 400 });
@@ -27,13 +27,18 @@ export async function POST(req: NextRequest) {
 
     // 3. Apply discount
      let discountApplied = 0;
-    // if (discountCode) {
-    //   const voucher = await prisma.discount.findUnique({ where: { code: discountCode } });
-    //   if (voucher && voucher.isActive) {
-    //     discountApplied = voucher.amount; // or % calculation if you store it
-    //     totalAmount -= discountApplied;
-    //   }
-    // }
+  
+    if (discountId){
+      const discount = await prisma.discount.findUnique({
+        where: { id: discountId},
+      });
+
+      if(discount && discount.customerId == customerId && !discount.isRedeemed){
+        discountApplied = discount.discountAmount;
+        totalAmount = Math.max(0, )
+      }
+    }
+
 
     // 4. Transaction → Create Order + Payment + Close Cart
     const [order] = await prisma.$transaction([

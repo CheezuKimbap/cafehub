@@ -9,7 +9,7 @@ import { headers } from "next/headers";
 export default async function LoginPage() {
   const session = await auth();
 
-  if (session) redirect("/menu"); // redirect if already logged in
+  if (session) redirect("/barista/orders"); // redirect if already logged in
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-[#f5e6cc] relative">

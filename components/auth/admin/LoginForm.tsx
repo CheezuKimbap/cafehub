@@ -75,28 +75,12 @@ export function LoginForm() {
             <p className="text-red-500 text-center text-sm">{loginError}</p>
           )}
 
-          <div className="flex justify-end">
-            <Link
-              href="/forgot-password"
-              className="text-xs text-gray-600 hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </div>
-
           <Button
             type="submit"
             className="w-full bg-black text-white rounded-full"
           >
             Sign In
           </Button>
-
-          <p className="text-center text-sm text-gray-600">
-            Don’t have an account?{" "}
-            <Link href="/signup" className="underline">
-              Sign up
-            </Link>
-          </p>
         </form>
       </CardContent>
     </Card>

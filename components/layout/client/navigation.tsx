@@ -48,7 +48,7 @@ function Navigation() {
   const isHome = pathname === "/";
   const navItems = isHome ? navItemsHome : navItemsOther;
 
-  const NAV_HIDDEN_PATHS = ["/register", "/login", "/forgot-password"];
+  const NAV_HIDDEN_PATHS = ["/register", "/login", "/forgot-password", "/404"];
   const shouldHideNav =
     NAV_HIDDEN_PATHS.some((path) => pathname.startsWith(path)) ||
     pathname.startsWith("/admin") ||

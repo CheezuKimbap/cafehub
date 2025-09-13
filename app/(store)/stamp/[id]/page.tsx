@@ -42,7 +42,7 @@ export default function StampRoute() {
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold">Loyalty Bean Card</h1>
+          <h1 className="text-2xl font-semibold">Coffeessential Stamp</h1>
           <p className="text-sm text-muted-foreground">
             Collect 10 beans to get a free drink
           </p>

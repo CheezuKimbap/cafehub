@@ -16,6 +16,10 @@ import { useParams } from "next/navigation";
 import { fetchProductById } from "@/redux/features/products/productsSlice";
 import { useSession } from "next-auth/react";
 import { addItemToCart, fetchCart } from "@/redux/features/cart/cartSlice";
+import {
+  fetchDiscountById,
+  fetchDiscountsByCustomer,
+} from "@/redux/features/discount/discountSlice";
 
 export function ProductDetails() {
   const params = useParams();
@@ -41,7 +45,6 @@ export function ProductDetails() {
   } = useAppSelector((state) => state.products);
 
   const [quantity, setQuantity] = useState(1);
-  const [temperature, setTemperature] = useState<"Hot" | "Iced">("Hot");
 
   useEffect(() => {
     if (productId) {
@@ -110,22 +113,6 @@ export function ProductDetails() {
           </Select>
         </div>
 
-        {/* Discount */}
-        <div className="border rounded-xl p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <Checkbox id="discount" />
-            <label
-              htmlFor="discount"
-              className="text-sm font-medium text-gray-700"
-            >
-              Use Discount voucher?
-            </label>
-          </div>
-          <ul className="list-disc pl-6 text-xs text-gray-500">
-            <li>One time use only</li>
-            <li>Only affects 1 item</li>
-          </ul>
-        </div>
         {/* Quantity + Add to Cart */}
         <div className="flex items-center gap-6 mt-4">
           {/* Quantity controls */}
