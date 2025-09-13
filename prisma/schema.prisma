@@ -139,7 +139,7 @@ model FreeItem {
   product    Product  @relation(fields: [productId], references: [id])
 }
 
-// -------------------------
+// ------------------------
 // Discount Table
 // -------------------------
 model Discount {
@@ -171,8 +171,7 @@ model Product {
   orderItems  OrderItem[]
   cartItems   CartItem[]
   reviews     Review[]
-  addons      ProductAddon[]
-
+ 
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   deletedAt   DateTime?
@@ -181,17 +180,6 @@ model Product {
   status      String        @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
 }
 
-// -------------------------
-// Product Addons
-// -------------------------
-model ProductAddon {
-  id          String   @id @default(uuid()) @map("_id")
-  productId   String
-  name        String
-  price       Int
-
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
 
 // -------------------------
 // Order Table
@@ -245,6 +233,9 @@ model OrderItem {
   servingType     ServingType
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
+
+  discountId      String?
+  addons OrderItemAddon[]
 }
 
 // -------------------------
@@ -287,6 +278,7 @@ model CartItem {
 
   cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
+  addons CartItemAddon[]
 }
 
 // -------------------------
@@ -330,4 +322,37 @@ model Notification {
   dateSent   DateTime
 
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+
+model Addon {
+  id          String           @id @default(uuid()) @map("_id")
+  name        String
+  price       Int
+  orderItems  OrderItemAddon[]
+  cartItems   CartItemAddon[]
+}
+
+model OrderItemAddon {
+  id          String    @id @default(uuid()) @map("_id")
+  orderItemId String
+  addonId     String
+  quantity    Int       @default(1)  // number of this addon on the order item
+
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  addon       Addon     @relation(fields: [addonId], references: [id])
+
+  @@unique([orderItemId, addonId]) // prevent duplicate addons on the same order item
+}
+
+model CartItemAddon {
+  id          String    @id @default(uuid()) @map("_id")
+  cartItemId  String
+  addonId     String
+  quantity    Int       @default(1)  // number of this addon on the cart item
+
+  cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  addon      Addon    @relation(fields: [addonId], references: [id])
+
+  @@unique([cartItemId, addonId]) // prevent duplicate addons on the same cart item
 }
