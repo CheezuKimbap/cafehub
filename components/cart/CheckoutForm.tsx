@@ -52,32 +52,50 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
   return (
     <>
       {/* Cart Items Preview */}
+      {/* Cart Items Preview */}
       <div className="border rounded-lg p-4 space-y-2">
         <h3 className="font-semibold mb-2">Your Cart</h3>
 
         {cart?.items.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between text-sm text-gray-700"
-          >
-            {/* image + details */}
-            <div className="flex items-center gap-3">
-              <img
-                src={item.product.image!}
-                alt={item.product.name}
-                className="w-12 h-12 object-cover rounded"
-              />
-              <span>
-                {item.product.name} ({item.servingType}) x {item.quantity}
+          <div key={item.id} className="space-y-1">
+            {/* Item Row */}
+            <div className="flex items-center justify-between text-sm text-gray-700">
+              <div className="flex items-center gap-3">
+                {item.product.image && (
+                  <img
+                    src={item.product.image}
+                    alt={item.product.name}
+                    className="w-12 h-12 object-cover rounded"
+                  />
+                )}
+                <span>
+                  {item.product.name} ({item.servingType}) x {item.quantity}
+                </span>
+              </div>
+              <span className="font-medium">
+                ₱{(item.product.price * item.quantity).toFixed(2)}
               </span>
             </div>
 
-            {/* line total */}
-            <span className="font-medium">₱{item.price.toFixed(2)}</span>
+            {/* Addons */}
+            {item.addons.length > 0 && (
+              <div className="pl-12 text-sm text-gray-600 space-y-1">
+                {item.addons.map((addon) => (
+                  <div key={addon.addonId} className="flex justify-between">
+                    <span>
+                      + {addon.addon?.name} x {addon.quantity}
+                    </span>
+                    <span>
+                      ₱{(addon.addon?.price! * addon.quantity).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
 
-        {/* total row */}
+        {/* Total Row */}
         <div className="flex justify-between font-semibold border-t pt-2 mt-2">
           <span>Total</span>
           <span>

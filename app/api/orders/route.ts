@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       where: whereCondition,
       include: {
         customer: true,
-        orderItems: { include: { product: true } },
+        orderItems: { include: { product: true, addons: true } },
       },
       orderBy: { orderDate: "desc" },
     });

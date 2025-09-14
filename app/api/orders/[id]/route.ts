@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, context: any) {
       where: { id },
       include: {
         customer: true,
-        orderItems: { include: { product: true } },
+        orderItems: { include: { product: true, addons: true } },
       },
     });
 
@@ -79,7 +79,8 @@ export async function PUT(req: NextRequest, context: any) {
         customer: true,
         orderItems: {
           include:{
-            product:true
+            product:true,
+            addons: true
           }
         }
       }

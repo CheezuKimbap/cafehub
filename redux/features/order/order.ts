@@ -11,6 +11,7 @@ export interface OrderItem {
   servingType: ServingType;
   priceAtPurchase: number;
   product: Product; // Include product info for UI
+  addons: OrderItemAddon[];
 }
 
 export interface Order {
@@ -29,5 +30,17 @@ export interface Order {
     details?: string;
     status: string;
     paidAt?: string;
+  };
+}
+
+export interface OrderItemAddon {
+  id: string;
+  orderItemId: string;
+  addonId: string;
+  quantity: number;
+  addon: {
+    id: string;
+    name: string;
+    price: number;
   };
 }

@@ -111,33 +111,31 @@ export function CartItem({
       {/* ---------- Addons as checkboxes ---------- */}
       {addons.length > 0 && (
         <div className="pl-28 flex flex-col gap-2">
-          {addons.map((addon) => (
-            <div
-              key={addon.addonId}
-              className="flex justify-between items-center border rounded-md p-2 bg-gray-50"
-            >
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  checked={addon.quantity > 0}
-                  onCheckedChange={(checked) =>
-                    onToggleAddon?.(id, addon.addonId, !!checked)
-                  }
-                />
-                <div>
-                  <p className="text-sm font-medium">{addon.addon?.name}</p>
-                  <p className="text-xs text-gray-600">
-                    ₱ {addon.addon?.price.toFixed(2)}
-                  </p>
-                </div>
-              </div>
+          <p className="text-sm font-semibold text-gray-700">Add-ons</p>
 
-              {addon.quantity > 0 && (
-                <p className="text-sm font-semibold">
-                  ₱ {(addon.addon?.price! * localQty).toFixed(2)}
-                </p>
-              )}
-            </div>
-          ))}
+          {addons.map(({ addon, addonId, quantity }) => {
+            if (!addon) return null;
+
+            return (
+              <div
+                key={addonId}
+                className="flex justify-between items-center py-1 text-sm"
+              >
+                <div className="flex flex-col">
+                  <span className="font-medium">{addon.name}</span>
+                  <span className="text-xs text-gray-500">
+                    ₱ {addon.price.toFixed(2)}
+                  </span>
+                </div>
+
+                {quantity > 0 && (
+                  <span className="font-semibold">
+                    ₱ {(addon.price * localQty).toFixed(2)}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </Card>
