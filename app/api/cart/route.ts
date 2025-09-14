@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { CartItem } from "@/components/cart/CartItem";
 
 // GET: Get cart for a customer
 export async function GET(req: NextRequest) {
@@ -9,7 +10,9 @@ export async function GET(req: NextRequest) {
   try {
     const cart = await prisma.cart.findUnique({
       where: { customerId },
-      include: { items: { include: { product: true } } },
+      include: { items: { include: { product: true, addons: {
+        include: {addon: true}
+      } } } },
     });
 
     if (!cart) {
@@ -23,9 +26,8 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Add item to cart
 export async function POST(req: NextRequest) {
-  const { customerId, productId, quantity, servingType } = await req.json();
+  const { customerId, productId, quantity, servingType, addons } = await req.json();
 
   if (!customerId || !productId || quantity <= 0) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -36,7 +38,6 @@ export async function POST(req: NextRequest) {
     let cart = await prisma.cart.findUnique({ where: { customerId } });
 
     if (cart) {
-      // Ensure existing cart is ACTIVE
       if (cart.status !== "ACTIVE") {
         cart = await prisma.cart.update({
           where: { id: cart.id },
@@ -44,42 +45,95 @@ export async function POST(req: NextRequest) {
         });
       }
     } else {
-      // Create new cart
-      cart = await prisma.cart.create({ data: { customerId, status: "ACTIVE" } });
+      cart = await prisma.cart.create({
+        data: { customerId, status: "ACTIVE" },
+      });
     }
 
     // Fetch product
     const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
-    // Check if product already exists in cart
-   // Check if product with the same servingType already exists in cart
-    const existingItem = await prisma.cartItem.findFirst({
+    // Calculate addon total per drink
+    let addonTotalPerDrink = 0;
+    let dbAddons: { id: string; price: number }[] = [];
+
+    if (addons && Array.isArray(addons) && addons.length > 0) {
+      const addonIds = addons.map((a: any) => a.addonId);
+      dbAddons = await prisma.addon.findMany({ where: { id: { in: addonIds } } });
+
+      addonTotalPerDrink = addons.reduce((sum: number, addon: any) => {
+        const dbAddon = dbAddons.find((a) => a.id === addon.addonId);
+        if (dbAddon) {
+          return sum + dbAddon.price * addon.quantity;
+        }
+        return sum;
+      }, 0);
+    }
+
+    // Total for line item = base + addons (scaled by product quantity)
+    const lineTotal = product.price * quantity + addonTotalPerDrink * quantity;
+
+    // Check if this product+servingType already exists in cart
+    let cartItem = await prisma.cartItem.findFirst({
       where: { cartId: cart.id, productId, servingType },
     });
 
-    if (existingItem) {
-      // Update quantity & total price for this line item
-      await prisma.cartItem.update({
-        where: { id: existingItem.id },
+    if (cartItem) {
+      // Update quantity & recalc price
+      const newQuantity = cartItem.quantity + quantity;
+      const updatedLineTotal = product.price * newQuantity + addonTotalPerDrink * newQuantity;
+
+      cartItem = await prisma.cartItem.update({
+        where: { id: cartItem.id },
         data: {
-          quantity: existingItem.quantity + quantity,
-          price: product.price * (existingItem.quantity + quantity),
+          quantity: newQuantity,
+          price: updatedLineTotal,
         },
       });
     } else {
       // Create a new cart item
-      await prisma.cartItem.create({
+      cartItem = await prisma.cartItem.create({
         data: {
           cartId: cart.id,
           productId,
           quantity,
           servingType,
-          price: product.price * quantity, // total price for this line
+          price: lineTotal,
         },
       });
     }
 
+    // Handle addons for this cart item
+    if (addons && Array.isArray(addons)) {
+      for (const addon of addons) {
+        if (!addon.addonId || addon.quantity <= 0) continue;
+
+        const existingAddon = await prisma.cartItemAddon.findFirst({
+          where: {
+            cartItemId: cartItem.id,
+            addonId: addon.addonId,
+          },
+        });
+
+        if (existingAddon) {
+          await prisma.cartItemAddon.update({
+            where: { id: existingAddon.id },
+            data: {
+              quantity: existingAddon.quantity + addon.quantity * quantity, // scale with product qty
+            },
+          });
+        } else {
+          await prisma.cartItemAddon.create({
+            data: {
+              cartItemId: cartItem.id,
+              addonId: addon.addonId,
+              quantity: addon.quantity * quantity, // scale with product qty
+            },
+          });
+        }
+      }
+    }
 
     return NextResponse.json({ message: "Item added to cart" });
   } catch (error) {
@@ -87,4 +141,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
 

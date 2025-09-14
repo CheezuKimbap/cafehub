@@ -31,6 +31,7 @@ export const addItemToCart = createAsyncThunk(
     productId: string;
     quantity: number;
     servingType: string;
+    addons?: {addonId: string, quantity: number}[]
   }) => {
     const res = await fetch(`/api/cart`, {
       method: "POST",

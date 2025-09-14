@@ -1,25 +1,21 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { useParams } from "next/navigation";
 import { fetchProductById } from "@/redux/features/products/productsSlice";
+import { fetchAddons } from "@/redux/features/addons/addonsSlice";
 import { useSession } from "next-auth/react";
 import { addItemToCart, fetchCart } from "@/redux/features/cart/cartSlice";
-import {
-  fetchDiscountById,
-  fetchDiscountsByCustomer,
-} from "@/redux/features/discount/discountSlice";
+
+type Addon = {
+  id: string;
+  name: string;
+  price: number;
+};
 
 export function ProductDetails() {
   const params = useParams();
@@ -27,32 +23,53 @@ export function ProductDetails() {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
   const customerId = session?.user.customerId;
+
   const [servingType, setServingType] = useState<"HOT" | "COLD">("HOT");
-
-  const handleAddToCart = (productId: string) => {
-    if (!customerId) return alert("Please log in to add items to cart.");
-
-    dispatch(addItemToCart({ customerId, productId, quantity, servingType }))
-      .unwrap()
-      .then(() => dispatch(fetchCart(customerId)))
-      .catch(() => alert("Failed to add item to cart"));
-  };
-
-  const {
-    selected: product,
-    loading,
-    error,
-  } = useAppSelector((state) => state.products);
-
   const [quantity, setQuantity] = useState(1);
+  const [selectedAddons, setSelectedAddons] = useState<
+    { addonId: string; quantity: number }[]
+  >([]);
+
+  const productState = useAppSelector((state) => state.products);
+  const addonsState = useAppSelector((state) => state.addon);
 
   useEffect(() => {
     if (productId) {
       dispatch(fetchProductById(productId));
     }
+    dispatch(fetchAddons()); // load addons menu
   }, [dispatch, productId]);
 
-  // Handle loading / error / invalid ID
+  const toggleAddon = (addonId: string) => {
+    setSelectedAddons((prev) => {
+      const exists = prev.find((a) => a.addonId === addonId);
+      if (exists) {
+        return prev.filter((a) => a.addonId !== addonId);
+      } else {
+        return [...prev, { addonId, quantity: 1 }];
+      }
+    });
+  };
+
+  const handleAddToCart = () => {
+    if (!customerId) return alert("Please log in to add items to cart.");
+    if (!productId) return;
+    dispatch(
+      addItemToCart({
+        customerId,
+        productId,
+        quantity,
+        servingType,
+        addons: selectedAddons,
+      })
+    )
+      .unwrap()
+      .then(() => dispatch(fetchCart(customerId)))
+      .catch(() => alert("Failed to add item to cart"));
+  };
+
+  const { selected: product, loading, error } = productState;
+
   if (!productId) return <div className="m-4">Invalid product ID</div>;
   if (loading) return <div className="m-4">Loading...</div>;
   if (error) return <div className="m-4 text-red-600">Error: {error}</div>;
@@ -63,7 +80,7 @@ export function ProductDetails() {
       {/* Left - Product Image */}
       <div className="flex justify-center items-center">
         <img
-          src={product.image || "/placeholder.png"} // dynamic image
+          src={product.image || "/placeholder.png"}
           alt={product.name}
           className="rounded-lg shadow-md max-h-[400px] object-contain w-full"
         />
@@ -71,7 +88,6 @@ export function ProductDetails() {
 
       {/* Right - Product Info */}
       <CardContent className="flex flex-col space-y-6">
-        {/* Title + Price */}
         <div>
           <h1 className="text-3xl font-bold text-green-900">{product.name}</h1>
           <p className="text-lg font-semibold text-gray-700">
@@ -101,21 +117,24 @@ export function ProductDetails() {
         {/* Add-ons */}
         <div>
           <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
-          <Select>
-            <SelectTrigger className="w-full rounded-xl">
-              <SelectValue placeholder="Select add-ons" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="whipped-cream">Whipped Cream</SelectItem>
-              <SelectItem value="extra-shot">Extra Espresso Shot</SelectItem>
-              <SelectItem value="oat-milk">Oat Milk</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col gap-2">
+            {addonsState.list.map((addon: Addon) => (
+              <label
+                key={addon.id}
+                className="flex items-center gap-2 text-gray-700"
+              >
+                <Checkbox
+                  checked={!!selectedAddons.find((a) => a.addonId === addon.id)}
+                  onCheckedChange={() => toggleAddon(addon.id)}
+                />
+                {addon.name} (+₱{addon.price})
+              </label>
+            ))}
+          </div>
         </div>
 
         {/* Quantity + Add to Cart */}
         <div className="flex items-center gap-6 mt-4">
-          {/* Quantity controls */}
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
@@ -136,9 +155,8 @@ export function ProductDetails() {
             </Button>
           </div>
 
-          {/* Add to Cart button */}
           <Button
-            onClick={() => handleAddToCart(product.id)}
+            onClick={handleAddToCart}
             className="rounded-xl bg-green-600 hover:bg-green-700 text-white px-6"
           >
             Add to Cart

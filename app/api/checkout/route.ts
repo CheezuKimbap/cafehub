@@ -16,7 +16,14 @@ export async function POST(req: NextRequest) {
     // 1. Find active cart
     const cart = await prisma.cart.findFirst({
       where: { customerId, status: "ACTIVE", isDeleted: false },
-      include: { items: { where: { isDeleted: false } } },
+      include: {
+        items: {
+          where: { isDeleted: false },
+          include: {
+            addons: true, // ✅ include addons linked to cart items
+          },
+        },
+      },
     });
     if (!cart || cart.items.length === 0) {
       return NextResponse.json({ error: "No active cart or cart is empty" }, { status: 404 });
@@ -54,10 +61,20 @@ export async function POST(req: NextRequest) {
               quantity: item.quantity,
               servingType: item.servingType,
               priceAtPurchase: item.price,
+               addons: {
+                create: item.addons.map((addon) => ({
+                  addonId: addon.addonId, // ✅ from CartItemAddon
+                  quantity: addon.quantity,
+                })),
+              },
             })),
           },
         },
-        include: { orderItems: true },
+       include: {
+          orderItems: {
+            include: { addons: true }, // ✅ see addons too
+          },
+        },
       }),
 
       prisma.cart.update({
