@@ -56,44 +56,7 @@ export default {
 
       if (url.startsWith(baseUrl)) return url
       return baseUrl
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.customerId = user.customerId;
-      } else if (!token.customerId && token.email) {
-
-        if(token.role  === "CUSTOMER"){
-// Ensure customer exists for OAuth logins
-          let customer = await prisma.customer.findUnique({ where: { email: token.email } });
-          if (!customer) {
-            customer = await prisma.customer.create({
-              data: {
-                email: token.email!,
-                firstName: "Customer",
-              },
-            });
-          }
-          // Link the user record to the customer if not linked
-          await prisma.user.updateMany({
-            where: { email: token.email, customerId: null },
-            data: { customerId: customer.id },
-          });
-          token.customerId = customer.id;
-        }
-        
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string
-        session.user.role = token.role as "CUSTOMER" | "ADMIN" | "BARISTA"
-        session.user.customerId = token.customerId as string | null
-      }
-      return session
-    },
+    },   
     async authorized({ auth }) {
       return !!auth
     }
