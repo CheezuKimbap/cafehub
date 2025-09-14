@@ -22,6 +22,7 @@ export function CartList({ items, onUpdateQuantity, onRemove }: CartListProps) {
           id={item.id}
           product={item.product}
           servingType={item.servingType}
+          addons={item.addons}
           quantity={item.quantity}
           onUpdateQuantity={onUpdateQuantity} // now passes callAPI from CartItem
           onRemove={onRemove}

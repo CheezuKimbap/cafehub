@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "@/redux/store";
-import { Cart, CartItem } from "./cart";
+import { Cart, CartItem, CartItemAddon } from "./cart"; // 👈 make sure CartItemAddon exists
 
 // Initial state
 interface CartState {
@@ -12,6 +12,10 @@ const initialState: CartState = {
   cart: null,
   status: "idle",
 };
+
+// --------------------
+// Thunks
+// --------------------
 
 // Fetch cart
 export const fetchCart = createAsyncThunk(
@@ -31,7 +35,7 @@ export const addItemToCart = createAsyncThunk(
     productId: string;
     quantity: number;
     servingType: string;
-    addons?: {addonId: string, quantity: number}[]
+    addons?: { addonId: string; quantity: number }[];
   }) => {
     const res = await fetch(`/api/cart`, {
       method: "POST",
@@ -57,6 +61,7 @@ export const updateCartItem = createAsyncThunk(
   }
 );
 
+// Remove cart item
 export const removeCartItem = createAsyncThunk(
   "cart/removeCartItem",
   async (itemId: string) => {
@@ -69,13 +74,14 @@ export const removeCartItem = createAsyncThunk(
   }
 );
 
-
-
+// --------------------
+// Slice
+// --------------------
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // Optimistic update for quantity
+    // Optimistic update for base item
     updateCartItemOptimistic: (state, action: PayloadAction<CartItem>) => {
       if (!state.cart) return;
       state.cart.items = state.cart.items.map((item) =>
@@ -83,7 +89,8 @@ const cartSlice = createSlice({
       );
     },
 
-     updateItemQuantityLocally: (
+    // Update item quantity locally
+    updateItemQuantityLocally: (
       state,
       action: PayloadAction<{ itemId: string; quantity: number }>
     ) => {
@@ -93,15 +100,68 @@ const cartSlice = createSlice({
           ? {
               ...item,
               quantity: action.payload.quantity,
-              price: item.product.price * action.payload.quantity, // update total price
+              price: item.product.price * action.payload.quantity, // recalc base total
             }
           : item
       );
     },
-     clearCart: (state) => {
-    state.cart = null; // or state.cart.items = [] if you prefer to keep the cart object
+
+    // Clear cart
+    clearCart: (state) => {
+      state.cart = null;
+    },
+
+    // --------------------
+    // Addon operations
+    // --------------------
+    addAddonToCartItem: (
+      state,
+      action: PayloadAction<{ itemId: string; addon: CartItemAddon }>
+    ) => {
+      if (!state.cart) return;
+      const item = state.cart.items.find((i) => i.id === action.payload.itemId);
+      if (item) {
+        const existing = item.addons.find(
+          (a) => a.addonId === action.payload.addon.addonId
+        );
+        if (existing) {
+          existing.quantity += action.payload.addon.quantity;
+        } else {
+          item.addons.push(action.payload.addon);
+        }
+      }
+    },
+
+    removeAddonFromCartItem: (
+      state,
+      action: PayloadAction<{ itemId: string; addonId: string }>
+    ) => {
+      if (!state.cart) return;
+      const item = state.cart.items.find((i) => i.id === action.payload.itemId);
+      if (item) {
+        item.addons = item.addons.filter(
+          (a) => a.addonId !== action.payload.addonId
+        );
+      }
+    },
+
+    updateAddonQuantity: (
+      state,
+      action: PayloadAction<{ itemId: string; addonId: string; quantity: number }>
+    ) => {
+      if (!state.cart) return;
+      const item = state.cart.items.find((i) => i.id === action.payload.itemId);
+      if (item) {
+        const addon = item.addons.find(
+          (a) => a.addonId === action.payload.addonId
+        );
+        if (addon) {
+          addon.quantity = action.payload.quantity;
+        }
+      }
+    },
   },
-  },
+
   extraReducers: (builder) => {
     builder
       // Fetch cart
@@ -116,7 +176,7 @@ const cartSlice = createSlice({
         state.status = "failed";
       })
 
-      // Add item to cart
+      // Add item
       .addCase(addItemToCart.fulfilled, (state, action: PayloadAction<CartItem>) => {
         if (!state.cart) {
           state.cart = { id: "temp", customerId: "", items: [], status: "ACTIVE" };
@@ -124,28 +184,43 @@ const cartSlice = createSlice({
         state.cart.items.push(action.payload);
       })
 
-      // Update quantity
       .addCase(updateCartItem.fulfilled, (state, action: PayloadAction<CartItem>) => {
         if (!state.cart) return;
-        state.cart.items = state.cart.items.map((item) =>
-          item.id === action.payload.id ? action.payload : item
-        );
+
+        state.cart.items = state.cart.items.map((item) => {
+          if (item.id === action.payload.id) {
+            // if API didn’t return addons, keep the old ones
+            return {
+              ...action.payload,
+              addons: action.payload.addons ?? item.addons,
+            };
+          }
+          return item;
+        });
       })
 
+
+      // Remove item
       .addCase(removeCartItem.fulfilled, (state, action: PayloadAction<string>) => {
         if (!state.cart) return;
         state.cart.items = state.cart.items.filter(
           (item) => item.id !== action.payload
         );
       });
-
   },
 });
 
 export default cartSlice.reducer;
 
-// Export action for optimistic updates
-export const { updateCartItemOptimistic, clearCart ,updateItemQuantityLocally } = cartSlice.actions;
+// Export actions
+export const {
+  updateCartItemOptimistic,
+  clearCart,
+  updateItemQuantityLocally,
+  addAddonToCartItem,
+  removeAddonFromCartItem,
+  updateAddonQuantity,
+} = cartSlice.actions;
 
 // Selector
 export const selectCart = (state: RootState) => state.cart.cart;

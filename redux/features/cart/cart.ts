@@ -6,6 +6,8 @@ export interface CartItem {
   price: number;
   servingType: ServingType // price at the time of adding
   product: Product;
+  addons: CartItemAddon[];
+ 
 }
 
 export interface Cart {
@@ -18,4 +20,13 @@ export interface Cart {
 export interface CartState {
   cart: Cart | null;
   status: "idle" | "loading" | "failed";
+}
+export interface CartItemAddon {
+  addonId: string;
+  quantity: number;
+  price: number; // optional, depends if you store price on cart item or addon
+  addon: {
+    name: string;
+    price: number;
+  };
 }
