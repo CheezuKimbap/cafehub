@@ -69,7 +69,7 @@ export async function PUT(req: NextRequest, context: any) {
     // 4️⃣ Update cartItem price
     const finalItem = await prisma.cartItem.update({
       where: { id: itemId },
-      data: { price: totalPrice },
+      data: { price: totalPrice , quantity},
       include: {
         product: true,
         addons: { include: { addon: true } },
@@ -84,7 +84,7 @@ export async function PUT(req: NextRequest, context: any) {
 }
 // ✅ Delete cart item (no change)
 export async function DELETE(req: NextRequest, context: any) {
-  const { itemId } = context.params as { itemId: string };
+  const { itemId } = await context.params as { itemId: string };
 
   if (!itemId) {
     return NextResponse.json({ error: "cartItemId required" }, { status: 400 });

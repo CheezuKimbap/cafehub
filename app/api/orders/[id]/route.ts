@@ -87,13 +87,14 @@ export async function PUT(req: NextRequest, context: any) {
       
     });
 
-  
-
-   if (updatedOrder.status === OrderStatus.COMPLETED && updatedOrder.paymentStatus=== PaymentStatus.PAID) {
-   const stampsEarned = updatedOrder.orderItems.reduce(
-      (sum, item) => sum + item.quantity,
-      0
-    );
+     if (
+      updatedOrder.status === OrderStatus.COMPLETED &&
+      updatedOrder.paymentStatus === PaymentStatus.PAID
+    ) {
+      const stampsEarned = updatedOrder.orderItems.reduce(
+        (sum, item) => sum + item.quantity,
+        0
+      );
 
       const currentCustomer = await prisma.customer.findUnique({
         where: { id: updatedOrder.customerId },
@@ -105,37 +106,41 @@ export async function PUT(req: NextRequest, context: any) {
         data: {
           currentStamps: currentCustomer?.currentStamps
             ? { increment: stampsEarned }
-            : stampsEarned, 
+            : stampsEarned,
         },
       });
 
-     
-      if (updatedCustomer.currentStamps > 10) {
+      // 🎁 Reward at thresholds
+      if (updatedCustomer.currentStamps >= 10) {
+        // Reset to 0 or keep rolling? (I’ll cap at 0 after reward)
         updatedCustomer = await prisma.customer.update({
           where: { id: updatedOrder.customerId },
-          data: { currentStamps: 10 },
+          data: { currentStamps: 0 },
         });
 
-          await prisma.discount.create({
+        await prisma.discount.create({
           data: {
-            description: "Free Drinks",
-            discountAmount: 100,
-            isForLoyalCustomer: true,
             customerId: updatedCustomer.id,
+            type: "FREE_ITEM", // 🎉 free drink
+            description: "Free Drink Reward",
+            productId: null, // or a specific default productId if needed
+          },
+        });
+      } else if (updatedCustomer.currentStamps >= 5) {
+        // Just give 50% off
+        await prisma.discount.create({
+          data: {
+            customerId: updatedCustomer.id,
+            type: "PERCENTAGE_OFF", // 🎉 50% discount for one item
+            description: "50% Off Reward",
+            discountAmount: 50,
           },
         });
       }
-      else if (updatedCustomer.currentStamps >= 5) {
-        await prisma.discount.create({
-          data: {
-            description: "50% Discount",
-            discountAmount: 50,
-            isForLoyalCustomer: true,
-            customerId: updatedCustomer.id,
-          },
-        });        
-    }      
-  }
+    }
+ 
+        
+  
     return NextResponse.json(
       { message: "Order updated", order: updatedOrder },
       { status: 200 }

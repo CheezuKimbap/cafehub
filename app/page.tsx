@@ -2,6 +2,8 @@ import { Playfair_Display } from "next/font/google";
 import { MoveDown, Star, MoveLeft, MoveRight } from "lucide-react";
 import Navigation from "@/components/layout/client/navigation";
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],

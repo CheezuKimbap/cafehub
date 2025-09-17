@@ -36,16 +36,16 @@ const initialState: CheckoutState = {
 // --- Thunk ---
 export const checkout = createAsyncThunk<
   Order,
-  { customerId: string; discountApplied?: number },
+  { customerId: string; discountId?: string },
   { dispatch: AppDispatch }
->("checkout/submit", async ({ customerId, discountApplied }, { dispatch }) => {
+>("checkout/submit", async ({ customerId, discountId }, { dispatch }) => {
   const res = await fetch("/api/checkout", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
     },
-    body: JSON.stringify({ customerId, discountApplied }),
+    body: JSON.stringify({ customerId, discountId }),
   });
 
   if (!res.ok) {

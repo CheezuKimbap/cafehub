@@ -2,12 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
+// Helper: pick random element from array
+function getRandomItem<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 export async function POST(req: NextRequest) {
   const authError = validateApiKey(req);
   if (authError) return authError;
 
   try {
-    const { customerId, discountId, paymentType, paymentProvider, paymentDetails } = await req.json();
+    const { customerId, discountId, paymentType, paymentProvider, paymentDetails } =
+      await req.json();
 
     if (!customerId) {
       return NextResponse.json({ error: "CustomerId required" }, { status: 400 });
@@ -19,33 +25,73 @@ export async function POST(req: NextRequest) {
       include: {
         items: {
           where: { isDeleted: false },
-          include: {
-            addons: true, // ✅ include addons linked to cart items
-          },
+          include: { addons: true },
         },
       },
     });
+
     if (!cart || cart.items.length === 0) {
       return NextResponse.json({ error: "No active cart or cart is empty" }, { status: 404 });
     }
 
-    // 2. Calculate total
+    // 2. Calculate total (base)
     let totalAmount = cart.items.reduce((sum, item) => sum + item.price, 0);
 
     // 3. Apply discount
-     let discountApplied = 0;
-  
-    if (discountId){
+    let discountApplied = 0;
+
+    if (discountId) {
       const discount = await prisma.discount.findUnique({
-        where: { id: discountId},
+        where: { id: discountId },
       });
 
-      if(discount && discount.customerId == customerId && !discount.isRedeemed){
-        discountApplied = discount.discountAmount;
-        totalAmount = Math.max(0, )
+      if (!discount) {
+        return NextResponse.json({ error: "Invalid discount" }, { status: 404 });
       }
-    }
 
+      if (discount.isRedeemed) {
+        return NextResponse.json({ error: "Discount already redeemed" }, { status: 400 });
+      }
+
+      // --- CASE 1: Percentage off ONE drink
+      if (discount.type === "PERCENTAGE_OFF" && discount.discountAmount) {
+        const targetItem = getRandomItem(cart.items);
+
+        // Apply discount to one unit only
+        const oneUnitPrice = targetItem.price / targetItem.quantity;
+        discountApplied = Math.floor((oneUnitPrice * discount.discountAmount) / 100);
+
+        totalAmount -= discountApplied;
+      }
+
+      // --- CASE 2: Free ONE drink
+      if (discount.type === "FREE_ITEM") {
+        let targetItem = null;
+
+        if (discount.productId) {
+          // Specific product
+          targetItem = cart.items.find((item) => item.productId === discount.productId) ?? null;
+        } else {
+          // Random product
+          targetItem = getRandomItem(cart.items);
+        }
+
+        if (targetItem) {
+          const oneUnitPrice = targetItem.price / targetItem.quantity;
+          discountApplied = oneUnitPrice;
+          totalAmount -= discountApplied;
+        }
+      }
+
+      // --- Prevent negative total
+      if (totalAmount < 0) totalAmount = 0;
+
+      // Mark discount as redeemed
+      await prisma.discount.update({
+        where: { id: discount.id },
+        data: { isRedeemed: true, usedAt: new Date() },
+      });
+    }
 
     // 4. Transaction → Create Order + Payment + Close Cart
     const [order] = await prisma.$transaction([
@@ -61,29 +107,27 @@ export async function POST(req: NextRequest) {
               quantity: item.quantity,
               servingType: item.servingType,
               priceAtPurchase: item.price,
-               addons: {
+              addons: {
                 create: item.addons.map((addon) => ({
-                  addonId: addon.addonId, // ✅ from CartItemAddon
+                  addonId: addon.addonId,
                   quantity: addon.quantity,
                 })),
               },
             })),
           },
         },
-       include: {
-          orderItems: {
-            include: { addons: true }, // ✅ see addons too
-          },
+        include: {
+          orderItems: { include: { addons: true } },
         },
       }),
 
       prisma.cart.update({
         where: { id: cart.id },
         data: { status: "CHECKED_OUT" },
-      }),     
+      }),
 
-       prisma.cartItem.deleteMany({
-        where: { cartId: cart.id }, // delete all items in this cart
+      prisma.cartItem.deleteMany({
+        where: { cartId: cart.id },
       }),
     ]);
 
@@ -99,7 +143,6 @@ export async function POST(req: NextRequest) {
           status: "PENDING",
         },
       });
-
     }
 
     return NextResponse.json({

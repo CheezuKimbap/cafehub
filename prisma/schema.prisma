@@ -143,15 +143,21 @@ model FreeItem {
 // Discount Table
 // -------------------------
 model Discount {
-  id                 String   @id @default(uuid()) @map("_id")
-  description        String
-  discountAmount     Int
-  isForLoyalCustomer Boolean  @default(false)
-  isRedeemed         Boolean  @default(false)   // ✅ new field
+  id                 String      @id @default(uuid()) @map("_id")
   customerId         String
-  customer           Customer @relation(fields: [customerId], references: [id])
-  createdAt          DateTime @default(now())
+  customer           Customer    @relation(fields: [customerId], references: [id])
+  type               String        @default("PERCENTAGE_OFF") // NEW: defines the reward type
+  description        String?     // Optional text: "50% off 1 item" / "Free drink"
+  discountAmount     Int?        // e.g., 50 for 50% off, null for free item
+  productId          String?     // Optional: which product if free item
+  isRedeemed         Boolean     @default(false)
+  createdAt          DateTime    @default(now())
   usedAt             DateTime?
+}
+
+enum DiscountType {
+  PERCENTAGE_OFF   // e.g., 50% off one item
+  FREE_ITEM        // free drink or product
 }
 
 
