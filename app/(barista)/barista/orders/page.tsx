@@ -119,7 +119,7 @@ export default function BaristaBoard() {
                           {item.product?.name ?? "Unknown Product"}
                         </span>
                         <span className="font-medium text-gray-700">
-                          ₱{(item.product?.price ?? 0) * item.quantity}
+                          ₱{order.totalAmount}
                         </span>
                       </li>
                     ))}
