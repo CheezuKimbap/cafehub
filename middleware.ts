@@ -11,6 +11,10 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
    // --- Role-based route restrictions ---
 
+  if (pathname === "/" || pathname === "/menu" || pathname === "/login") {
+    return NextResponse.next()
+  }
+  
     if (pathname === "/admin/login" || pathname === "/barista/login" || pathname === "/login") {
     return NextResponse.next()
   }
@@ -54,6 +58,7 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-   '/((?!api|_next/static|_next/image|.*\\.png$).*)'
+    // Exclude API, static, image and also exclude root "/" and "/menu"
+    "/((?!api|_next/static|_next/image|.*\\.(?:png|svg|jpg|jpeg|gif|webp)$|favicon.ico|$|menu).*)"
   ],
 }
