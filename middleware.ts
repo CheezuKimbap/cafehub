@@ -1,12 +1,11 @@
-// middleware.ts
-import NextAuth from "next-auth"
-import authConfig from "./auth.config"
-import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/auth"
+import { NextResponse } from "next/server"
 
-
-// export the built-in middleware
-const { auth } = NextAuth(authConfig)
-export default auth(async function middleware(req) {  
+export default auth((req) => {
+  if (!req.auth && req.nextUrl.pathname !== "/login") {
+    const newUrl = new URL("/login", req.nextUrl.origin)
+    return Response.redirect(newUrl)
+  }
   const role = req.auth?.user?.role
   const token = req.auth
   const { pathname } = req.nextUrl;
@@ -46,7 +45,7 @@ export default auth(async function middleware(req) {
     return NextResponse.redirect(new URL("/admin", req.url))
   }
     return NextResponse.next();
-},
+  },
 )
 // // Optional: restrict which routes it applies to
 // export const config = {
@@ -55,7 +54,6 @@ export default auth(async function middleware(req) {
 
 export const config = {
   matcher: [
-    "/",
-    "/((?!_next|api|favicon.ico).*)",  // catch-all except Next.js internals
+   '/((?!api|_next/static|_next/image|.*\\.png$).*)'
   ],
 }
