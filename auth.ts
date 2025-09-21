@@ -12,26 +12,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
     async jwt({ token, user }) {
       // Runs after signIn or on session refresh
-       if (user) {
+       if (user && user.role == "CUSTOMER") {
     // Ensure customer exists and link it
-    let customer = await prisma.customer.upsert({
-      where: { email: user.email! },
-      update: {},
-      create: {
-        email: user.email!,
-        firstName: user.name,
-      },
-    })
+        let customer = await prisma.customer.upsert({
+          where: { email: user.email! },
+          update: {},
+          create: {
+            email: user.email!,
+            firstName: user.name,
+          },
+        })
 
-    const dbUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { customerId: customer.id, role: "CUSTOMER" },
-    })
+        const dbUser = await prisma.user.update({
+          where: { id: user.id },
+          data: { customerId: customer.id, role: "CUSTOMER" },
+        })
 
-    token.id = dbUser.id
-    token.role = dbUser.role
-    token.customerId = dbUser.customerId
-  }
+        token.id = dbUser.id
+        token.role = dbUser.role
+        token.customerId = dbUser.customerId
+      }
       return token
     },
 

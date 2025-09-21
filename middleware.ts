@@ -1,23 +1,18 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 
+const ignoredPaths = ["/", "/menu", "/login", "/admin/login", "/barista/login"];
+
 export default auth((req) => {
-  if (!req.auth && req.nextUrl.pathname !== "/login") {
-    const newUrl = new URL("/login", req.nextUrl.origin)
-    return Response.redirect(newUrl)
-  }
+  const { pathname } = req.nextUrl;
+
   const role = req.auth?.user?.role
   const token = req.auth
-  const { pathname } = req.nextUrl;
-   // --- Role-based route restrictions ---
-
-  if (pathname === "/" || pathname === "/menu" || pathname === "/login") {
-    return NextResponse.next()
+  
+ if (ignoredPaths.includes(pathname)) {
+    return NextResponse.next();
   }
   
-    if (pathname === "/admin/login" || pathname === "/barista/login" || pathname === "/login") {
-    return NextResponse.next()
-  }
  
   if (pathname.startsWith("/admin")) {
     if (!token) {
@@ -58,7 +53,6 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    // Exclude API, static, image and also exclude root "/" and "/menu"
-    "/((?!api|_next/static|_next/image|.*\\.(?:png|svg|jpg|jpeg|gif|webp)$|favicon.ico|$|menu).*)"
+    "/((?!api|_next/static|_next/image|.*\\.(?:png|svg|jpg|jpeg|gif|webp)$|favicon.ico).*)",
   ],
-}
+};
