@@ -19,8 +19,7 @@ function ProductPage() {
   }, [dispatch]);
 
   return (
-    <section className="p-4">
-      <DynamicBreadcrumb />
+    <section className="">
       {error && <p className="text-red-500">{error}</p>}
       <ProductList
         products={items}

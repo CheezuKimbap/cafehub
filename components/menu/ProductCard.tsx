@@ -1,20 +1,12 @@
 "use client";
-
+import Image from "next/image";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ShoppingCart, Star } from "lucide-react";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Star } from "lucide-react";
 import { Kanit, Sora } from "next/font/google";
 
 const kanit = Kanit({ subsets: ["latin"], weight: "400" });
 const sora = Sora({ subsets: ["latin"], weight: "400" });
-// import { AddToCartButton } from "./AddToCartButton";
 
 type Props = {
   id: string;
@@ -24,37 +16,58 @@ type Props = {
   imageUrl?: string;
 };
 
-export function ProductCard({ id, name, description, price, imageUrl }: Props) {
+const FALLBACK_IMAGE =
+  "https://res.cloudinary.com/du4kqqco7/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/fallbacks/coffee-placeholder.jpg";
+
+export function ProductCard({ id, name, price, imageUrl }: Props) {
   return (
     <Link href={`/menu/${id}`} className="">
-      <Card className="flex flex-col justify-between hover:shadow-md transition bg-[#F4F4F4] shadow-sm">
-        <CardHeader>
-          <img
-            src={imageUrl ?? "/placeholder.png"}
-            alt={name}
-            className="w-full h-48 object-cover rounded-md"
-          />
+      <Card
+        className="
+          flex flex-col justify-between
+          hover:shadow-md transition
+          bg-[#F4F4F4]
+          min-w-[130px] min-h-[200px] h-full py-0
+        "
+      >
+        <CardHeader className="flex flex-col  p-2 sm:p-4">
+          {/* Image fills width of card */}
+          <div className="relative w-full aspect-square">
+            <Image
+              src={imageUrl || FALLBACK_IMAGE}
+              alt={name}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+              className="rounded-lg object-cover"
+            />
+          </div>
 
+          {/* Product name */}
           <CardTitle
-            className={`${kanit.className} mt-2 text-lg font-semibold`}
+            className={`${kanit.className} text-left text-xs sm:text-base md:text-md font-semibold `}
           >
             {name}
           </CardTitle>
-          <div>
+
+          {/* Rating */}
+          <div className="flex items-center justify-center gap-1">
             <Star
-              className="inline-block mr-1 mb-1"
-              size={16}
+              size={14}
+              className="sm:w-4 sm:h-4"
               fill="#FF9736"
               color="#FF9736"
             />
             <span
-              className={`${sora.className} text-sm text-[#FF9736] font-bold`}
+              className={`${sora.className} text-xs sm:text-sm md:text-base text-[#FF9736] font-bold`}
             >
               4.9
             </span>
           </div>
 
-          <p className={`${sora.className} text-default text-[#94664C]`}>
+          {/* Price */}
+          <p
+            className={`${sora.className} text-xs sm:text-sm md:text-base text-[#94664C]`}
+          >
             P {price}
           </p>
         </CardHeader>

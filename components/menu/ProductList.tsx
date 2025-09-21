@@ -28,7 +28,7 @@ export function ProductList({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 bg-[#F4F1EB] p-8 rounded-2xl my-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
       {products.map((p) => (
         <ProductCard
           key={p.id}

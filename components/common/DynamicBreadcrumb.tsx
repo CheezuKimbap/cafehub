@@ -34,7 +34,7 @@ export function DynamicBreadcrumb() {
   });
 
   return (
-    <Breadcrumb className="">
+    <Breadcrumb className="py-2">
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>

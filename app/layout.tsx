@@ -23,7 +23,7 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <SessionProvider>
-            <Navigation></Navigation>
+            {/* <Navigation></Navigation> */}
             {children}
           </SessionProvider>
         </ReduxProvider>
