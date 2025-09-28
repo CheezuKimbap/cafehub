@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 const STATUS_ORDER = [
   "PENDING",
   "PREPARING",
-  "READY_TO_PICKUP",
+  "READYTOPICKUP",
   "COMPLETED",
 ] as const;
 
