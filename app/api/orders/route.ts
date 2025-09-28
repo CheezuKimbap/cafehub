@@ -4,8 +4,7 @@ import { OrderStatus } from "@/prisma/generated/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
 export async function GET(req: NextRequest) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   try {
     const url = new URL(req.url);

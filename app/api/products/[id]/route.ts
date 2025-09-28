@@ -4,8 +4,7 @@ import { validateApiKey } from "@/lib/apiKeyGuard";
 
 // ✅ GET single product
 export async function GET(req: NextRequest, context: any) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   const { id } = await  context.params as { id: string };
 
@@ -23,8 +22,7 @@ export async function GET(req: NextRequest, context: any) {
 
 // ✅ PUT update product
 export async function PUT(req: NextRequest, context: any) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   const { id } = await context.params as { id: string };
 
@@ -57,8 +55,7 @@ export async function PUT(req: NextRequest, context: any) {
 
 // ✅ DELETE product (soft delete recommended)
 export async function DELETE(req: NextRequest, context: any) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   const { id } = await  context.params as { id: string };
 

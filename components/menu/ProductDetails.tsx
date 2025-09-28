@@ -117,7 +117,7 @@ export function ProductDetails() {
         {/* Add-ons */}
         <div>
           <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2 overflow-y-auto max-h-48 p-2 border rounded">
             {addonsState.list.map((addon: Addon) => (
               <label
                 key={addon.id}

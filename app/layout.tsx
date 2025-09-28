@@ -3,7 +3,7 @@ import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Sora } from "next/font/google";
 import Navigation from "@/components/layout/client/navigation";
-import { ReduxProvider } from "@/components/layout/shared/redux/prover";
+import { ReduxProvider } from "@/components/layout/shared/redux/provider";
 const sora = Sora({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata: Metadata = {

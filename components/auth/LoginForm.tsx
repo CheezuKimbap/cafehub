@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useState } from "react";
 
 interface LoginFormData {
   email: string;
@@ -15,14 +16,30 @@ interface LoginFormData {
 
 export function LoginForm() {
   const { register, handleSubmit } = useForm<LoginFormData>();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: LoginFormData) => {
-    await signIn("credentials", {
-      redirect: true,
+    setLoading(true);
+    setError(null);
+
+    const result = await signIn("credentials", {
+      redirect: false, // <- important, prevents auto redirect
       email: data.email,
       password: data.password,
-      callbackUrl: "/", // always redirect to home
+      callbackUrl: "/", // still useful when success
     });
+
+    setLoading(false);
+
+    if (result?.error) {
+      setError("Invalid email or password. Please try again.");
+      return;
+    }
+
+    if (result?.ok && result.url) {
+      window.location.href = result.url; // manual redirect
+    }
   };
 
   return (
@@ -49,6 +66,9 @@ export function LoginForm() {
             {...register("password", { required: true })}
             className="rounded-full border-[#ac9c81]"
           />
+
+          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+
           <div className="flex justify-end">
             <Link
               href="/forgot-password"
@@ -59,9 +79,10 @@ export function LoginForm() {
           </div>
           <Button
             type="submit"
+            disabled={loading}
             className="w-full bg-black text-white rounded-full"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
           <p className="text-center text-sm text-gray-600">
             Don’t have an account?{" "}
@@ -79,6 +100,7 @@ export function LoginForm() {
 
         <button
           type="button"
+          disabled={loading}
           className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 rounded-xl py-2 hover:bg-gray-100 transition"
           onClick={() => signIn("google", { callbackUrl: "/" })}
         >

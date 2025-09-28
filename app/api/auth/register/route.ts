@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json()
     const { firstName, lastName, email, password, role } = body
-
+    
     if (!firstName || !lastName || !email || !password) {
       return new Response(JSON.stringify({ error: "All fields are required" }), {
         status: 400,
@@ -47,35 +47,39 @@ export async function POST(req: Request) {
       }),
       { status: 201 })
     }
-    // Create user + customer
+    else{
     const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        customer: {
-          create: {
-            firstName,
-            lastName,
-            email,
-            password: hashedPassword
+        data: {
+          name: `${firstName} ${lastName}`,
+          email,
+          password: hashedPassword,
+          customer: {
+            create: {
+              firstName,
+              lastName,
+              email,
+              password: hashedPassword
+            },
           },
         },
-      },
-      include: { customer: true },
-    })
+        include: { customer: true },
+      })
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.customer?.firstName,
-          lastName: user.customer?.lastName,
-        },
-      }),
-      { status: 201 }
-    )
+      return new Response(
+        JSON.stringify({
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.customer?.firstName,
+            lastName: user.customer?.lastName,
+          },
+        }),
+        { status: 201 }
+      )
+      }
+    // Create user + customer
+  
   } catch (err) {
     console.error(err)
     return new Response(

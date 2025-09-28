@@ -3,8 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
 export async function POST(req: NextRequest) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
   const { name, price } = await req.json();
 
   try{

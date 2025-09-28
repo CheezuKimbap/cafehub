@@ -1,19 +1,19 @@
 import { validateApiKey } from "@/lib/apiKeyGuard";
 import { prisma } from "@/lib/prisma";
+import { User } from "lucide-react";
 import { NextRequest, NextResponse } from "next/server";
+import { custom } from "zod";
 
 export async function GET(req: NextRequest, context: any) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
-
-  const { id } = context.params as { id: string };
+  const { id } = await context.params as { id: string };
 
   try {
     const customer = await prisma.customer.findFirst({
       where: { id },
       include: {
         profile: true,
-        orders: true
+        orders: true,
+        users: true
         },
     });
 
@@ -32,6 +32,9 @@ export async function GET(req: NextRequest, context: any) {
       updatedAt: customer.updatedAt,
       profile: customer.profile,
       orders: customer.orders,
+      user: customer.users?.[0] ? {         
+        image: customer.users[0].image ?? undefined
+      } : undefined
     };
 
     return NextResponse.json(safeCustomer, { status: 200 });

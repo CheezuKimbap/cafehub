@@ -8,9 +8,6 @@ function getRandomItem<T>(arr: T[]): T {
 }
 
 export async function POST(req: NextRequest) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
-
   try {
     const { customerId, discountId, paymentType, paymentProvider, paymentDetails } =
       await req.json();

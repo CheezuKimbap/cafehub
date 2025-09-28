@@ -5,8 +5,7 @@ import { validateApiKey } from "@/lib/apiKeyGuard";
 
 export async function GET(req: NextRequest) {
   // 1. Validate API key
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   try {
     // 2. Fetch customers, optionally you can add filters, pagination, or include relations

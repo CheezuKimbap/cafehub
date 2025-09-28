@@ -1,4 +1,4 @@
-import { Order, Profile } from "@/prisma/generated/prisma";
+import { Order, Profile, User } from "@/prisma/generated/prisma";
 
 
 // Customer type (minimal for orders)
@@ -11,5 +11,8 @@ export interface Customer {
   profile?: Profile;
   orders?: Order[]; // <-- add this
   currentStamps?: number;
+  user?: {
+    image?: string | null;
+  };
 }
 

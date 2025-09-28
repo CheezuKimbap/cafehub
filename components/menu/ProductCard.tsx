@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { Kanit, Sora } from "next/font/google";
+import { useState } from "react";
 
 const kanit = Kanit({ subsets: ["latin"], weight: "400" });
 const sora = Sora({ subsets: ["latin"], weight: "400" });
@@ -17,9 +18,11 @@ type Props = {
 };
 
 const FALLBACK_IMAGE =
-  "https://res.cloudinary.com/du4kqqco7/image/upload/c_fill,g_auto,w_400,h_400,q_auto,f_auto/fallbacks/coffee-placeholder.jpg";
+  "https://res.cloudinary.com/du4kqqco7/image/upload/v1759020948/cihjvxbuf7tzbxwwfyp7.png";
 
 export function ProductCard({ id, name, price, imageUrl }: Props) {
+  const [imgSrc, setImgSrc] = useState(imageUrl || FALLBACK_IMAGE);
+
   return (
     <Link href={`/menu/${id}`} className="">
       <Card
@@ -34,11 +37,12 @@ export function ProductCard({ id, name, price, imageUrl }: Props) {
           {/* Image fills width of card */}
           <div className="relative w-full aspect-square">
             <Image
-              src={imageUrl || FALLBACK_IMAGE}
+              src={imgSrc}
               alt={name}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
               className="rounded-lg object-cover"
+              onError={() => setImgSrc(FALLBACK_IMAGE)}
             />
           </div>
 

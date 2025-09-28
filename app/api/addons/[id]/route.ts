@@ -3,13 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest, context: any) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   const { id } = await context.params as { id: string };
 
   try
   {
+    //add filter and all make sure to exclude ordeItems and cartItems when is not needed
     const addon = await prisma.addon.findFirst({
         where: {
             id: id

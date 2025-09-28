@@ -122,7 +122,9 @@ function CustomerNavigation() {
                         Hi, {session?.user?.name ?? "Guest"}
                       </div>
                       <button
-                        onClick={() => router.push(`/profile`)}
+                        onClick={() =>
+                          router.push(`/profile/${session.user.customerId}`)
+                        }
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
                       >
                         My Profile

@@ -5,8 +5,7 @@ import { validateApiKey } from "@/lib/apiKeyGuard";
 
 // ✅ GET single discount by ID
 export async function GET(req: NextRequest, context: any) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   const { id } = context.params as { id: string };
 
@@ -37,8 +36,7 @@ export async function GET(req: NextRequest, context: any) {
 
 // ✅ PUT update discount
 export async function PUT(req: NextRequest, context: any) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   const { id } = context.params as { id: string };
 
@@ -86,8 +84,7 @@ export async function PUT(req: NextRequest, context: any) {
 
 // ✅ DELETE discount
 export async function DELETE(req: NextRequest, context: any) {
-  const authError = validateApiKey(req);
-  if (authError) return authError;
+   
 
   const { id } = context.params as { id: string };
 
