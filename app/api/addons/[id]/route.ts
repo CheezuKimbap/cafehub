@@ -13,11 +13,7 @@ export async function GET(req: NextRequest, context: any) {
     const addon = await prisma.addon.findFirst({
         where: {
             id: id
-        } ,
-        include: {
-        orderItems: true,
-        cartItems: true,
-      },
+        }
     })
 
       if (!addon) {

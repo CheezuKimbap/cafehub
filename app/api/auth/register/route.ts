@@ -53,6 +53,7 @@ export async function POST(req: Request) {
           name: `${firstName} ${lastName}`,
           email,
           password: hashedPassword,
+          role,
           customer: {
             create: {
               firstName,

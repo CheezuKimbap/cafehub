@@ -10,38 +10,38 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     ...authConfig.callbacks,
 
 
-    async jwt({ token, user }) {
-      // Runs after signIn or on session refresh
-        if (user && user.role === "CUSTOMER") {
-        // Load user with customer relation
-        let dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          include: { customer: true },
+   async jwt({ token, user }) {
+    if (user) {
+      // Always load the user from DB
+      let dbUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: { customer: true },
+      });
+
+      // Only auto-create customer if missing + role is CUSTOMER
+      if (user.role === "CUSTOMER" && !dbUser?.customerId) {
+        const customer = await prisma.customer.create({
+          data: {
+            email: user.email!,
+            firstName: user.name ?? "",
+          },
         });
 
-        // Only create customer if missing
-        if (!dbUser?.customerId) {
-          const customer = await prisma.customer.create({
-            data: {
-              email: user.email!,
-              firstName: user.name ?? "", // one-time sync
-            },
-          });
-
-          dbUser = await prisma.user.update({
-            where: { id: user.id },
-            data: { customerId: customer.id },
-            include: { customer: true },
-          });
-        }
-
-        token.id = dbUser.id
-        token.role = dbUser.role
-        token.customerId = dbUser.customerId
+        dbUser = await prisma.user.update({
+          where: { id: user.id },
+          data: { customerId: customer.id },
+          include: { customer: true },
+        });
       }
-      return token
-    },
 
+      // Always set core fields on the token
+      token.id = dbUser?.id ?? user.id;
+      token.role = dbUser?.role ?? user.role;
+      token.customerId = dbUser?.customerId ?? null;
+    }
+
+    return token;
+  },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string

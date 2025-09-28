@@ -9,7 +9,7 @@ export default function BaristaLayout({
   const baristaNav: NavItem[] = [
     { label: "Dashboard", href: "/barista/dashboard", icon: "home" },
     { label: "Orders", href: "/barista/orders", icon: "package" },
-    { label: "Menu", href: "/barista/menu", icon: "menu" },
+    { label: "Barista Panel", href: "/barista/barista-panel", icon: "menu" },
     {
       label: "Settings",
       href: "/admin/settings",
