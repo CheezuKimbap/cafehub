@@ -13,7 +13,11 @@ export async function GET(req: NextRequest, context: any) {
       include: {
         profile: true,
         orders: true,
-        users: true
+        users:{
+          include : {
+            accounts: true
+          }
+        }
         },
     });
 
@@ -33,8 +37,10 @@ export async function GET(req: NextRequest, context: any) {
       profile: customer.profile,
       orders: customer.orders,
       user: customer.users?.[0] ? {         
-        image: customer.users[0].image ?? undefined
-      } : undefined
+        image: customer.users[0].image ?? undefined,
+        accountCount: customer.users[0].accounts.length,
+      } : undefined,
+     
     };
 
     return NextResponse.json(safeCustomer, { status: 200 });

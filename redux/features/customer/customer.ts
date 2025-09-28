@@ -14,6 +14,7 @@ export interface Customer {
   user?: {
     id: string
     image?: string | null;
+    accountCount?: number
   };
 }
 

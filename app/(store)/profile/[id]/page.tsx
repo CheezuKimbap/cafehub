@@ -28,6 +28,7 @@ export default function Page() {
     firstName: "",
     lastName: "",
     phoneNumber: "",
+    email: "",
     address: "",
     preferences: "",
     password: "", // new password
@@ -84,7 +85,8 @@ export default function Page() {
   if (status === "loading" || !customer) {
     return <p className="text-center mt-10">Loading...</p>;
   }
-
+  const isOAuth =
+    customer?.user?.accountCount && customer.user.accountCount > 0;
   return (
     <div className="w-full max-w-3xl mx-auto mt-20">
       <Card className="rounded-2xl shadow-lg border border-gray-200">
@@ -127,6 +129,19 @@ export default function Page() {
                 readOnly={!editMode}
               />
             </div>
+
+            {!isOAuth && (
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  readOnly={!editMode}
+                />
+              </div>
+            )}
 
             <div className="grid gap-2">
               <Label htmlFor="phoneNumber">Phone Number</Label>

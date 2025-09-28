@@ -38,15 +38,47 @@ export const updateProfile = createAsyncThunk(
       phoneNumber?: string;
       preferences?: string;
       address?: string;
-      image?: string;
+      image?: File;
     },
     { rejectWithValue }
   ) => {
     try {
+
+      let imageUrl: string | undefined;
+
+      if(payload.image){
+         const uploadForm = new FormData();
+        uploadForm.append("file", payload.image);
+
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadForm,
+        });
+
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json();
+          throw new Error(errData.error || "Failed to upload image");
+        }
+
+        const uploadData = await uploadRes.json();
+        imageUrl = uploadData.url; // ✅ backend should return uploaded file URL
+      }
+
+        const updatePayload = {
+            customerId: payload.customerId,
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            email: payload.email,
+            password: payload.password,
+            phoneNumber: payload.phoneNumber,
+            preferences: payload.preferences,
+            address: payload.address,
+            image: imageUrl, // ✅ use uploaded image URL here
+        };
       const res = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(updatePayload),
       });
 
       const data = await res.json();
