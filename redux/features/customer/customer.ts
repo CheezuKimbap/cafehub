@@ -12,6 +12,7 @@ export interface Customer {
   orders?: Order[]; // <-- add this
   currentStamps?: number;
   user?: {
+    id: string
     image?: string | null;
   };
 }

@@ -7,6 +7,7 @@ import orderReducer from "./features/order/orderSlice";
 import customerReducer from "./features/customer/customerSlice";
 import discountReducer from "./features/discount/discountSlice";
 import addonReducer from "./features/addons/addonsSlice";
+import profileReducer from "./features/profile/profileslice";
 const appReducer = combineReducers({
   products: productReducer,
   cart: cartReducer,
@@ -15,6 +16,7 @@ const appReducer = combineReducers({
   customer: customerReducer,
   discount: discountReducer,
   addon: addonReducer,
+  profile: profileReducer,
 });
 
 const rootReducer = (state: any, action: any) => {

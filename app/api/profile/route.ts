@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 export async function PUT(req: Request) {
   try {
     const {
-      userId,
+      customerId,
       phoneNumber,
       preferences,
       address,
@@ -16,26 +16,29 @@ export async function PUT(req: Request) {
       image,
     } = await req.json();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    if (!customerId) {
+      return NextResponse.json({ error: "Missing customerId" }, { status: 400 });
     }
 
-    // Load user + customer + accounts
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { customer: true, accounts: true },
+    // Load customer + user + accounts
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+      include: { users: { include: { accounts: true } } },
     });
 
-    if (!user?.customer) {
+    if (!customer || customer.users.length === 0) {
       return NextResponse.json(
-        { error: "User or Customer not found" },
+        { error: "Customer or associated User not found" },
         { status: 404 }
       );
     }
 
+    // Assuming the first user is the primary one
+    const user = customer.users[0];
+
     // Determine auth type
     const isOAuth = user.accounts.length > 0;
-    const hasPassword = !!user.customer.password;
+    const hasPassword = !!customer.password;
 
     // Prepare optional password update
     let hashedPassword: string | undefined;
@@ -43,7 +46,7 @@ export async function PUT(req: Request) {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    // Rule: block email change if OAuth or Hybrid
+    // Rule: block email change if OAuth
     if (isOAuth && email) {
       return NextResponse.json(
         { error: "Email cannot be changed for OAuth accounts" },
@@ -56,44 +59,37 @@ export async function PUT(req: Request) {
       prisma.user.update({
         where: { id: user.id },
         data: {
-          // Concatenate first + last for display name
           ...(firstName || lastName
             ? {
                 name: [
-                  firstName ?? user.customer.firstName,
-                  lastName ?? user.customer.lastName,
-                ]
-                  .filter(Boolean)
-                  .join(" "),
+                  firstName ?? customer.firstName,
+                  lastName ?? customer.lastName,
+                ].filter(Boolean).join(" "),
               }
             : {}),
           ...(hashedPassword && { password: hashedPassword }),
-          // Email only for non-OAuth accounts
           ...(!isOAuth && email ? { email } : {}),
           ...(image && { image }),
         },
       }),
-
       prisma.customer.update({
-        where: { id: user.customer.id },
+        where: { id: customer.id },
         data: {
           ...(firstName && { firstName }),
           ...(lastName && { lastName }),
-          // Email only for non-OAuth accounts
           ...(!isOAuth && email ? { email } : {}),
           ...(hashedPassword && { password: hashedPassword }),
         },
       }),
-
       prisma.profile.upsert({
-        where: { customerId: user.customer.id },
+        where: { customerId: customer.id },
         update: {
           ...(phoneNumber && { phoneNumber }),
           ...(preferences && { preferences }),
           ...(address && { address }),
         },
         create: {
-          customerId: user.customer.id,
+          customerId: customer.id,
           phoneNumber: phoneNumber ?? "",
           preferences: preferences ?? "",
           address: address ?? "",
@@ -109,9 +105,6 @@ export async function PUT(req: Request) {
     });
   } catch (error) {
     console.error("Error updating profile:", error);
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
