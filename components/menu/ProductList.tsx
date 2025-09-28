@@ -11,8 +11,8 @@ export function ProductList({
 }) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 bg-[#F4F1EB] p-8 rounded-2xl my-4">
-        {Array.from({ length: 12 }).map((_, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-8 gap-4 ">
+        {Array.from({ length: 24 }).map((_, i) => (
           <ProductCardSkeleton key={i} />
         ))}
       </div>

@@ -51,7 +51,7 @@ export function Sidebar({
   const bottomNav = items.filter((i) => i.position === "bottom");
 
   return (
-    <aside className="w-64 h-screen bg-white border-r-2 flex flex-col justify-between">
+    <aside className="w-64 h-screen bg-white border-r-2 flex flex-col justify-between sticky top-0">
       {/* Top Section */}
       <div>
         <h1
