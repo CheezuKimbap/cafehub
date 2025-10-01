@@ -3,11 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
 export async function GET(req: NextRequest) {
-   
+
 
   try {
     const products = await prisma.product.findMany({
-      where: { isDeleted: false },
+      where: { isDeleted: false, },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(products);
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-   
+
 
   try {
     const body = await req.json();
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     if (!name || !description || price === undefined) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-    
+
     const product = await prisma.product.create({
       data: { name, description, price, image, stock, ...(productType && {productType}) },
     });

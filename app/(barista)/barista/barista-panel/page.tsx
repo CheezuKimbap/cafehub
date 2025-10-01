@@ -1,94 +1,125 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { useState, useMemo, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { fetchProducts } from "@/redux/features/products/productsSlice";
-import { fetchAddons } from "@/redux/features/addons/addonsSlice";
 import {
-  addItemToCart,
-  fetchCart,
-  removeCartItem,
-} from "@/redux/features/cart/cartSlice";
-import { useSession } from "next-auth/react";
+  fetchBaristaCart,
+  addBaristaItem,
+  removeBaristaItem,
+  updateBaristaItem,
+  clearBaristaCart,
+  selectBaristaCart,
+} from "@/redux/features/cart/baristaCartSlice";
+import type { RootState, AppDispatch } from "@/redux/store";
+import type { CartItemAddon } from "@/redux/features/cart/cart";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
-  DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
+import { useSession } from "next-auth/react";
+
+const sampleAddons = [
+  { addonId: "a1", name: "Extra Shot", price: 20 },
+  { addonId: "a2", name: "Soy Milk", price: 15 },
+];
 
 export default function BaristaPOS() {
-  const dispatch = useAppDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const { items: products, loading, error } = useSelector(
+    (state: RootState) => state.products
+  );
+  const cart = useSelector(selectBaristaCart);
+
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [selectedAddons, setSelectedAddons] = useState<CartItemAddon[]>([]);
+  const [quantity, setQuantity] = useState(1);
+  const [servingType, setServingType] = useState<"HOT" | "COLD">("HOT");
+
   const { data: session } = useSession();
   const customerId = session?.user.customerId;
 
-  const products = useAppSelector((state) => state.products.items);
-  const addons = useAppSelector((state) => state.addon.list);
-  const cart = useAppSelector((state) => state.cart.cart);
-
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
-  const [selectedAddons, setSelectedAddons] = useState<
-    { addonId: string; quantity: number }[]
-  >([]);
-  const [quantity, setQuantity] = useState(1);
-
+  // fetch products + cart on mount
   useEffect(() => {
+    if (!customerId) return;
     dispatch(fetchProducts());
-    dispatch(fetchAddons());
-    if (customerId) dispatch(fetchCart(customerId));
+    dispatch(fetchBaristaCart(customerId));
   }, [dispatch, customerId]);
 
-  const toggleAddon = (addonId: string) => {
+  const toggleAddon = (addon: { addonId: string; name: string; price: number }) => {
     setSelectedAddons((prev) => {
-      const exists = prev.find((a) => a.addonId === addonId);
-      if (exists) return prev.filter((a) => a.addonId !== addonId);
-      return [...prev, { addonId, quantity: 1 }];
+      const exists = prev.find((a) => a.addonId === addon.addonId);
+      if (exists) {
+        return prev.filter((a) => a.addonId !== addon.addonId);
+      }
+      return [
+        ...prev,
+        {
+          addonId: addon.addonId,
+          quantity: 1,
+          price: addon.price,
+          addon: { name: addon.name, price: addon.price },
+        },
+      ];
     });
   };
 
-  const handleAddToCart = () => {
-    if (!customerId || !selectedProduct) return;
+  const handleAddToCart = (p: any) => {
+    if (!customerId) return;
+
+    const addonsPayload = selectedAddons.map((a) => ({
+      addonId: a.addonId,
+      quantity: a.quantity,
+      price: a.price,
+      addon: a.addon, // contains { name, price }
+    }));
+
     dispatch(
-      addItemToCart({
+      addBaristaItem({
         customerId,
-        productId: selectedProduct,
+        productId: p.id,
         quantity,
-        servingType: "HOT",
-        addons: selectedAddons,
+        servingType, // HOT or COLD
+        addons: addonsPayload,
       })
-    )
-      .unwrap()
-      .then(() => {
-        dispatch(fetchCart(customerId));
-        setSelectedProduct(null);
-        setSelectedAddons([]);
-        setQuantity(1);
-      })
-      .catch(() => alert("Failed to add item to cart"));
+    ).then(() => {
+      dispatch(fetchBaristaCart(customerId)); // refresh after add
+    });
+
+    // reset dialog state
+    setSelectedProduct(null);
+    setSelectedAddons([]);
+    setQuantity(1);
+    setServingType("HOT");
   };
 
-  const handleRemoveItem = (itemId: string) => {
-    dispatch(removeCartItem(itemId));
+  const handleRemoveFromCart = (itemId: string) => {
+    if (!customerId) return;
+    dispatch(removeBaristaItem(itemId)).then(() => {
+      dispatch(fetchBaristaCart(customerId));
+    });
   };
 
   const total = useMemo(() => {
     if (!cart?.items?.length) return 0;
     return cart.items.reduce((acc, item) => {
-      const productPrice = item.product?.price ?? 0;
-      const base = productPrice * item.quantity;
+      const base = (item.product?.price || 0) * item.quantity;
       const addonTotal =
         item.addons?.reduce(
-          (aAcc, addon) => aAcc + (addon.price ?? 0) * addon.quantity,
+          (aAcc, addon) => aAcc + (addon.price || addon.addon.price) * addon.quantity,
           0
         ) ?? 0;
       return acc + base + addonTotal;
     }, 0);
   }, [cart]);
+
+  if (loading) return <p className="p-6">Loading menu…</p>;
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
     <div className="grid grid-cols-3 gap-6 p-6 relative">
@@ -123,11 +154,6 @@ export default function BaristaPOS() {
                     <DialogTitle className="text-lg font-semibold">
                       {p.name}
                     </DialogTitle>
-                    <DialogClose asChild>
-                      <Button variant="outline" size="sm">
-                        ✕
-                      </Button>
-                    </DialogClose>
                   </div>
 
                   {/* Quantity selector */}
@@ -141,15 +167,35 @@ export default function BaristaPOS() {
                     <Button onClick={() => setQuantity((q) => q + 1)}>+</Button>
                   </div>
 
+                  {/* Serving type selector */}
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        value="HOT"
+                        checked={servingType === "HOT"}
+                        onChange={() => setServingType("HOT")}
+                      />
+                      Hot
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        value="COLD"
+                        checked={servingType === "COLD"}
+                        onChange={() => setServingType("COLD")}
+                      />
+                      Cold
+                    </label>
+                  </div>
+
                   {/* Addons */}
                   <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
-                    {addons.map((a) => (
-                      <label key={a.id} className="flex items-center gap-2">
+                    {sampleAddons.map((a) => (
+                      <label key={a.addonId} className="flex items-center gap-2">
                         <Checkbox
-                          checked={
-                            !!selectedAddons.find((s) => s.addonId === a.id)
-                          }
-                          onCheckedChange={() => toggleAddon(a.id)}
+                          checked={!!selectedAddons.find((s) => s.addonId === a.addonId)}
+                          onCheckedChange={() => toggleAddon(a)}
                         />
                         {a.name} (+₱{a.price})
                       </label>
@@ -157,7 +203,7 @@ export default function BaristaPOS() {
                   </div>
 
                   {/* Add to cart */}
-                  <Button onClick={handleAddToCart} className="mt-4">
+                  <Button className="mt-4" onClick={() => handleAddToCart(p)}>
                     Add to Cart
                   </Button>
                 </div>
@@ -174,16 +220,17 @@ export default function BaristaPOS() {
           <div className="flex flex-col gap-2">
             {cart.items.map((item) => (
               <div key={item.id} className="border p-2 rounded">
-                <p>{item.product?.name ?? "Unknown product"}</p>
+                <p>{item.product?.name}</p>
                 <p>
-                  Qty: {item.quantity} | ₱{item.product?.price ?? 0}
+                  Qty: {item.quantity} | ₱{item.product?.price}
                 </p>
+                <p className="text-sm italic">Serving: {item.servingType}</p>
                 {item.addons?.length > 0 && (
                   <ul className="pl-4 text-sm">
                     {item.addons.map((a) => (
                       <li key={a.addonId}>
                         {a.addon?.name ?? "Unknown"} x {a.quantity} - ₱
-                        {(a.price ?? 0) * a.quantity}
+                        {(a.price || a.addon.price) * a.quantity}
                       </li>
                     ))}
                   </ul>
@@ -192,7 +239,7 @@ export default function BaristaPOS() {
                   variant="destructive"
                   size="sm"
                   className="mt-1"
-                  onClick={() => handleRemoveItem(item.id)}
+                  onClick={() => handleRemoveFromCart(item.id)}
                 >
                   Remove
                 </Button>
