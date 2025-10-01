@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "@/redux/features/products/productsSlice";
 import {
   fetchBaristaCart,
   addBaristaItem,
   removeBaristaItem,
-  updateBaristaItem,
-  clearBaristaCart,
-  selectBaristaCart,
 } from "@/redux/features/cart/baristaCartSlice";
+import { fetchAddons } from "@/redux/features/addons/addonsSlice";
+import { checkout } from "@/redux/features/checkout/checkoutSlice";
 import type { RootState, AppDispatch } from "@/redux/store";
 import type { CartItemAddon } from "@/redux/features/cart/cart";
+import { Addon } from "@/prisma/generated/prisma";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,43 +24,51 @@ import {
 } from "@/components/ui/dialog";
 import { useSession } from "next-auth/react";
 
-const sampleAddons = [
-  { addonId: "a1", name: "Extra Shot", price: 20 },
-  { addonId: "a2", name: "Soy Milk", price: 15 },
-];
-
 export default function BaristaPOS() {
   const dispatch = useDispatch<AppDispatch>();
+  const { data: session } = useSession();
+  const customerId = session?.user.customerId;
+
   const { items: products, loading, error } = useSelector(
     (state: RootState) => state.products
   );
-  const cart = useSelector(selectBaristaCart);
+  const cart = useSelector((state: RootState) => state.baristaCart.cart);
+  const { list: addons, loading: addonsLoading } = useSelector(
+    (state: RootState) => state.addon
+  );
+  const { loading: checkoutLoading, error: checkoutError, order } = useSelector(
+    (state: RootState) => state.checkout
+  );
 
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<CartItemAddon[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [servingType, setServingType] = useState<"HOT" | "COLD">("HOT");
 
-  const { data: session } = useSession();
-  const customerId = session?.user.customerId;
-
-  // fetch products + cart on mount
+  // --- Fetch products, cart, addons on mount ---
   useEffect(() => {
     if (!customerId) return;
     dispatch(fetchProducts());
     dispatch(fetchBaristaCart(customerId));
+    dispatch(fetchAddons());
   }, [dispatch, customerId]);
 
-  const toggleAddon = (addon: { addonId: string; name: string; price: number }) => {
+  // --- Refresh cart after checkout ---
+  useEffect(() => {
+    if (order && customerId) {
+      dispatch(fetchBaristaCart(customerId));
+    }
+  }, [order, customerId, dispatch]);
+
+  // --- Addon toggle ---
+  const toggleAddon = (addon: { id: string; name: string; price: number }) => {
     setSelectedAddons((prev) => {
-      const exists = prev.find((a) => a.addonId === addon.addonId);
-      if (exists) {
-        return prev.filter((a) => a.addonId !== addon.addonId);
-      }
+      const exists = prev.find((a) => a.addonId === addon.id);
+      if (exists) return prev.filter((a) => a.addonId !== addon.id);
       return [
         ...prev,
         {
-          addonId: addon.addonId,
+          addonId: addon.id,
           quantity: 1,
           price: addon.price,
           addon: { name: addon.name, price: addon.price },
@@ -69,6 +77,7 @@ export default function BaristaPOS() {
     });
   };
 
+  // --- Add item to cart ---
   const handleAddToCart = (p: any) => {
     if (!customerId) return;
 
@@ -76,7 +85,7 @@ export default function BaristaPOS() {
       addonId: a.addonId,
       quantity: a.quantity,
       price: a.price,
-      addon: a.addon, // contains { name, price }
+      addon: a.addon,
     }));
 
     dispatch(
@@ -84,20 +93,20 @@ export default function BaristaPOS() {
         customerId,
         productId: p.id,
         quantity,
-        servingType, // HOT or COLD
+        servingType,
         addons: addonsPayload,
       })
     ).then(() => {
-      dispatch(fetchBaristaCart(customerId)); // refresh after add
+      dispatch(fetchBaristaCart(customerId));
     });
 
-    // reset dialog state
     setSelectedProduct(null);
     setSelectedAddons([]);
     setQuantity(1);
     setServingType("HOT");
   };
 
+  // --- Remove item from cart ---
   const handleRemoveFromCart = (itemId: string) => {
     if (!customerId) return;
     dispatch(removeBaristaItem(itemId)).then(() => {
@@ -105,6 +114,22 @@ export default function BaristaPOS() {
     });
   };
 
+  // --- Checkout action directly inside page ---
+  const handleCheckout = () => {
+  if (!customerId) return;
+
+  dispatch(checkout({ customerId }))
+    .unwrap() // unwrap the promise to catch success/failure
+    .then(() => {
+      // Refresh cart after successful checkout
+      dispatch(fetchBaristaCart(customerId));
+    })
+    .catch((err) => {
+      console.error("Checkout failed:", err);
+    });
+};
+
+  // --- Cart total calculation ---
   const total = useMemo(() => {
     if (!cart?.items?.length) return 0;
     return cart.items.reduce((acc, item) => {
@@ -139,7 +164,6 @@ export default function BaristaPOS() {
                 </button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-3xl w-full flex p-0 overflow-hidden">
-                {/* Left - Product Image */}
                 <div className="w-1/3 p-4 flex items-center justify-center border-r">
                   <img
                     src={p.image || "/placeholder.png"}
@@ -147,27 +171,13 @@ export default function BaristaPOS() {
                     className="object-contain w-full h-48 rounded"
                   />
                 </div>
-
-                {/* Right - Details */}
                 <div className="w-2/3 flex flex-col p-6 gap-4">
-                  <div className="flex justify-between items-center">
-                    <DialogTitle className="text-lg font-semibold">
-                      {p.name}
-                    </DialogTitle>
-                  </div>
-
-                  {/* Quantity selector */}
+                  <DialogTitle className="text-lg font-semibold">{p.name}</DialogTitle>
                   <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    >
-                      -
-                    </Button>
+                    <Button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>-</Button>
                     <span>{quantity}</span>
                     <Button onClick={() => setQuantity((q) => q + 1)}>+</Button>
                   </div>
-
-                  {/* Serving type selector */}
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-2">
                       <input
@@ -188,21 +198,23 @@ export default function BaristaPOS() {
                       Cold
                     </label>
                   </div>
-
-                  {/* Addons */}
                   <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
-                    {sampleAddons.map((a) => (
-                      <label key={a.addonId} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={!!selectedAddons.find((s) => s.addonId === a.addonId)}
-                          onCheckedChange={() => toggleAddon(a)}
-                        />
-                        {a.name} (+₱{a.price})
-                      </label>
-                    ))}
+                    {addonsLoading ? (
+                      <p>Loading addons...</p>
+                    ) : addons.length ? (
+                      addons.map((a: Addon) => (
+                        <label key={a.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={!!selectedAddons.find((s) => s.addonId === a.id)}
+                            onCheckedChange={() => toggleAddon(a)}
+                          />
+                          {a.name} (+₱{a.price})
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-400">No addons available</p>
+                    )}
                   </div>
-
-                  {/* Add to cart */}
                   <Button className="mt-4" onClick={() => handleAddToCart(p)}>
                     Add to Cart
                   </Button>
@@ -246,6 +258,25 @@ export default function BaristaPOS() {
               </div>
             ))}
             <p className="mt-2 font-semibold">Total: ₱{total.toFixed(2)}</p>
+
+            {/* Checkout button directly in page */}
+            <div className="mt-4">
+              <Button
+                onClick={handleCheckout}
+                disabled={checkoutLoading || !cart?.items?.length}
+                className="w-full"
+              >
+                {checkoutLoading ? "Processing..." : "Checkout"}
+              </Button>
+
+              {checkoutError && <p className="text-red-500 mt-2">{checkoutError}</p>}
+
+              {order && (
+                <p className="text-green-600 mt-2">
+                  ✅ Order placed successfully! Order ID: {order.id}
+                </p>
+              )}
+            </div>
           </div>
         ) : (
           <p className="text-gray-500">Cart is empty</p>

@@ -3,23 +3,10 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AppDispatch } from "@/redux/store";
 import { clearCart } from "@/redux/features/cart/cartSlice";
+import { Order } from "./checkout";
 
 // --- Types ---
-interface OrderItem {
-  id: string;
-  productId: string;
-  quantity: number;
-  priceAtPurchase: number;
-}
 
-interface Order {
-  id: string;
-  customerId: string;
-  orderDate: string;
-  totalAmount: number;
-  discountApplied: number;
-  orderItems: OrderItem[];
-}
 
 interface CheckoutState {
   order: Order | null;
