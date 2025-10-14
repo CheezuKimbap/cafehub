@@ -17,7 +17,10 @@ export async function PUT(req: Request) {
     } = await req.json();
 
     if (!customerId) {
-      return NextResponse.json({ error: "Missing customerId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing customerId" },
+        { status: 400 },
+      );
     }
 
     // Load customer + user + accounts
@@ -29,7 +32,7 @@ export async function PUT(req: Request) {
     if (!customer || customer.users.length === 0) {
       return NextResponse.json(
         { error: "Customer or associated User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -50,7 +53,7 @@ export async function PUT(req: Request) {
     if (isOAuth && email) {
       return NextResponse.json(
         { error: "Email cannot be changed for OAuth accounts" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -64,7 +67,9 @@ export async function PUT(req: Request) {
                 name: [
                   firstName ?? customer.firstName,
                   lastName ?? customer.lastName,
-                ].filter(Boolean).join(" "),
+                ]
+                  .filter(Boolean)
+                  .join(" "),
               }
             : {}),
           ...(hashedPassword && { password: hashedPassword }),
@@ -105,6 +110,9 @@ export async function PUT(req: Request) {
     });
   } catch (error) {
     console.error("Error updating profile:", error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 },
+    );
   }
 }

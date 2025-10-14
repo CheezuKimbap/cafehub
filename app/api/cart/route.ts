@@ -5,14 +5,22 @@ type AddonKey = { addonId: string; quantity: number };
 // GET: Get cart for a customer
 export async function GET(req: NextRequest) {
   const customerId = req.nextUrl.searchParams.get("customerId");
-  if (!customerId) return NextResponse.json({ error: "Missing customerId" }, { status: 400 });
+  if (!customerId)
+    return NextResponse.json({ error: "Missing customerId" }, { status: 400 });
 
   try {
     const cart = await prisma.cart.findUnique({
       where: { customerId },
-      include: { items: { include: { product: true, addons: {
-        include: {addon: true}
-      } } } },
+      include: {
+        items: {
+          include: {
+            product: true,
+            addons: {
+              include: { addon: true },
+            },
+          },
+        },
+      },
     });
 
     if (!cart) {
@@ -22,13 +30,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(cart);
   } catch (error) {
     console.error("Failed to fetch cart:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
-
 export async function POST(req: NextRequest) {
-  const { customerId, productId, quantity, servingType, addons } = await req.json();
+  const { customerId, productId, quantity, servingType, addons } =
+    await req.json();
 
   if (!customerId || !productId || quantity <= 0) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
@@ -52,8 +63,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Fetch product
-    const product = await prisma.product.findUnique({ where: { id: productId } });
-    if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!product)
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
     // ✅ Calculate addon total per drink
     let addonTotalPerDrink = 0;
@@ -61,7 +75,9 @@ export async function POST(req: NextRequest) {
 
     if (addons && Array.isArray(addons) && addons.length > 0) {
       const addonIds = addons.map((a: any) => a.addonId);
-      dbAddons = await prisma.addon.findMany({ where: { id: { in: addonIds } } });
+      dbAddons = await prisma.addon.findMany({
+        where: { id: { in: addonIds } },
+      });
 
       addonTotalPerDrink = addons.reduce((sum: number, addon: any) => {
         const dbAddon = dbAddons.find((a) => a.id === addon.addonId);
@@ -82,17 +98,17 @@ export async function POST(req: NextRequest) {
     });
 
     // Normalize addons for comparison
-   const incomingAddonKey = JSON.stringify(
-    (addons || [])
-      .map((a: any) => ({ addonId: a.addonId, quantity: a.quantity }))
-      .sort((a: AddonKey, b: AddonKey) => a.addonId.localeCompare(b.addonId))
+    const incomingAddonKey = JSON.stringify(
+      (addons || [])
+        .map((a: any) => ({ addonId: a.addonId, quantity: a.quantity }))
+        .sort((a: AddonKey, b: AddonKey) => a.addonId.localeCompare(b.addonId)),
     );
     let cartItem = null;
     for (const item of candidateItems) {
       const itemAddonKey = JSON.stringify(
         item.addons
           .map((a) => ({ addonId: a.addonId, quantity: a.quantity }))
-          .sort((a, b) => a.addonId.localeCompare(b.addonId))
+          .sort((a, b) => a.addonId.localeCompare(b.addonId)),
       );
 
       if (itemAddonKey === incomingAddonKey) {
@@ -168,6 +184,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Item added to cart" });
   } catch (error) {
     console.error("Failed to add item to cart:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

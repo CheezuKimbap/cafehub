@@ -9,11 +9,19 @@ function getRandomItem<T>(arr: T[]): T {
 
 export async function POST(req: NextRequest) {
   try {
-    const { customerId, discountId, paymentType, paymentProvider, paymentDetails } =
-      await req.json();
+    const {
+      customerId,
+      discountId,
+      paymentType,
+      paymentProvider,
+      paymentDetails,
+    } = await req.json();
 
     if (!customerId) {
-      return NextResponse.json({ error: "CustomerId required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "CustomerId required" },
+        { status: 400 },
+      );
     }
 
     // 1. Find active cart
@@ -28,7 +36,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (!cart || cart.items.length === 0) {
-      return NextResponse.json({ error: "No active cart or cart is empty" }, { status: 404 });
+      return NextResponse.json(
+        { error: "No active cart or cart is empty" },
+        { status: 404 },
+      );
     }
 
     // 2. Calculate total (base)
@@ -43,11 +54,17 @@ export async function POST(req: NextRequest) {
       });
 
       if (!discount) {
-        return NextResponse.json({ error: "Invalid discount" }, { status: 404 });
+        return NextResponse.json(
+          { error: "Invalid discount" },
+          { status: 404 },
+        );
       }
 
       if (discount.isRedeemed) {
-        return NextResponse.json({ error: "Discount already redeemed" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Discount already redeemed" },
+          { status: 400 },
+        );
       }
 
       // --- CASE 1: Percentage off ONE drink
@@ -56,7 +73,9 @@ export async function POST(req: NextRequest) {
 
         // Apply discount to one unit only
         const oneUnitPrice = targetItem.price / targetItem.quantity;
-        discountApplied = Math.floor((oneUnitPrice * discount.discountAmount) / 100);
+        discountApplied = Math.floor(
+          (oneUnitPrice * discount.discountAmount) / 100,
+        );
 
         totalAmount -= discountApplied;
       }
@@ -67,7 +86,9 @@ export async function POST(req: NextRequest) {
 
         if (discount.productId) {
           // Specific product
-          targetItem = cart.items.find((item) => item.productId === discount.productId) ?? null;
+          targetItem =
+            cart.items.find((item) => item.productId === discount.productId) ??
+            null;
         } else {
           // Random product
           targetItem = getRandomItem(cart.items);

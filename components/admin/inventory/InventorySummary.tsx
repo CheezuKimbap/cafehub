@@ -9,11 +9,11 @@ export function InventorySummary() {
 
   const totalProducts = items.length;
   const inStore = items.filter(
-    (p) => p.status === "AVAILABLE" && (p.stock ?? 0) > 0
+    (p) => p.status === "AVAILABLE" && (p.stock ?? 0) > 0,
   ).length;
 
   const lowStock = items.filter(
-    (p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) < 5
+    (p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) < 5,
   ).length;
 
   return (

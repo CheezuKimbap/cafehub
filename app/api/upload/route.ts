@@ -15,26 +15,27 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Upload to Cloudinary
-    const result: UploadApiResponse = await new Promise((resolve, reject) => {  
-    cloudinary.uploader.upload_stream(
-    {
-      folder: "products",
-      transformation: [
-        { width: 400, height: 400, crop: "fill", gravity: "auto" },
-        { quality: "auto", fetch_format: "auto" }, // optional but recommended
-      ],
-    },
-    (error, result) => {
-      if (error || !result) reject(error);
-      else resolve(result);
-    }
-  ).end(buffer);
-
+    const result: UploadApiResponse = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            folder: "products",
+            transformation: [
+              { width: 400, height: 400, crop: "fill", gravity: "auto" },
+              { quality: "auto", fetch_format: "auto" }, // optional but recommended
+            ],
+          },
+          (error, result) => {
+            if (error || !result) reject(error);
+            else resolve(result);
+          },
+        )
+        .end(buffer);
     });
 
-     return NextResponse.json({
+    return NextResponse.json({
       success: true,
-      url: result.secure_url,    // <-- secure URL for display
+      url: result.secure_url, // <-- secure URL for display
       public_id: result.public_id, // <-- keep this if you’ll delete/update later
     });
   } catch (error) {

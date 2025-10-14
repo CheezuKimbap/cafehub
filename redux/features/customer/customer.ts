@@ -1,6 +1,5 @@
 import { Order, Profile, User } from "@/prisma/generated/prisma";
 
-
 // Customer type (minimal for orders)
 
 export interface Customer {
@@ -12,9 +11,8 @@ export interface Customer {
   orders?: Order[]; // <-- add this
   currentStamps?: number;
   user?: {
-    id: string
+    id: string;
     image?: string | null;
-    accountCount?: number
+    accountCount?: number;
   };
 }
-

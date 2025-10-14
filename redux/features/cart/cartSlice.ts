@@ -24,7 +24,7 @@ export const fetchCart = createAsyncThunk(
     const res = await fetch(`/api/cart?customerId=${customerId}`);
     if (!res.ok) throw new Error("Failed to fetch cart");
     return (await res.json()) as Cart;
-  }
+  },
 );
 
 // Add item to cart
@@ -44,7 +44,7 @@ export const addItemToCart = createAsyncThunk(
     });
     if (!res.ok) throw new Error("Failed to add item to cart");
     return (await res.json()) as CartItem;
-  }
+  },
 );
 
 // Update cart item quantity
@@ -58,7 +58,7 @@ export const updateCartItem = createAsyncThunk(
     });
     if (!res.ok) throw new Error("Failed to update cart item");
     return (await res.json()) as CartItem;
-  }
+  },
 );
 
 // Remove cart item
@@ -71,7 +71,7 @@ export const removeCartItem = createAsyncThunk(
       throw new Error(errorData.error || "Failed to delete cart item");
     }
     return itemId; // Return the deleted item's ID
-  }
+  },
 );
 
 // --------------------
@@ -85,14 +85,14 @@ const cartSlice = createSlice({
     updateCartItemOptimistic: (state, action: PayloadAction<CartItem>) => {
       if (!state.cart) return;
       state.cart.items = state.cart.items.map((item) =>
-        item.id === action.payload.id ? action.payload : item
+        item.id === action.payload.id ? action.payload : item,
       );
     },
 
     // Update item quantity locally
     updateItemQuantityLocally: (
       state,
-      action: PayloadAction<{ itemId: string; quantity: number }>
+      action: PayloadAction<{ itemId: string; quantity: number }>,
     ) => {
       if (!state.cart) return;
       state.cart.items = state.cart.items.map((item) =>
@@ -102,7 +102,7 @@ const cartSlice = createSlice({
               quantity: action.payload.quantity,
               price: item.product.price * action.payload.quantity, // recalc base total
             }
-          : item
+          : item,
       );
     },
 
@@ -116,13 +116,13 @@ const cartSlice = createSlice({
     // --------------------
     addAddonToCartItem: (
       state,
-      action: PayloadAction<{ itemId: string; addon: CartItemAddon }>
+      action: PayloadAction<{ itemId: string; addon: CartItemAddon }>,
     ) => {
       if (!state.cart) return;
       const item = state.cart.items.find((i) => i.id === action.payload.itemId);
       if (item) {
         const existing = item.addons.find(
-          (a) => a.addonId === action.payload.addon.addonId
+          (a) => a.addonId === action.payload.addon.addonId,
         );
         if (existing) {
           existing.quantity += action.payload.addon.quantity;
@@ -134,26 +134,30 @@ const cartSlice = createSlice({
 
     removeAddonFromCartItem: (
       state,
-      action: PayloadAction<{ itemId: string; addonId: string }>
+      action: PayloadAction<{ itemId: string; addonId: string }>,
     ) => {
       if (!state.cart) return;
       const item = state.cart.items.find((i) => i.id === action.payload.itemId);
       if (item) {
         item.addons = item.addons.filter(
-          (a) => a.addonId !== action.payload.addonId
+          (a) => a.addonId !== action.payload.addonId,
         );
       }
     },
 
     updateAddonQuantity: (
       state,
-      action: PayloadAction<{ itemId: string; addonId: string; quantity: number }>
+      action: PayloadAction<{
+        itemId: string;
+        addonId: string;
+        quantity: number;
+      }>,
     ) => {
       if (!state.cart) return;
       const item = state.cart.items.find((i) => i.id === action.payload.itemId);
       if (item) {
         const addon = item.addons.find(
-          (a) => a.addonId === action.payload.addonId
+          (a) => a.addonId === action.payload.addonId,
         );
         if (addon) {
           addon.quantity = action.payload.quantity;
@@ -177,36 +181,49 @@ const cartSlice = createSlice({
       })
 
       // Add item
-      .addCase(addItemToCart.fulfilled, (state, action: PayloadAction<CartItem>) => {
-        if (!state.cart) {
-          state.cart = { id: "temp", customerId: "", items: [], status: "ACTIVE" };
-        }
-        state.cart.items.push(action.payload);
-      })
-
-      .addCase(updateCartItem.fulfilled, (state, action: PayloadAction<CartItem>) => {
-        if (!state.cart) return;
-
-        state.cart.items = state.cart.items.map((item) => {
-          if (item.id === action.payload.id) {
-            // if API didn’t return addons, keep the old ones
-            return {
-              ...action.payload,
-              addons: action.payload.addons ?? item.addons,
+      .addCase(
+        addItemToCart.fulfilled,
+        (state, action: PayloadAction<CartItem>) => {
+          if (!state.cart) {
+            state.cart = {
+              id: "temp",
+              customerId: "",
+              items: [],
+              status: "ACTIVE",
             };
           }
-          return item;
-        });
-      })
+          state.cart.items.push(action.payload);
+        },
+      )
 
+      .addCase(
+        updateCartItem.fulfilled,
+        (state, action: PayloadAction<CartItem>) => {
+          if (!state.cart) return;
+
+          state.cart.items = state.cart.items.map((item) => {
+            if (item.id === action.payload.id) {
+              // if API didn’t return addons, keep the old ones
+              return {
+                ...action.payload,
+                addons: action.payload.addons ?? item.addons,
+              };
+            }
+            return item;
+          });
+        },
+      )
 
       // Remove item
-      .addCase(removeCartItem.fulfilled, (state, action: PayloadAction<string>) => {
-        if (!state.cart) return;
-        state.cart.items = state.cart.items.filter(
-          (item) => item.id !== action.payload
-        );
-      });
+      .addCase(
+        removeCartItem.fulfilled,
+        (state, action: PayloadAction<string>) => {
+          if (!state.cart) return;
+          state.cart.items = state.cart.items.filter(
+            (item) => item.id !== action.payload,
+          );
+        },
+      );
   },
 });
 

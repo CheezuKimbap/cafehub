@@ -32,7 +32,7 @@ export default function CartPage() {
   const handleUpdateQuantity = (
     itemId: string,
     quantity: number,
-    callAPI: boolean
+    callAPI: boolean,
   ) => {
     if (!cart) return;
     const item = cart.items.find((i) => i.id === itemId);
@@ -43,7 +43,7 @@ export default function CartPage() {
       updateItemQuantityLocally({
         itemId,
         quantity,
-      })
+      }),
     );
 
     // Call backend only if confirmed (blur)

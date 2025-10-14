@@ -7,7 +7,6 @@ import { Order } from "./checkout";
 
 // --- Types ---
 
-
 interface CheckoutState {
   order: Order | null;
   loading: boolean;

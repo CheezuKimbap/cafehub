@@ -4,10 +4,9 @@ export interface CartItem {
   id: string;
   quantity: number;
   price: number;
-  servingType: ServingType // price at the time of adding
+  servingType: ServingType; // price at the time of adding
   product: Product;
   addons: CartItemAddon[];
- 
 }
 
 export interface Cart {

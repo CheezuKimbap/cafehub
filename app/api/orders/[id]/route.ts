@@ -5,9 +5,7 @@ import { validateApiKey } from "@/lib/apiKeyGuard";
 
 // GET single order by ID
 export async function GET(req: NextRequest, context: any) {
-   
-
-  const { id } = await  context.params as { id: string };
+  const { id } = (await context.params) as { id: string };
 
   try {
     const order = await prisma.order.findUnique({
@@ -25,16 +23,17 @@ export async function GET(req: NextRequest, context: any) {
     return NextResponse.json(order, { status: 200 });
   } catch (error) {
     console.error("Failed to fetch order:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 
 // PUT update order status
 // PUT update order status (and payment status)
 export async function PUT(req: NextRequest, context: any) {
-   
-
-  const { id } = await context.params as { id: string };
+  const { id } = (await context.params) as { id: string };
 
   try {
     const body = await req.json();
@@ -43,7 +42,7 @@ export async function PUT(req: NextRequest, context: any) {
     if (!status && !paymentStatus) {
       return NextResponse.json(
         { error: "status or paymentStatus is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -51,7 +50,7 @@ export async function PUT(req: NextRequest, context: any) {
     if (status && !(Object.values(OrderStatus) as string[]).includes(status)) {
       return NextResponse.json(
         { error: `Invalid status: ${status}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -63,7 +62,7 @@ export async function PUT(req: NextRequest, context: any) {
     ) {
       return NextResponse.json(
         { error: `Invalid paymentStatus: ${paymentStatus}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -71,27 +70,28 @@ export async function PUT(req: NextRequest, context: any) {
       where: { id },
       data: {
         ...(status ? { status: status as OrderStatus } : {}),
-        ...(paymentStatus ? { paymentStatus: paymentStatus as PaymentStatus } : {}),
+        ...(paymentStatus
+          ? { paymentStatus: paymentStatus as PaymentStatus }
+          : {}),
       },
-      include:{
+      include: {
         customer: true,
         orderItems: {
-          include:{
-            product:true,
-            addons: true
-          }
-        }
-      }
-      
+          include: {
+            product: true,
+            addons: true,
+          },
+        },
+      },
     });
 
-     if (
+    if (
       updatedOrder.status === OrderStatus.COMPLETED &&
       updatedOrder.paymentStatus === PaymentStatus.PAID
     ) {
       const stampsEarned = updatedOrder.orderItems.reduce(
         (sum, item) => sum + item.quantity,
-        0
+        0,
       );
 
       const currentCustomer = await prisma.customer.findUnique({
@@ -136,27 +136,22 @@ export async function PUT(req: NextRequest, context: any) {
         });
       }
     }
- 
-        
-  
+
     return NextResponse.json(
       { message: "Order updated", order: updatedOrder },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Failed to update order:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-
 // DELETE order (soft delete)
 export async function DELETE(req: NextRequest, context: any) {
-   
-
   const { id } = context.params as { id: string };
 
   try {
@@ -165,9 +160,15 @@ export async function DELETE(req: NextRequest, context: any) {
       data: { isDeleted: true, deletedAt: new Date() },
     });
 
-    return NextResponse.json({ message: "Order deleted", order: deletedOrder }, { status: 200 });
+    return NextResponse.json(
+      { message: "Order deleted", order: deletedOrder },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Failed to delete order:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

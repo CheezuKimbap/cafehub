@@ -9,7 +9,7 @@ export const fetchDiscounts = createAsyncThunk(
     const res = await fetch(`/api/discount?customerId=${customerId}`);
     if (!res.ok) throw new Error("Failed to fetch discounts");
     return (await res.json()) as Discount[];
-  }
+  },
 );
 
 interface DiscountState {

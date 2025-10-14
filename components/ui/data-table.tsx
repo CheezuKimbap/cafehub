@@ -90,7 +90,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
 
                       {header.column.getCanSort() && (
@@ -99,8 +99,8 @@ export function DataTable<TData, TValue>({
                             sortDir === "asc"
                               ? "rotate-180"
                               : sortDir === "desc"
-                              ? "rotate-0"
-                              : "opacity-40"
+                                ? "rotate-0"
+                                : "opacity-40"
                           }`}
                         />
                       )}
@@ -121,7 +121,7 @@ export function DataTable<TData, TValue>({
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

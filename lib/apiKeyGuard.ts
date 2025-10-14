@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server";
 
 export function validateApiKey(req: NextRequest) {
-  const apiKey = req.headers.get("x-api-key")
+  const apiKey = req.headers.get("x-api-key");
   // if (apiKey !== process.env.API_KEY) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   // }
@@ -11,5 +11,5 @@ export function validateApiKey(req: NextRequest) {
   // if (origin && !allowedOrigins.includes(origin)) {
   //   return NextResponse.json({ error: "Forbidden origin" }, { status: 403 });
   // }
-  return null
+  return null;
 }

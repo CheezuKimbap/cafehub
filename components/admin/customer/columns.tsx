@@ -41,7 +41,7 @@ export const customerColumns: ColumnDef<Customer>[] = [
           ?.filter(
             (o) =>
               o.status === "COMPLETED" && // or OrderStatus.COMPLETED if you import enum
-              o.paymentStatus === "PAID" // or PaymentStatus.PAID
+              o.paymentStatus === "PAID", // or PaymentStatus.PAID
           )
           .reduce((sum, o) => sum + o.totalAmount, 0) ?? 0;
 

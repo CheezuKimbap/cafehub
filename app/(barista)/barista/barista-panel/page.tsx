@@ -29,16 +29,20 @@ export default function BaristaPOS() {
   const { data: session } = useSession();
   const customerId = session?.user.customerId;
 
-  const { items: products, loading, error } = useSelector(
-    (state: RootState) => state.products
-  );
+  const {
+    items: products,
+    loading,
+    error,
+  } = useSelector((state: RootState) => state.products);
   const cart = useSelector((state: RootState) => state.baristaCart.cart);
   const { list: addons, loading: addonsLoading } = useSelector(
-    (state: RootState) => state.addon
+    (state: RootState) => state.addon,
   );
-  const { loading: checkoutLoading, error: checkoutError, order } = useSelector(
-    (state: RootState) => state.checkout
-  );
+  const {
+    loading: checkoutLoading,
+    error: checkoutError,
+    order,
+  } = useSelector((state: RootState) => state.checkout);
 
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<CartItemAddon[]>([]);
@@ -95,7 +99,7 @@ export default function BaristaPOS() {
         quantity,
         servingType,
         addons: addonsPayload,
-      })
+      }),
     ).then(() => {
       dispatch(fetchBaristaCart(customerId));
     });
@@ -116,18 +120,18 @@ export default function BaristaPOS() {
 
   // --- Checkout action directly inside page ---
   const handleCheckout = () => {
-  if (!customerId) return;
+    if (!customerId) return;
 
-  dispatch(checkout({ customerId }))
-    .unwrap() // unwrap the promise to catch success/failure
-    .then(() => {
-      // Refresh cart after successful checkout
-      dispatch(fetchBaristaCart(customerId));
-    })
-    .catch((err) => {
-      console.error("Checkout failed:", err);
-    });
-};
+    dispatch(checkout({ customerId }))
+      .unwrap() // unwrap the promise to catch success/failure
+      .then(() => {
+        // Refresh cart after successful checkout
+        dispatch(fetchBaristaCart(customerId));
+      })
+      .catch((err) => {
+        console.error("Checkout failed:", err);
+      });
+  };
 
   // --- Cart total calculation ---
   const total = useMemo(() => {
@@ -136,8 +140,9 @@ export default function BaristaPOS() {
       const base = (item.product?.price || 0) * item.quantity;
       const addonTotal =
         item.addons?.reduce(
-          (aAcc, addon) => aAcc + (addon.price || addon.addon.price) * addon.quantity,
-          0
+          (aAcc, addon) =>
+            aAcc + (addon.price || addon.addon.price) * addon.quantity,
+          0,
         ) ?? 0;
       return acc + base + addonTotal;
     }, 0);
@@ -172,9 +177,15 @@ export default function BaristaPOS() {
                   />
                 </div>
                 <div className="w-2/3 flex flex-col p-6 gap-4">
-                  <DialogTitle className="text-lg font-semibold">{p.name}</DialogTitle>
+                  <DialogTitle className="text-lg font-semibold">
+                    {p.name}
+                  </DialogTitle>
                   <div className="flex items-center gap-2">
-                    <Button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>-</Button>
+                    <Button
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    >
+                      -
+                    </Button>
                     <span>{quantity}</span>
                     <Button onClick={() => setQuantity((q) => q + 1)}>+</Button>
                   </div>
@@ -205,14 +216,18 @@ export default function BaristaPOS() {
                       addons.map((a: Addon) => (
                         <label key={a.id} className="flex items-center gap-2">
                           <Checkbox
-                            checked={!!selectedAddons.find((s) => s.addonId === a.id)}
+                            checked={
+                              !!selectedAddons.find((s) => s.addonId === a.id)
+                            }
                             onCheckedChange={() => toggleAddon(a)}
                           />
                           {a.name} (+₱{a.price})
                         </label>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-400">No addons available</p>
+                      <p className="text-sm text-gray-400">
+                        No addons available
+                      </p>
                     )}
                   </div>
                   <Button className="mt-4" onClick={() => handleAddToCart(p)}>
@@ -269,7 +284,9 @@ export default function BaristaPOS() {
                 {checkoutLoading ? "Processing..." : "Checkout"}
               </Button>
 
-              {checkoutError && <p className="text-red-500 mt-2">{checkoutError}</p>}
+              {checkoutError && (
+                <p className="text-red-500 mt-2">{checkoutError}</p>
+              )}
 
               {order && (
                 <p className="text-green-600 mt-2">

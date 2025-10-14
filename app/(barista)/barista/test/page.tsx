@@ -68,7 +68,7 @@ export default function OrderSummaryPage() {
       const data = await fetchOrders();
       data.sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
       setOrders(data);
     } finally {
@@ -84,7 +84,7 @@ export default function OrderSummaryPage() {
 
   const markReady = (id: string) => {
     setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: "ready" } : o))
+      prev.map((o) => (o.id === id ? { ...o, status: "ready" } : o)),
     );
   };
 

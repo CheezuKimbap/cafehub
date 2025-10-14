@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Customer, Profile, User } from './profile';
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { Customer, Profile, User } from "./profile";
 
 // -------------------------
 // Types
@@ -27,7 +27,7 @@ const initialState: ProfileState = {
 // Async Thunk: update profile
 // -------------------------
 export const updateProfile = createAsyncThunk(
-  'profile/updateProfile',
+  "profile/updateProfile",
   async (
     payload: {
       customerId: string;
@@ -40,14 +40,13 @@ export const updateProfile = createAsyncThunk(
       address?: string;
       image?: File;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
-
       let imageUrl: string | undefined;
 
-      if(payload.image){
-         const uploadForm = new FormData();
+      if (payload.image) {
+        const uploadForm = new FormData();
         uploadForm.append("file", payload.image);
 
         const uploadRes = await fetch("/api/upload", {
@@ -64,37 +63,37 @@ export const updateProfile = createAsyncThunk(
         imageUrl = uploadData.url; // ✅ backend should return uploaded file URL
       }
 
-        const updatePayload = {
-            customerId: payload.customerId,
-            firstName: payload.firstName,
-            lastName: payload.lastName,
-            email: payload.email,
-            password: payload.password,
-            phoneNumber: payload.phoneNumber,
-            preferences: payload.preferences,
-            address: payload.address,
-            image: imageUrl, // ✅ use uploaded image URL here
-        };
-      const res = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const updatePayload = {
+        customerId: payload.customerId,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        email: payload.email,
+        password: payload.password,
+        phoneNumber: payload.phoneNumber,
+        preferences: payload.preferences,
+        address: payload.address,
+        image: imageUrl, // ✅ use uploaded image URL here
+      };
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatePayload),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update profile');
+      if (!res.ok) throw new Error(data.error || "Failed to update profile");
       return data;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 // -------------------------
 // Slice
 // -------------------------
 const profileSlice = createSlice({
-  name: 'profile',
+  name: "profile",
   initialState,
   reducers: {
     clearProfile: (state) => {

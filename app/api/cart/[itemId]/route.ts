@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 // ✅ Update cart item and optionally its addons
 export async function PUT(req: NextRequest, context: any) {
-  const { itemId } = await context.params as { itemId: string };
+  const { itemId } = (await context.params) as { itemId: string };
 
   if (!itemId) {
     return NextResponse.json({ error: "cartItemId required" }, { status: 400 });
@@ -25,7 +25,10 @@ export async function PUT(req: NextRequest, context: any) {
     });
 
     if (!existingItem) {
-      return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Cart item not found" },
+        { status: 404 },
+      );
     }
 
     // 1️⃣ Update base quantity if provided
@@ -41,8 +44,8 @@ export async function PUT(req: NextRequest, context: any) {
             where: { cartItemId_addonId: { cartItemId: itemId, addonId } },
             update: { quantity }, // update existing addon quantity
             create: { cartItemId: itemId, addonId, quantity }, // create new if not exists
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -56,20 +59,24 @@ export async function PUT(req: NextRequest, context: any) {
     });
 
     if (!updatedItem) {
-      return NextResponse.json({ error: "Cart item not found after update" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Cart item not found after update" },
+        { status: 404 },
+      );
     }
 
     // 3️⃣ Recalculate total price: base product + all addons
     const addonTotal = updatedItem.addons.reduce(
       (sum, a) => sum + a.quantity * a.addon.price,
-      0
+      0,
     );
-    const totalPrice = (updatedItem.product.price + addonTotal) * updatedItem.quantity;
+    const totalPrice =
+      (updatedItem.product.price + addonTotal) * updatedItem.quantity;
 
     // 4️⃣ Update cartItem price
     const finalItem = await prisma.cartItem.update({
       where: { id: itemId },
-      data: { price: totalPrice , quantity},
+      data: { price: totalPrice, quantity },
       include: {
         product: true,
         addons: { include: { addon: true } },
@@ -79,12 +86,15 @@ export async function PUT(req: NextRequest, context: any) {
     return NextResponse.json(finalItem, { status: 200 });
   } catch (error) {
     console.error("Failed to update cart item:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 // ✅ Delete cart item (no change)
 export async function DELETE(req: NextRequest, context: any) {
-  const { itemId } = await context.params as { itemId: string };
+  const { itemId } = (await context.params) as { itemId: string };
 
   if (!itemId) {
     return NextResponse.json({ error: "cartItemId required" }, { status: 400 });
@@ -92,9 +102,15 @@ export async function DELETE(req: NextRequest, context: any) {
 
   try {
     await prisma.cartItem.delete({ where: { id: itemId } });
-    return NextResponse.json({ message: "Item removed from cart" }, { status: 200 });
+    return NextResponse.json(
+      { message: "Item removed from cart" },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Failed to delete cart item:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

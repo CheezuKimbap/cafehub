@@ -8,7 +8,7 @@ interface CartListProps {
   onUpdateQuantity: (
     itemId: string,
     quantity: number,
-    callAPI: boolean
+    callAPI: boolean,
   ) => void;
   onRemove: (cartItemId: string) => void;
 }

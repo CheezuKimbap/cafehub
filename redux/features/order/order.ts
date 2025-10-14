@@ -1,7 +1,12 @@
 import { Customer, ServingType } from "@/prisma/generated/prisma";
 import { Product } from "@/redux/features/products/product";
 
-export type OrderStatus = "PENDING" | "PREPARING" |  "COMPLETED" | "READYTOPICKUP" | "CANCELLED";
+export type OrderStatus =
+  | "PENDING"
+  | "PREPARING"
+  | "COMPLETED"
+  | "READYTOPICKUP"
+  | "CANCELLED";
 export type PaymentStatus = "UNPAID" | "PAID" | "REFUNDED";
 
 export interface OrderItem {

@@ -3,8 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
 export async function GET(req: NextRequest) {
-   
-
   try {
     const url = new URL(req.url);
     const customerId = url.searchParams.get("customerId");
@@ -12,7 +10,7 @@ export async function GET(req: NextRequest) {
     if (!customerId) {
       return NextResponse.json(
         { error: "customerId query parameter is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -29,15 +27,12 @@ export async function GET(req: NextRequest) {
     console.error("Failed to fetch discounts:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-
 export async function POST(req: NextRequest) {
-   
-
   try {
     const { customerId, type, description, discountAmount, productId } =
       await req.json();
@@ -46,28 +41,28 @@ export async function POST(req: NextRequest) {
     if (!customerId) {
       return NextResponse.json(
         { error: "customerId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!type || !["PERCENTAGE_OFF", "FREE_ITEM"].includes(type)) {
       return NextResponse.json(
         { error: "Valid discount type is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (type === "PERCENTAGE_OFF" && !discountAmount) {
       return NextResponse.json(
         { error: "discountAmount is required for PERCENTAGE_OFF" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (type === "FREE_ITEM" && !productId) {
       return NextResponse.json(
         { error: "productId is required for FREE_ITEM" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -87,7 +82,7 @@ export async function POST(req: NextRequest) {
     console.error("Failed to create discount:", error);
     return NextResponse.json(
       { error: "Internal Server Error", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

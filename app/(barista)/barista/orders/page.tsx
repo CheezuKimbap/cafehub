@@ -30,7 +30,7 @@ export default function BaristaBoard() {
   const handleUpdateStatus = (
     id: string,
     next: OrderStatus,
-    paymentStatus?: PaymentStatus
+    paymentStatus?: PaymentStatus,
   ) => {
     dispatch(updateOrderStatus({ id, status: next, paymentStatus }));
   };
@@ -69,10 +69,10 @@ export default function BaristaBoard() {
       col.key === "PENDING"
         ? "bg-orange-100 text-orange-800 border-orange-300"
         : col.key === "PREPARING"
-        ? "bg-orange-200 text-orange-900 border-orange-400"
-        : col.key === "READYTOPICKUP"
-        ? "bg-green-100 text-green-800 border-green-300"
-        : "bg-gray-100 text-gray-800 border-gray-300"
+          ? "bg-orange-200 text-orange-900 border-orange-400"
+          : col.key === "READYTOPICKUP"
+            ? "bg-green-100 text-green-800 border-green-300"
+            : "bg-gray-100 text-gray-800 border-gray-300"
     }`}
           >
             {col.key === "PENDING" && <Clock className="w-4 h-4" />}

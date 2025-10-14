@@ -1,7 +1,12 @@
 // src/redux/features/cart/baristaCartSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "@/redux/store";
-import type { Cart, CartState, CartItem, CartItemAddon } from "@/redux/features/cart/cart";
+import type {
+  Cart,
+  CartState,
+  CartItem,
+  CartItemAddon,
+} from "@/redux/features/cart/cart";
 
 // ------------------------------------
 // Thunks
@@ -12,7 +17,7 @@ export const fetchBaristaCart = createAsyncThunk<Cart, string>(
     const res = await fetch(`/api/cart?customerId=${customerId}`);
     if (!res.ok) throw new Error("Failed to fetch cart");
     return await res.json();
-  }
+  },
 );
 
 export const addBaristaItem = createAsyncThunk<
@@ -55,7 +60,7 @@ export const removeBaristaItem = createAsyncThunk<Cart, string>(
     });
     if (!res.ok) throw new Error("Failed to remove item");
     return await res.json();
-  }
+  },
 );
 
 export const clearBaristaCart = createAsyncThunk<Cart, string>(
@@ -66,7 +71,7 @@ export const clearBaristaCart = createAsyncThunk<Cart, string>(
     });
     if (!res.ok) throw new Error("Failed to clear cart");
     return await res.json();
-  }
+  },
 );
 
 // ------------------------------------
@@ -87,37 +92,52 @@ const baristaCartSlice = createSlice({
       .addCase(fetchBaristaCart.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchBaristaCart.fulfilled, (state, action: PayloadAction<Cart>) => {
-        state.status = "idle";
-        state.cart = action.payload;
-      })
+      .addCase(
+        fetchBaristaCart.fulfilled,
+        (state, action: PayloadAction<Cart>) => {
+          state.status = "idle";
+          state.cart = action.payload;
+        },
+      )
       .addCase(fetchBaristaCart.rejected, (state) => {
         state.status = "failed";
       })
 
       // add item
-      .addCase(addBaristaItem.fulfilled, (state, action: PayloadAction<Cart>) => {
-        state.cart = action.payload;
-        state.status = "idle";
-      })
+      .addCase(
+        addBaristaItem.fulfilled,
+        (state, action: PayloadAction<Cart>) => {
+          state.cart = action.payload;
+          state.status = "idle";
+        },
+      )
 
       // update item
-      .addCase(updateBaristaItem.fulfilled, (state, action: PayloadAction<Cart>) => {
-        state.cart = action.payload;
-        state.status = "idle";
-      })
+      .addCase(
+        updateBaristaItem.fulfilled,
+        (state, action: PayloadAction<Cart>) => {
+          state.cart = action.payload;
+          state.status = "idle";
+        },
+      )
 
       // remove item
-      .addCase(removeBaristaItem.fulfilled, (state, action: PayloadAction<Cart>) => {
-        state.cart = action.payload;
-        state.status = "idle";
-      })
+      .addCase(
+        removeBaristaItem.fulfilled,
+        (state, action: PayloadAction<Cart>) => {
+          state.cart = action.payload;
+          state.status = "idle";
+        },
+      )
 
       // clear cart
-      .addCase(clearBaristaCart.fulfilled, (state, action: PayloadAction<Cart>) => {
-        state.cart = action.payload;
-        state.status = "idle";
-      });
+      .addCase(
+        clearBaristaCart.fulfilled,
+        (state, action: PayloadAction<Cart>) => {
+          state.cart = action.payload;
+          state.status = "idle";
+        },
+      );
   },
 });
 

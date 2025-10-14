@@ -22,7 +22,7 @@ export default function OrdersPage() {
   useEffect(() => {
     if (authStatus === "authenticated" && session?.user?.customerId) {
       dispatch(
-        fetchOrdersByCustomerId({ customerId: session.user.customerId })
+        fetchOrdersByCustomerId({ customerId: session.user.customerId }),
       );
     }
   }, [dispatch, session, authStatus]);

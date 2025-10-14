@@ -22,7 +22,7 @@ export const fetchOrders = createAsyncThunk<Order[]>(
     }
 
     return res.json();
-  }
+  },
 );
 
 // orderSlice.ts
@@ -90,7 +90,7 @@ const ordersSlice = createSlice({
         (state, action: PayloadAction<Order[]>) => {
           state.status = "success";
           state.orders = action.payload;
-        }
+        },
       )
       .addCase(fetchOrdersByCustomerId.rejected, (state, action) => {
         state.status = "failed";
@@ -104,7 +104,7 @@ const ordersSlice = createSlice({
         (state, action: PayloadAction<Order[]>) => {
           state.status = "success";
           state.orders = action.payload;
-        }
+        },
       )
       .addCase(fetchOrders.rejected, (state, action) => {
         state.status = "failed";
@@ -136,13 +136,13 @@ const ordersSlice = createSlice({
           };
         }
         state.updatingOrderIds = state.updatingOrderIds.filter(
-          (orderId) => orderId !== updated.id
+          (orderId) => orderId !== updated.id,
         );
       })
       .addCase(updateOrderStatus.rejected, (state, action) => {
         const { id } = action.meta.arg;
         state.updatingOrderIds = state.updatingOrderIds.filter(
-          (orderId) => orderId !== id
+          (orderId) => orderId !== id,
         );
         state.error = action.error.message ?? "Failed to update order status";
 

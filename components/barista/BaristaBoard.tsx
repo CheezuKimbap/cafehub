@@ -35,7 +35,7 @@ export default function BaristaBoard() {
 
   const updateStatus = (id: string, next: OrderStatus) => {
     setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status: next } : o))
+      prev.map((o) => (o.id === id ? { ...o, status: next } : o)),
     );
   };
 

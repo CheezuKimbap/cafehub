@@ -68,8 +68,8 @@ export function LatestOrdersCard({ orders }: LatestOrdersCardProps) {
                         order.status === "COMPLETED"
                           ? "bg-green-500 text-white"
                           : order.status === "PENDING"
-                          ? "bg-yellow-500 text-black"
-                          : "bg-gray-300 text-black"
+                            ? "bg-yellow-500 text-black"
+                            : "bg-gray-300 text-black"
                       }
                     >
                       {order.status}

@@ -48,7 +48,7 @@ export const fetchCustomers = createAsyncThunk<Customer[], void>(
 
     if (!res.ok) throw new Error("Failed to fetch customers");
     return (await res.json()) as Customer[];
-  }
+  },
 );
 
 // Fetch single customer by ID
@@ -65,7 +65,7 @@ export const fetchCustomerById = createAsyncThunk<Customer, string>(
 
     if (!res.ok) throw new Error("Failed to fetch customer");
     return (await res.json()) as Customer;
-  }
+  },
 );
 
 // --- State ---
@@ -105,16 +105,19 @@ const customerSlice = createSlice({
       .addCase(registerCustomer.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(registerCustomer.fulfilled, (state, action: PayloadAction<Customer>) => {
-        state.status = "idle";
-        state.singleCustomer = action.payload;
+      .addCase(
+        registerCustomer.fulfilled,
+        (state, action: PayloadAction<Customer>) => {
+          state.status = "idle";
+          state.singleCustomer = action.payload;
 
-        // Prevent duplicates in the list
-        state.customers = [
-          ...state.customers.filter((c) => c.id !== action.payload.id),
-          action.payload,
-        ];
-      })
+          // Prevent duplicates in the list
+          state.customers = [
+            ...state.customers.filter((c) => c.id !== action.payload.id),
+            action.payload,
+          ];
+        },
+      )
       .addCase(registerCustomer.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
@@ -123,27 +126,29 @@ const customerSlice = createSlice({
       .addCase(fetchCustomers.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchCustomers.fulfilled, (state, action: PayloadAction<Customer[]>) => {
-        state.status = "idle";
-        state.customers = action.payload;
-      })
+      .addCase(
+        fetchCustomers.fulfilled,
+        (state, action: PayloadAction<Customer[]>) => {
+          state.status = "idle";
+          state.customers = action.payload;
+        },
+      )
       .addCase(fetchCustomers.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       })
       // Fetch single customer
-    .addCase(fetchCustomerById.pending, (state) => {
-      state.status = "loading";
-    })
-    .addCase(fetchCustomerById.fulfilled, (state, action) => {
-      state.status = "idle";
-      state.singleCustomer = action.payload;
-    })
-    .addCase(fetchCustomerById.rejected, (state, action) => {
-      state.status = "failed";
-      state.error = action.error.message;
-    })
-
+      .addCase(fetchCustomerById.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchCustomerById.fulfilled, (state, action) => {
+        state.status = "idle";
+        state.singleCustomer = action.payload;
+      })
+      .addCase(fetchCustomerById.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
   },
 });
 
@@ -151,19 +156,21 @@ const customerSlice = createSlice({
 export const { resetCustomers, resetSingleCustomer } = customerSlice.actions;
 
 export const selectCustomers = (state: RootState) => state.customer.customers;
-export const selectCustomerTotalSpend = (customerId: string) => (state: RootState) => {
-  const customer = state.customer.customers.find((c) => c.id === customerId);
-  if (!customer || !customer.orders) return 0;
+export const selectCustomerTotalSpend =
+  (customerId: string) => (state: RootState) => {
+    const customer = state.customer.customers.find((c) => c.id === customerId);
+    if (!customer || !customer.orders) return 0;
 
-  return customer.orders
-    .filter(
-      (order) =>
-        order.status === OrderStatus.COMPLETED &&
-        order.paymentStatus === PaymentStatus.PAID
-    )
-    .reduce((sum, order) => sum + order.totalAmount, 0);
-};
-export const selectSingleCustomer = (state: RootState) => state.customer.singleCustomer;
+    return customer.orders
+      .filter(
+        (order) =>
+          order.status === OrderStatus.COMPLETED &&
+          order.paymentStatus === PaymentStatus.PAID,
+      )
+      .reduce((sum, order) => sum + order.totalAmount, 0);
+  };
+export const selectSingleCustomer = (state: RootState) =>
+  state.customer.singleCustomer;
 export const selectCustomerStatus = (state: RootState) => state.customer.status;
 export const selectCustomerError = (state: RootState) => state.customer.error;
 

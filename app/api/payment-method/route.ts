@@ -6,15 +6,15 @@ import { validateApiKey } from "@/lib/apiKeyGuard";
 // POST: Create Payment Method
 // -------------------------
 export async function POST(req: NextRequest) {
-  const authError = validateApiKey(req)
-  if (authError) return authError  
+  const authError = validateApiKey(req);
+  if (authError) return authError;
   try {
     const { orderId, type, provider, details, status } = await req.json();
 
     if (!orderId || !type || !status) {
       return NextResponse.json(
         { error: "orderId, type, and status are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
-    
+
     // Enforce 1:1 relationship
     const existingPayment = await prisma.paymentMethod.findUnique({
       where: { orderId },
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     if (existingPayment) {
       return NextResponse.json(
         { error: "Payment method already exists for this order" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -62,7 +62,10 @@ export async function PUT(req: NextRequest) {
     const { orderId, type, provider, details, status } = await req.json();
 
     if (!orderId) {
-      return NextResponse.json({ error: "orderId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "orderId is required" },
+        { status: 400 },
+      );
     }
 
     const payment = await prisma.paymentMethod.update({
@@ -90,7 +93,10 @@ export async function DELETE(req: NextRequest) {
     const { orderId } = await req.json();
 
     if (!orderId) {
-      return NextResponse.json({ error: "orderId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "orderId is required" },
+        { status: 400 },
+      );
     }
 
     const payment = await prisma.paymentMethod.update({

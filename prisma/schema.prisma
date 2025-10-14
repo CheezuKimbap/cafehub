@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-  output = "./generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "./generated/prisma"
   binaryTargets = ["native", "windows", "rhel-openssl-3.0.x"]
 }
 
@@ -13,22 +13,22 @@ datasource db {
 // User Table (NextAuth)
 // -------------------------
 model User {
-  id            String      @id @default(uuid()) @map("_id")
+  id            String    @id @default(uuid()) @map("_id")
   name          String?
-  email         String?     @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   password      String?
-  role          Role        @default(CUSTOMER)
-  customer      Customer?   @relation(fields: [customerId], references: [id])
+  role          Role      @default(CUSTOMER)
+  customer      Customer? @relation(fields: [customerId], references: [id])
   customerId    String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
-  deletedBy     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  deletedBy String?
 }
 
 enum Role {
@@ -92,38 +92,38 @@ model VerificationToken {
 // Customer Table
 // -------------------------
 model Customer {
-  id           String         @id @default(uuid()) @map("_id")
-  firstName    String?
-  lastName     String?
-  email        String         @unique
-  password     String?
-  isLoyal      Boolean        @default(false)
-  profile      Profile?
-  freeItems    FreeItem[]
-  orders       Order[]
-  carts        Cart[] 
-  reviews      Review[]
+  id            String         @id @default(uuid()) @map("_id")
+  firstName     String?
+  lastName      String?
+  email         String         @unique
+  password      String?
+  isLoyal       Boolean        @default(false)
+  profile       Profile?
+  freeItems     FreeItem[]
+  orders        Order[]
+  carts         Cart[]
+  reviews       Review[]
   notifications Notification[]
-  currentStamps Int      @default(0)   // balance 0–10
-  users        User[]
-  discount     Discount[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime?
-  deletedBy    String?
+  currentStamps Int            @default(0) // balance 0–10
+  users         User[]
+  discount      Discount[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  deletedBy     String?
 }
 
 // -------------------------
 // Profile Table (1:1)
 // -------------------------
 model Profile {
-  id          String   @id @default(uuid()) @map("_id")
-  customerId  String   @unique
+  id          String @id @default(uuid()) @map("_id")
+  customerId  String @unique
   phoneNumber String
   preferences String
   address     String
 
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 // -------------------------
@@ -135,76 +135,89 @@ model FreeItem {
   productId  String
   dateIssued DateTime
 
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
 }
 
 // ------------------------
 // Discount Table
 // -------------------------
 model Discount {
-  id                 String      @id @default(uuid()) @map("_id")
-  customerId         String
-  customer           Customer    @relation(fields: [customerId], references: [id])
-  type               String        @default("PERCENTAGE_OFF") // NEW: defines the reward type
-  description        String?     // Optional text: "50% off 1 item" / "Free drink"
-  discountAmount     Int?        // e.g., 50 for 50% off, null for free item
-  productId          String?     // Optional: which product if free item
-  isRedeemed         Boolean     @default(false)
-  createdAt          DateTime    @default(now())
-  usedAt             DateTime?
+  id             String    @id @default(uuid()) @map("_id")
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id])
+  type           String    @default("PERCENTAGE_OFF") // NEW: defines the reward type
+  description    String? // Optional text: "50% off 1 item" / "Free drink"
+  discountAmount Int? // e.g., 50 for 50% off, null for free item
+  productId      String? // Optional: which product if free item
+  isRedeemed     Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  usedAt         DateTime?
 }
 
 enum DiscountType {
-  PERCENTAGE_OFF   // e.g., 50% off one item
-  FREE_ITEM        // free drink or product
+  PERCENTAGE_OFF // e.g., 50% off one item
+  FREE_ITEM // free drink or product
 }
-
 
 // -------------------------
 // Product Table
 // -------------------------
 model Product {
-  id          String        @id @default(uuid()) @map("_id")
+  id          String      @id @default(uuid()) @map("_id")
   name        String
   image       String?
   description String
-  isDeleted   Boolean       @default(false)
+  isDeleted   Boolean     @default(false)
   price       Int
-  stock       Int           @default(0) // 👈 current stock level
-  lowStock    Int           @default(5) // 👈 threshold for low stock alerts
+  stock       Int         @default(0) // 👈 current stock level
+  lowStock    Int         @default(5) // 👈 threshold for low stock alerts
   freeItems   FreeItem[]
   orderItems  OrderItem[]
   cartItems   CartItem[]
   reviews     Review[]
-  drinkType   String        @default("Coffee-based")
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  deletedAt   DateTime?
-  deletedBy   String?
 
-  status      String        @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
+  canDiscount Boolean @default(false)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  deletedBy String?
+
+  status String @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
 }
 
+model Category {
+  id        String    @id @default(uuid()) @map("_id")
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  deletedBy String?
+  Product   Product[]
+}
 
 // -------------------------
 // Order Table
 // -------------------------
 model Order {
-  id              String      @id @default(uuid()) @map("_id")
+  id              String    @id @default(uuid()) @map("_id")
   customerId      String
   orderDate       DateTime
   totalAmount     Int
   discountApplied Int?
-  isDeleted       Boolean     @default(false)
+  isDeleted       Boolean   @default(false)
   deletedAt       DateTime?
   deletedBy       String?
 
-  status          OrderStatus @default(PENDING)
-  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  orderItems      OrderItem[]
-  paymentStatus   PaymentStatus  @default(UNPAID) 
-  paymentMethod   PaymentMethod?
+  status        OrderStatus    @default(PENDING)
+  customer      Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderItems    OrderItem[]
+  paymentStatus PaymentStatus  @default(UNPAID)
+  paymentMethod PaymentMethod?
 }
 
 enum PaymentStatus {
@@ -212,10 +225,11 @@ enum PaymentStatus {
   PAID
   REFUNDED
 }
+
 enum OrderStatus {
   PENDING
   PREPARING
-  READYTOPICKUP  
+  READYTOPICKUP
   COMPLETED
   CANCELLED
 }
@@ -224,41 +238,42 @@ enum ServingType {
   HOT
   COLD
 }
+
 // -------------------------
 // OrderItem Table
 // -------------------------
 model OrderItem {
-  id              String   @id @default(uuid()) @map("_id")
+  id              String      @id @default(uuid()) @map("_id")
   orderId         String
   productId       String
   quantity        Int
   priceAtPurchase Int
-  isDeleted       Boolean  @default(false) 
+  isDeleted       Boolean     @default(false)
   deletedAt       DateTime?
   deletedBy       String?
   servingType     ServingType
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  order           Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product     @relation(fields: [productId], references: [id])
 
-  discountId      String?
-  addons OrderItemAddon[]
+  discountId String?
+  addons     OrderItemAddon[]
 }
 
 // -------------------------
 // Cart Table
 // -------------------------
 model Cart {
-  id         String      @id @default(uuid()) @map("_id")
-  customerId String @unique
+  id         String     @id @default(uuid()) @map("_id")
+  customerId String     @unique
   items      CartItem[]
-  status     CartStatus  @default(ACTIVE)   // ACTIVE, CHECKED_OUT, ABANDONED
-  isDeleted  Boolean     @default(false)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  status     CartStatus @default(ACTIVE) // ACTIVE, CHECKED_OUT, ABANDONED
+  isDeleted  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   deletedAt  DateTime?
   deletedBy  String?
 
-  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 enum CartStatus {
@@ -271,51 +286,51 @@ enum CartStatus {
 // CartItem Table
 // -------------------------
 model CartItem {
-  id         String   @id @default(uuid()) @map("_id")
-  cartId     String
-  productId  String
-  quantity   Int      @default(1)
-  price      Int      // price at the time of adding to cart
-  isDeleted  Boolean  @default(false)
-  addedAt    DateTime @default(now())
-  servingType     ServingType
-  deletedAt  DateTime?
-  deletedBy  String?
+  id          String      @id @default(uuid()) @map("_id")
+  cartId      String
+  productId   String
+  quantity    Int         @default(1)
+  price       Int // price at the time of adding to cart
+  isDeleted   Boolean     @default(false)
+  addedAt     DateTime    @default(now())
+  servingType ServingType
+  deletedAt   DateTime?
+  deletedBy   String?
 
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
-  addons CartItemAddon[]
+  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  addons  CartItemAddon[]
 }
 
 // -------------------------
 // PaymentMethod Table
 // -------------------------
 model PaymentMethod {
-  id        String   @id @default(uuid()) @map("_id")
-  orderId   String @unique
-  type      String   // e.g., CREDIT_CARD, PAYPAL, GCASH
-  provider  String?  // e.g., Visa, Mastercard
-  details   String?  // e.g., masked card number or transaction reference
-  status    String   // e.g., PENDING, SUCCESS, FAILED
+  id        String    @id @default(uuid()) @map("_id")
+  orderId   String    @unique
+  type      String // e.g., CREDIT_CARD, PAYPAL, GCASH
+  provider  String? // e.g., Visa, Mastercard
+  details   String? // e.g., masked card number or transaction reference
+  status    String // e.g., PENDING, SUCCESS, FAILED
   paidAt    DateTime?
   deletedAt DateTime?
   deletedBy String?
 
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 // -------------------------
 // Review Table
 // -------------------------
 model Review {
-  id         String   @id @default(uuid()) @map("_id")
+  id         String @id @default(uuid()) @map("_id")
   customerId String
   productId  String
   rating     Int
   comment    String
 
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
 }
 
 // -------------------------
@@ -327,38 +342,37 @@ model Notification {
   message    String
   dateSent   DateTime
 
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
-
 model Addon {
-  id          String           @id @default(uuid()) @map("_id")
-  name        String
-  price       Int
-  orderItems  OrderItemAddon[]
-  cartItems   CartItemAddon[]
+  id         String           @id @default(uuid()) @map("_id")
+  name       String
+  price      Int
+  orderItems OrderItemAddon[]
+  cartItems  CartItemAddon[]
 }
 
 model OrderItemAddon {
-  id          String    @id @default(uuid()) @map("_id")
+  id          String @id @default(uuid()) @map("_id")
   orderItemId String
   addonId     String
-  quantity    Int       @default(1)  // number of this addon on the order item
+  quantity    Int    @default(1) // number of this addon on the order item
 
-  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  addon       Addon     @relation(fields: [addonId], references: [id])
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  addon     Addon     @relation(fields: [addonId], references: [id])
 
   @@unique([orderItemId, addonId]) // prevent duplicate addons on the same order item
 }
 
 model CartItemAddon {
-  id          String    @id @default(uuid()) @map("_id")
-  cartItemId  String
-  addonId     String
-  quantity    Int       @default(1)  // number of this addon on the cart item
+  id         String @id @default(uuid()) @map("_id")
+  cartItemId String
+  addonId    String
+  quantity   Int    @default(1) // number of this addon on the cart item
 
-  cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
-  addon      Addon    @relation(fields: [addonId], references: [id])
+  cartItem CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  addon    Addon    @relation(fields: [addonId], references: [id])
 
   @@unique([cartItemId, addonId]) // prevent duplicate addons on the same cart item
 }

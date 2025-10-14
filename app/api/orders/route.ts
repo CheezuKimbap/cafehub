@@ -4,8 +4,6 @@ import { OrderStatus } from "@/prisma/generated/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
 export async function GET(req: NextRequest) {
-   
-
   try {
     const url = new URL(req.url);
     const customerId = url.searchParams.get("customerId");
@@ -32,20 +30,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(orders);
   } catch (error) {
     console.error("Failed to fetch orders:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 // PUT: Update order status (e.g., mark as PAID, SHIPPED, CANCELLED)
 export async function PUT(req: NextRequest) {
-  const authError = validateApiKey(req)
-  if (authError) return authError  
+  const authError = validateApiKey(req);
+  if (authError) return authError;
   try {
     const { customerId, status } = await req.json();
 
     if (!customerId || !status) {
       return NextResponse.json(
         { error: "customerId and status are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -53,7 +54,7 @@ export async function PUT(req: NextRequest) {
     if (!(Object.values(OrderStatus) as string[]).includes(status)) {
       return NextResponse.json(
         { error: `Invalid status: ${status}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -66,7 +67,7 @@ export async function PUT(req: NextRequest) {
     if (updatedOrder.count === 0) {
       return NextResponse.json(
         { error: "No order found for this customer" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 

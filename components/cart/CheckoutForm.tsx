@@ -61,7 +61,7 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
   if (discount && cart?.items.length) {
     // pick cheapest drink
     const targetItem = [...cart.items].sort(
-      (a, b) => a.product.price - b.product.price
+      (a, b) => a.product.price - b.product.price,
     )[0];
 
     if (discount.type === "PERCENTAGE_OFF" && discount.discountAmount) {
@@ -70,7 +70,7 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
     } else if (discount.type === "FIXED_AMOUNT" && discount.discountAmount) {
       discountAmount = Math.min(
         discount.discountAmount,
-        targetItem.product.price
+        targetItem.product.price,
       );
     } else if (discount.type === "FREE_ITEM") {
       discountAmount = targetItem.product.price;
@@ -87,7 +87,7 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
         checkout({
           customerId,
           discountId: selectedVoucher ?? undefined,
-        })
+        }),
       ).unwrap();
 
       onCancel();
@@ -180,10 +180,10 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
                     {d.type === "PERCENTAGE_OFF"
                       ? `(${d.discountAmount}% off one drink)`
                       : d.type === "FREE_ITEM"
-                      ? "(One free drink)"
-                      : d.type === "FIXED_AMOUNT"
-                      ? `(-₱${d.discountAmount} on one drink)`
-                      : ""}
+                        ? "(One free drink)"
+                        : d.type === "FIXED_AMOUNT"
+                          ? `(-₱${d.discountAmount} on one drink)`
+                          : ""}
                   </span>
                 </div>
               ))}

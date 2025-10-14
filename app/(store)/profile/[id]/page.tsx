@@ -76,7 +76,7 @@ export default function Page() {
         address: formData.address,
         preferences: formData.preferences,
         ...(formData.password ? { password: formData.password } : {}),
-      })
+      }),
     );
     setEditMode(false);
     setFormData((prev) => ({ ...prev, password: "", confirmPassword: "" })); // clear after save
