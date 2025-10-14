@@ -61,7 +61,7 @@ export function ProductDetails() {
         quantity,
         servingType,
         addons: selectedAddons,
-      })
+      }),
     )
       .unwrap()
       .then(() => dispatch(fetchCart(customerId)))
@@ -96,42 +96,48 @@ export function ProductDetails() {
           <p className="text-sm text-gray-500 mt-2">{product.description}</p>
         </div>
 
-        {/* Temperature Options */}
-        <div className="flex gap-3">
-          <Button
-            variant={servingType === "HOT" ? "default" : "outline"}
-            onClick={() => setServingType("HOT")}
-            className="px-6 rounded-xl"
-          >
-            Hot
-          </Button>
-          <Button
-            variant={servingType === "COLD" ? "default" : "outline"}
-            onClick={() => setServingType("COLD")}
-            className="px-6 rounded-xl"
-          >
-            Iced
-          </Button>
-        </div>
+        {/* Temperature Options — only show if category name includes "Drink" */}
+        {product.categoryName?.toLowerCase().includes("drink") && (
+          <>
+            <div className="flex gap-3">
+              <Button
+                variant={servingType === "HOT" ? "default" : "outline"}
+                onClick={() => setServingType("HOT")}
+                className="px-6 rounded-xl"
+              >
+                Hot
+              </Button>
+              <Button
+                variant={servingType === "COLD" ? "default" : "outline"}
+                onClick={() => setServingType("COLD")}
+                className="px-6 rounded-xl"
+              >
+                Iced
+              </Button>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
+              <div className="grid grid-cols-2 gap-2 overflow-y-auto max-h-48 p-2 border rounded">
+                {addonsState.list.map((addon: Addon) => (
+                  <label
+                    key={addon.id}
+                    className="flex items-center gap-2 text-gray-700"
+                  >
+                    <Checkbox
+                      checked={
+                        !!selectedAddons.find((a) => a.addonId === addon.id)
+                      }
+                      onCheckedChange={() => toggleAddon(addon.id)}
+                    />
+                    {addon.name} (+₱{addon.price})
+                  </label>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Add-ons */}
-        <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
-          <div className="grid grid-cols-2 gap-2 overflow-y-auto max-h-48 p-2 border rounded">
-            {addonsState.list.map((addon: Addon) => (
-              <label
-                key={addon.id}
-                className="flex items-center gap-2 text-gray-700"
-              >
-                <Checkbox
-                  checked={!!selectedAddons.find((a) => a.addonId === addon.id)}
-                  onCheckedChange={() => toggleAddon(addon.id)}
-                />
-                {addon.name} (+₱{addon.price})
-              </label>
-            ))}
-          </div>
-        </div>
 
         {/* Quantity + Add to Cart */}
         <div className="flex items-center gap-6 mt-4">

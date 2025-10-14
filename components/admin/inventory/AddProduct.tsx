@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -12,13 +19,25 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ImageIcon } from "lucide-react";
-import { useAppDispatch } from "@/redux/hook";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { submitProduct } from "@/redux/features/products/productsSlice";
+import { fetchCategories } from "@/redux/features/categories/categoriesSlice";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function AddProductButton() {
   const dispatch = useAppDispatch();
+  const { categories, loading: catLoading } = useAppSelector(
+    (state) => state.categories,
+  );
+
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [categoryId, setCategoryId] = useState<string>("");
+
+  // ✅ Fetch categories on mount
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
   // ✅ handle image preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,6 +50,9 @@ export function AddProductButton() {
     e.preventDefault();
     const form = e.currentTarget; // capture form reference
     const formData = new FormData(form);
+
+    if (categoryId) formData.append("categoryId", categoryId);
+
     setLoading(true);
 
     dispatch(submitProduct(formData))
@@ -91,6 +113,51 @@ export function AddProductButton() {
                 required
                 disabled={loading} // ✅ disable while saving
               />
+
+              {/* ✅ ShadCN Select for Category */}
+              <div>
+                <Select
+                  value={categoryId}
+                  onValueChange={setCategoryId}
+                  disabled={catLoading || loading}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* ✅ Can Discount Checkbox */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="canDiscount"
+                  name="canDiscount"
+                  disabled={loading}
+                  onCheckedChange={(checked) => {
+                    // ✅ keep hidden input in sync for FormData
+                    const input = document.querySelector<HTMLInputElement>(
+                      'input[name="canDiscount"]',
+                    );
+                    if (input) input.value = checked ? "true" : "false";
+                  }}
+                />
+                <label
+                  htmlFor="canDiscount"
+                  className="text-sm font-medium leading-none text-gray-700"
+                >
+                  Can have discount
+                </label>
+
+                {/* ✅ hidden input to actually carry the value in FormData */}
+                <input type="hidden" name="canDiscount" value="false" />
+              </div>
 
               <Button
                 type="submit"

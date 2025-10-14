@@ -32,7 +32,7 @@ export const fetchProducts = createAsyncThunk(
 
     if (!res.ok) throw new Error("Failed to fetch products");
     return (await res.json()) as Product[];
-  }
+  },
 );
 
 export const fetchProductById = createAsyncThunk<Product, string>(
@@ -54,125 +54,120 @@ export const fetchProductById = createAsyncThunk<Product, string>(
 
     if (!res.ok) throw new Error("Failed to fetch product");
     return (await res.json()) as Product;
-  }
+  },
 );
 
 // Inside your products slice file
 export const submitProduct = createAsyncThunk<
-  Product,       // return type
-  FormData,      // argument type
+  Product, // return type
+  FormData, // argument type
   { rejectValue: string } // type for rejectWithValue
->(
-  "products/submit",
-  async (formData, { rejectWithValue }) => {
-    try {
-      // 1️⃣ Upload image
-      const imageFile = formData.get("image") as File | null;
-      let imageUrl = "";
-      if (imageFile) {
-        const uploadForm = new FormData();
-        uploadForm.append("file", imageFile);
+>("products/submit", async (formData, { rejectWithValue }) => {
+  try {
+    // 1️⃣ Upload image
+    const imageFile = formData.get("image") as File | null;
+    let imageUrl = "";
+    if (imageFile) {
+      const uploadForm = new FormData();
+      uploadForm.append("file", imageFile);
 
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadForm,
-        });
-
-        if (!uploadRes.ok) throw new Error("Image upload failed");
-
-        const uploadData = await uploadRes.json();
-        imageUrl = uploadData.url;
-      }
-
-      // 2️⃣ Product payload
-      const product = {
-        name: formData.get("name") as string,
-        description: formData.get("description") as string,
-        price: Number(formData.get("price")),
-        stock: Number(formData.get("stock")),
-        image: imageUrl,
-      };
-
-      const res = await fetch("/api/products", {
+      const uploadRes = await fetch("/api/upload", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": process.env.NEXT_PUBLIC_API_KEY || "",
-        },
-        body: JSON.stringify(product),
+        body: uploadForm,
       });
 
-      if (!res.ok) throw new Error("Failed to save product");
+      if (!uploadRes.ok) throw new Error("Image upload failed");
 
-      return (await res.json()) as Product;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      const uploadData = await uploadRes.json();
+      imageUrl = uploadData.url;
     }
+
+    const canDiscountRaw = formData.get("canDiscount");
+    const canDiscount = canDiscountRaw === "true" || canDiscountRaw === "on";
+
+    // 2️⃣ Product payload
+    const product = {
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      price: Number(formData.get("price")),
+      stock: Number(formData.get("stock")),
+      image: imageUrl,
+      categoryId: formData.get("categoryId") as string,
+      canDiscount,
+    };
+
+    const res = await fetch("/api/products", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.NEXT_PUBLIC_API_KEY || "",
+      },
+      body: JSON.stringify(product),
+    });
+
+    if (!res.ok) throw new Error("Failed to save product");
+
+    return (await res.json()) as Product;
+  } catch (error: any) {
+    return rejectWithValue(error.message);
   }
-);
+});
 export const updateProductById = createAsyncThunk<
-  Product,                     // return type
-  UpdateProductPayload,        // argument type
-  { rejectValue: string }      // for rejectWithValue
->(
-  "products/update",
-  async ({ id, formData }, { rejectWithValue }) => {
-    try {
-      // 1️⃣ Upload image if provided
-      const imageFile = formData.get("image") as File | null;
-      let imageUrl: string | undefined = undefined;
+  Product, // return type
+  UpdateProductPayload, // argument type
+  { rejectValue: string } // for rejectWithValue
+>("products/update", async ({ id, formData }, { rejectWithValue }) => {
+  try {
+    // 1️⃣ Upload image if provided
+    const imageFile = formData.get("image") as File | null;
+    let imageUrl: string | undefined = undefined;
 
-      if (imageFile) {
-        const uploadForm = new FormData();
-        uploadForm.append("file", imageFile);
+    if (imageFile) {
+      const uploadForm = new FormData();
+      uploadForm.append("file", imageFile);
 
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadForm,
-        });
-
-        if (!uploadRes.ok) throw new Error("Image upload failed");
-
-        const uploadData = await uploadRes.json();
-        imageUrl = uploadData.url;
-      }
-
-      // 2️⃣ Build payload for update
-      const payload: any = {
-        name: formData.get("name") as string | undefined,
-        description: formData.get("description") as string | undefined,
-        price: formData.get("price") ? Number(formData.get("price")) : undefined,
-        stock: formData.get("stock") ? Number(formData.get("stock")) : undefined,
-        ...(imageUrl && { image: imageUrl }),
-      };
-
-      // Remove undefined fields
-      Object.keys(payload).forEach(
-        (key) => payload[key] === undefined && delete payload[key]
-      );
-
-      // 3️⃣ Call PUT endpoint
-      const res = await fetch(`/api/products/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": process.env.NEXT_PUBLIC_API_KEY || "",
-        },
-        body: JSON.stringify(payload),
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: uploadForm,
       });
 
-      if (!res.ok) throw new Error("Failed to update product");
+      if (!uploadRes.ok) throw new Error("Image upload failed");
 
-      return (await res.json()) as Product;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      const uploadData = await uploadRes.json();
+      imageUrl = uploadData.url;
     }
+
+    // 2️⃣ Build payload for update
+    const payload: any = {
+      name: formData.get("name") as string | undefined,
+      description: formData.get("description") as string | undefined,
+      price: formData.get("price") ? Number(formData.get("price")) : undefined,
+      stock: formData.get("stock") ? Number(formData.get("stock")) : undefined,
+      ...(imageUrl && { image: imageUrl }),
+    };
+
+    // Remove undefined fields
+    Object.keys(payload).forEach(
+      (key) => payload[key] === undefined && delete payload[key],
+    );
+
+    // 3️⃣ Call PUT endpoint
+    const res = await fetch(`/api/products/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.NEXT_PUBLIC_API_KEY || "",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error("Failed to update product");
+
+    return (await res.json()) as Product;
+  } catch (error: any) {
+    return rejectWithValue(error.message);
   }
-);
-
-
-
-
+});
 
 // --------------------
 // Slice State
@@ -199,7 +194,7 @@ export const productsSlice = createSlice({
   name: "products",
   initialState,
   reducers: {
-      clearCache: (state) => {
+    clearCache: (state) => {
       state.lastFetched = undefined;
     },
   },
@@ -239,7 +234,7 @@ export const productsSlice = createSlice({
         state.error = action.error.message || "Failed to fetch product";
         state.loading = false;
       })
-       // Submit product
+      // Submit product
       .addCase(submitProduct.fulfilled, (state, action) => {
         state.items.push(action.payload); // ✅ directly add item
         // no loading change
@@ -248,22 +243,18 @@ export const productsSlice = createSlice({
         state.error = action.payload as string;
       })
 
-       .addCase(updateProductById.fulfilled, (state, action) => {
+      .addCase(updateProductById.fulfilled, (state, action) => {
         const index = state.items.findIndex((p) => p.id === action.payload.id);
         if (index !== -1) {
           state.items[index] = action.payload; // update existing product in store
         }
-        })
-        .addCase(updateProductById.rejected, (state, action) => {
-          state.error = action.payload as string;
-        });
-
-      
+      })
+      .addCase(updateProductById.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
   },
 });
 
-export const {
-  clearCache,
-} = productsSlice.actions;
+export const { clearCache } = productsSlice.actions;
 
 export default productsSlice.reducer;
