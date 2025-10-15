@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -78,8 +78,11 @@ const [showPopup, setShowPopup] = useState(false);
   if (!productId) return <div className="m-4">Invalid product ID</div>;
   if (loading) return <div className="m-4">Loading...</div>;
   if (error) return <div className="m-4 text-red-600">Error: {error}</div>;
-  if (!product) return <div className="m-4">Product not found</div>;
 
+  if (!product) return <div className="m-4">Product not found</div>;
+    if (loading || !product) {
+    return <div className="m-4">Loading product...</div>;
+    }
   return (
     <Card className="w-full shadow-lg rounded-2xl p-6 grid md:grid-cols-2 gap-10 bg-white my-4">
       {/* Left - Product Image */}
@@ -102,32 +105,32 @@ const [showPopup, setShowPopup] = useState(false);
         </div>
 
         {/* Temperature Options — only show if category name includes "Drink" */}
-        {product.categoryName?.toLowerCase().includes("drink") && (
-            <>
-        <div className="flex gap-3">
+       {product.categoryId != "398c355e-599f-4d17-a016-bed3b0ca2a5a" && (
+        <>
+            {/* Hot / Iced buttons */}
+            <div className="flex gap-3">
             <Button
-            variant={servingType === "HOT" ? "default" : "outline"}
-            onClick={() => setServingType("HOT")}
-            className="px-6 rounded-xl"
+                variant={servingType === "HOT" ? "default" : "outline"}
+                onClick={() => setServingType("HOT")}
+                className="px-6 rounded-xl"
             >
-            Hot
+                Hot
             </Button>
             <Button
-            variant={servingType === "COLD" ? "default" : "outline"}
-            onClick={() => setServingType("COLD")}
-            className="px-6 rounded-xl"
+                variant={servingType === "COLD" ? "default" : "outline"}
+                onClick={() => setServingType("COLD")}
+                className="px-6 rounded-xl"
             >
-            Iced
+                Iced
             </Button>
-        </div>
-  <div>
+            </div>
+
+            {/* Add-ons */}
+            <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
             <div className="grid grid-cols-2 gap-2 overflow-y-auto max-h-48 p-2 border rounded">
                 {addonsState.list.map((addon: Addon) => (
-                <label
-                    key={addon.id}
-                    className="flex items-center gap-2 text-gray-700"
-                >
+                <label key={addon.id} className="flex items-center gap-2 text-gray-700">
                     <Checkbox
                     checked={!!selectedAddons.find((a) => a.addonId === addon.id)}
                     onCheckedChange={() => toggleAddon(addon.id)}
@@ -137,9 +140,7 @@ const [showPopup, setShowPopup] = useState(false);
                 ))}
             </div>
             </div>
-
-            </>
-
+        </>
         )}
 
         {/* Add-ons */}
