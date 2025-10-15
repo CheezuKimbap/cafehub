@@ -61,8 +61,12 @@ export function CartItem({
         <CardContent className="flex-1 p-0">
           <h3 className="text-lg font-semibold">{product.name}</h3>
           <p className="text-sm text-gray-600">₱ {product.price.toFixed(2)}</p>
-          <p className="text-sm text-gray-600 my-2">{servingType}</p>
 
+            {product.categoryId != "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" && (
+                <>
+                  <p className="text-sm text-gray-600 my-2">{servingType}</p>
+                </>
+            )}
           {/* Quantity controls */}
           <div className="flex items-center gap-2 mt-2">
             <div className="flex items-center border rounded-md overflow-hidden">

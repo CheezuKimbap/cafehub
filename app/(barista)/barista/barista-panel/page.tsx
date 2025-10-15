@@ -189,7 +189,10 @@ export default function BaristaPOS() {
                     <span>{quantity}</span>
                     <Button onClick={() => setQuantity((q) => q + 1)}>+</Button>
                   </div>
-                  <div className="flex items-center gap-4">
+
+                       {p.categoryId != "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" && (
+                            <>
+                                <div className="flex items-center gap-4">
                     <label className="flex items-center gap-2">
                       <input
                         type="radio"
@@ -230,6 +233,10 @@ export default function BaristaPOS() {
                       </p>
                     )}
                   </div>
+                            </>
+                            )}
+
+
                   <Button className="mt-4" onClick={() => handleAddToCart(p)}>
                     Add to Cart
                   </Button>
@@ -251,7 +258,9 @@ export default function BaristaPOS() {
                 <p>
                   Qty: {item.quantity} | ₱{item.product?.price}
                 </p>
-                <p className="text-sm italic">Serving: {item.servingType}</p>
+
+                  {item.product.categoryId != "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" && (
+                            <> <p className="text-sm italic">Serving: {item.servingType}</p>
                 {item.addons?.length > 0 && (
                   <ul className="pl-4 text-sm">
                     {item.addons.map((a) => (
@@ -261,7 +270,9 @@ export default function BaristaPOS() {
                       </li>
                     ))}
                   </ul>
-                )}
+                )}</>
+                  )}
+
                 <Button
                   variant="destructive"
                   size="sm"

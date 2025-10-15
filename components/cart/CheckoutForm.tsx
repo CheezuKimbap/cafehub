@@ -113,9 +113,19 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
                     className="w-12 h-12 object-cover rounded"
                   />
                 )}
-                <span>
-                  {item.product.name} ({item.servingType}) x {item.quantity}
-                </span>
+
+                {item.product.categoryId !== "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" ? (
+                    <>
+                     <span>
+                        {item.product.name} ({item.servingType}) x {item.quantity}
+                    </span>
+
+                    </>
+                    ) : (
+                   <>
+                    {item.product.name} x {item.quantity}</>
+                )}
+
               </div>
               <span className="font-medium">
                 ₱{(item.product.price * item.quantity).toFixed(2)}
@@ -205,7 +215,7 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
             <SelectContent>
               <SelectItem value="CASH">Cash</SelectItem>
               <SelectItem value="GCASH">GCash</SelectItem>
-              <SelectItem value="CARD">Card</SelectItem>
+
             </SelectContent>
           </Select>
         </div>

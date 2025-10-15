@@ -111,6 +111,7 @@ export default function BaristaBoard() {
                     {order.customer?.firstName ?? "Guest"}
                   </p>
 
+
                   <ul className="text-xs text-gray-600 space-y-1">
                     {order.orderItems?.map((item) => (
                       <li key={item.id} className="flex justify-between">
@@ -118,12 +119,15 @@ export default function BaristaBoard() {
                           {item.quantity}×{" "}
                           {item.product?.name ?? "Unknown Product"}
                         </span>
-                        <span className="font-medium text-gray-700">
-                          ₱{order.totalAmount}
-                        </span>
+
                       </li>
                     ))}
+                    <p className="font-medium text-gray-700 my-4">
+                            ₱{order.totalAmount}
+                    </p>
                   </ul>
+
+
 
                   {/* Actions */}
                   <div className="pt-2 space-y-2">

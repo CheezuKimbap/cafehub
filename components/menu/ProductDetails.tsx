@@ -105,7 +105,7 @@ const [showPopup, setShowPopup] = useState(false);
         </div>
 
         {/* Temperature Options — only show if category name includes "Drink" */}
-       {product.categoryId != "398c355e-599f-4d17-a016-bed3b0ca2a5a" && (
+       {product.categoryId != "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" && (
         <>
             {/* Hot / Iced buttons */}
             <div className="flex gap-3">
