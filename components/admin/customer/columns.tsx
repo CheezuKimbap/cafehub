@@ -45,7 +45,7 @@ export const customerColumns: ColumnDef<Customer>[] = [
           )
           .reduce((sum, o) => sum + o.totalAmount, 0) ?? 0;
 
-      return `$${total.toLocaleString()}`;
+      return `₱ ${total.toLocaleString()} ` ;
     },
   },
 
