@@ -10,6 +10,8 @@ import { fetchProductById } from "@/redux/features/products/productsSlice";
 import { fetchAddons } from "@/redux/features/addons/addonsSlice";
 import { useSession } from "next-auth/react";
 import { addItemToCart, fetchCart } from "@/redux/features/cart/cartSlice";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+
 
 type Addon = {
   id: string;
@@ -32,7 +34,7 @@ export function ProductDetails() {
 
   const productState = useAppSelector((state) => state.products);
   const addonsState = useAppSelector((state) => state.addon);
-
+const [showPopup, setShowPopup] = useState(false);
   useEffect(() => {
     if (productId) {
       dispatch(fetchProductById(productId));
@@ -64,7 +66,10 @@ export function ProductDetails() {
       })
     )
       .unwrap()
-      .then(() => dispatch(fetchCart(customerId)))
+     .then(() => {
+        dispatch(fetchCart(customerId));
+        setShowPopup(true);
+        })
       .catch(() => alert("Failed to add item to cart"));
   };
 
@@ -171,6 +176,33 @@ export function ProductDetails() {
           </Button>
         </div>
       </CardContent>
+
+      <Dialog open={showPopup} onOpenChange={setShowPopup}>
+  <DialogContent className="sm:max-w-md rounded-2xl">
+    <DialogHeader>
+      <DialogTitle>Added to Cart!</DialogTitle>
+      <DialogDescription>
+        <span className="text-gray-700">
+          {product.name} has been successfully added to your cart.
+        </span>
+      </DialogDescription>
+    </DialogHeader>
+    <div className="flex justify-end gap-2 mt-4">
+      <Button variant="outline" onClick={() => setShowPopup(false)}>
+        Continue Shopping
+      </Button>
+      <Button
+        onClick={() => {
+          setShowPopup(false);
+          window.location.href = "/cart"; // or use next/router push('/cart')
+        }}
+      >
+        View Cart
+      </Button>
+    </div>
+  </DialogContent>
+</Dialog>
+
     </Card>
   );
 }

@@ -17,7 +17,7 @@ export default function StampRoute() {
   const params = useParams();
   const customerId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const MAX_STAMPS = 10;
+  const MAX_STAMPS = 12;
 
   const dispatch = useAppDispatch();
   const customer = useAppSelector(selectSingleCustomer);
@@ -44,7 +44,7 @@ export default function StampRoute() {
         <div>
           <h1 className="text-2xl font-semibold">Coffeessential Stamp</h1>
           <p className="text-sm text-muted-foreground">
-            Collect 10 beans to get a free drink
+            Collect 12 beans to get a free drink
           </p>
         </div>
         <div className="text-right">
@@ -56,7 +56,7 @@ export default function StampRoute() {
       </header>
 
       {/* Stamps grid */}
-      <section className="grid grid-cols-5 gap-4 mb-6">
+      <section className="grid grid-cols-6 gap-4 mb-6">
         {stampSlots.map((slot) => (
           <div
             key={slot}

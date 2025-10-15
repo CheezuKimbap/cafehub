@@ -109,8 +109,8 @@ export async function PUT(req: NextRequest, context: any) {
       });
 
       // 🎁 Reward at thresholds
-      if (updatedCustomer.currentStamps >= 10) {
-        // Reset to 0 or keep rolling? (I’ll cap at 0 after reward)
+      if (updatedCustomer.currentStamps >= 12) {
+
         updatedCustomer = await prisma.customer.update({
           where: { id: updatedOrder.customerId },
           data: { currentStamps: 0 },
@@ -124,7 +124,7 @@ export async function PUT(req: NextRequest, context: any) {
             productId: null, // or a specific default productId if needed
           },
         });
-      } else if (updatedCustomer.currentStamps >= 5) {
+      } else if (updatedCustomer.currentStamps >= 6) {
         // Just give 50% off
         await prisma.discount.create({
           data: {
