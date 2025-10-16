@@ -12,6 +12,8 @@ const playfair = Playfair_Display({
 });
 
 export default async function Home() {
+
+
   return (
     <>
       <Navigation />
@@ -32,9 +34,9 @@ export default async function Home() {
                   Order Now
                 </button>
               </Link>
-              <button className="bg-[#1C1306] text-white font-medium py-3 px-6 rounded-md hover:bg-[#030200] transition-colors duration-300 w-full sm:w-auto">
+              <a href="#best-selling" className="bg-[#1C1306] text-white font-medium py-3 px-6 rounded-md hover:bg-[#030200] transition-colors duration-300 w-full sm:w-auto">
                 Explore
-              </button>
+              </a>
             </div>
           </div>
           <div className="lg:w-1/2 flex justify-center lg:justify-end w-full">
@@ -65,9 +67,7 @@ export default async function Home() {
                   Food & Snacks
                 </h2>
                 <p className="text-gray-700 leading-relaxed mb-6">
-                  Lorem ipsum dolor sit amet. Et laboriosam voluptatem aut
-                  numquam officia et dolor voluptate. Cum eveniet galisum vel
-                  repellendus atque aut harum minus.
+                  Step into Coffeesentials, where every bite tells a story of comfort and good vibes. Our snacks are crafted to complement your coffee moments — warm, flavorful, and made with love. From the first crunch to the last sip, it’s all about savoring life’s simple pleasures. Because here, good food and great coffee always come together.
                 </p>
                 <button className="bg-stone-800 text-white font-medium py-3 px-6 rounded-md hover:bg-stone-900 transition-colors duration-300 w-full sm:w-auto">
                   View more
@@ -91,9 +91,7 @@ export default async function Home() {
                   Food & Snacks
                 </h2>
                 <p className="text-gray-700 leading-relaxed mb-6">
-                  Lorem ipsum dolor sit amet. Et laboriosam voluptatem aut
-                  numquam officia et dolor voluptate. Cum eveniet galisum vel
-                  repellendus atque aut harum minus.
+                  Experience the art of flavor at Coffeesentials, where every bite is crafted to complement your perfect cup. Our selection of gourmet snacks and savory delights brings together quality ingredients and comforting taste. Whether you’re enjoying a light bite or a hearty treat, each dish is made with care to satisfy both your cravings and your mood. Indulge in the simple elegance of food that feels as good as it tastes.
                 </p>
                 <button className="bg-stone-800 text-white font-medium py-3 px-6 rounded-md hover:bg-stone-900 transition-colors duration-300 w-full sm:w-auto">
                   View more
@@ -104,7 +102,7 @@ export default async function Home() {
         </section>
 
         {/* Best Selling Items */}
-        <section className="relative bg-[#DDC3A5] w-full overflow-hidden py-12 px-4 sm:px-8">
+        <section id="best-selling" className="relative bg-[#DDC3A5] w-full overflow-hidden py-12 px-4 sm:px-8">
           <img
             src="/home/beans-bg.png"
             alt="beans"
