@@ -1,89 +1,120 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { fetchProducts } from "@/redux/features/products/productsSlice";
-import { addItemToCart, fetchCart } from "@/redux/features/cart/cartSlice";
-import { useSession } from "next-auth/react";
-import { ProductList } from "@/components/menu/ProductList";
 import { fetchCategories } from "@/redux/features/categories/categoriesSlice";
+import { ProductList } from "@/components/menu/ProductList";
 import { Button } from "@/components/ui/button";
+
+type SortKey = "name" | "price" | "status";
 
 function ProductPage() {
   const dispatch = useAppDispatch();
-  const { data: session } = useSession();
-  const customerId = session?.user.customerId;
-
   const { items, loading, error } = useAppSelector((state) => state.products);
   const { categories, loading: catLoading, error: catError } = useAppSelector(
     (state) => state.categories
   );
 
-  // Selected category (can be null for "All")
   const [selectedCategory, setSelectedCategory] = useState<{
     id: string;
     name: string;
   } | null>(null);
 
-  // Fetch products and categories
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
   useEffect(() => {
     dispatch(fetchProducts());
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  // Filter products by categoryId
-  const filteredProducts = !selectedCategory
-    ? items
-    : items.filter((p) => p.categoryId === selectedCategory.id);
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    let result = !selectedCategory
+      ? items
+      : items.filter((p) => p.categoryId === selectedCategory.id);
+
+    if (sortKey) {
+      result = [...result].sort((a, b) => {
+        let aValue = a[sortKey];
+        let bValue = b[sortKey];
+
+        if (typeof aValue === "string") aValue = aValue.toLowerCase();
+        if (typeof bValue === "string") bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [items, selectedCategory, sortKey, sortOrder]);
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortOrder("asc");
+    }
+  };
 
   return (
-    <section className="p-4">
-      {/* Category Section */}
-      <div className="my-4">
-        <h2 className="text-xl font-semibold text-gray-800 mb-3">Categories</h2>
+    <section className="flex p-4 gap-6">
+      {/* Side Nav */}
+      <aside className="w-48 flex-shrink-0">
+        <h2 className="text-lg font-semibold mb-4">Sort & Filter</h2>
 
-        {catError && (
-          <p className="text-red-500 text-sm mb-2">
-            Failed to load categories: {catError}
-          </p>
-        )}
+        {/* Categories */}
+        <div className="mb-6">
+          <h3 className="font-medium mb-2">Categories</h3>
+          {catError && <p className="text-red-500 text-sm">{catError}</p>}
+          <div className="flex flex-col gap-2">
+            <Button
+              variant={!selectedCategory ? "default" : "outline"}
+              onClick={() => setSelectedCategory(null)}
+              className="rounded-full"
+            >
+              All
+            </Button>
+            {!catLoading &&
+              categories.map((cat) => (
+                <Button
+                  key={cat.id}
+                  variant={selectedCategory?.id === cat.id ? "default" : "outline"}
+                  onClick={() => setSelectedCategory(cat)}
+                  className="rounded-full"
+                >
+                  {cat.name}
+                </Button>
+              ))}
+          </div>
+        </div>
 
-        <div className="flex flex-wrap gap-2">
-          {/* "All" Button */}
-          <Button
-            variant={!selectedCategory ? "default" : "outline"}
-            onClick={() => setSelectedCategory(null)}
-            className="rounded-full"
-          >
-            All
-          </Button>
-
-          {/* Category Buttons */}
-          {!catLoading &&
-            categories.map((cat) => (
+        {/* Sorting */}
+        <div>
+          <h3 className="font-medium mb-2">Sort By</h3>
+          <div className="flex flex-col gap-2">
+            {(["name", "price", "status"] as SortKey[]).map((key) => (
               <Button
-                key={cat.id}
-                variant={
-                  selectedCategory?.id === cat.id ? "default" : "outline"
-                }
-                onClick={() => setSelectedCategory(cat)}
-                className="rounded-full"
+                key={key}
+                variant={sortKey === key ? "default" : "outline"}
+                onClick={() => handleSort(key)}
               >
-                {cat.name}
+                {key} {sortKey === key ? (sortOrder === "asc" ? "↑" : "↓") : ""}
               </Button>
             ))}
+          </div>    
         </div>
-      </div>
-
-      {/* Error State */}
-      {error && <p className="text-red-500">{error}</p>}
+      </aside>
 
       {/* Product List */}
-      <ProductList
-        products={filteredProducts}
-        loading={loading}
-        // You can pass add-to-cart handler here if needed
-      />
+      <main className="flex-1">
+        {error && <p className="text-red-500 mb-2">{error}</p>}
+        <ProductList products={filteredProducts} loading={loading} />
+      </main>
     </section>
   );
 }
