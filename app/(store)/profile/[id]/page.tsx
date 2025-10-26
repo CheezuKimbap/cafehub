@@ -28,9 +28,6 @@ export default function Page() {
     firstName: "",
     lastName: "",
     phoneNumber: "",
-    email: "",
-    address: "",
-    preferences: "",
     password: "", // new password
     confirmPassword: "", // confirm
   });
@@ -48,8 +45,6 @@ export default function Page() {
       firstName: customer.firstName ?? "",
       lastName: customer.lastName ?? "",
       phoneNumber: customer.profile?.phoneNumber ?? "",
-      address: customer.profile?.address ?? "",
-      preferences: customer.profile?.preferences ?? "",
     }));
   }, [customer]);
 
@@ -73,8 +68,6 @@ export default function Page() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phoneNumber: formData.phoneNumber,
-        address: formData.address,
-        preferences: formData.preferences,
         ...(formData.password ? { password: formData.password } : {}),
       }),
     );
@@ -130,44 +123,11 @@ export default function Page() {
               />
             </div>
 
-            {!isOAuth && (
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  readOnly={!editMode}
-                />
-              </div>
-            )}
-
             <div className="grid gap-2">
               <Label htmlFor="phoneNumber">Phone Number</Label>
               <Input
                 id="phoneNumber"
                 value={formData.phoneNumber}
-                onChange={handleChange}
-                readOnly={!editMode}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={handleChange}
-                readOnly={!editMode}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="preferences">Preferences</Label>
-              <Input
-                id="preferences"
-                value={formData.preferences}
                 onChange={handleChange}
                 readOnly={!editMode}
               />
