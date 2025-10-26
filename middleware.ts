@@ -5,42 +5,43 @@ const ignoredPaths = ["/", "/menu", "/login", "/admin/login", "/barista/login"];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-
   const role = req.auth?.user?.role;
   const token = req.auth;
 
+  // Allow public pages
   if (ignoredPaths.includes(pathname)) {
     return NextResponse.next();
   }
 
+  // Admin area
   if (pathname.startsWith("/admin")) {
-    if (!token) {
+    if (!token || role !== "ADMIN") {
       return NextResponse.redirect(new URL("/admin/login", req.url));
     }
-    if (role === "CUSTOMER") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
     return NextResponse.next();
   }
 
+  // Barista area
   if (pathname.startsWith("/barista")) {
-    if (!token) {
+    if (!token || role !== "BARISTA") {
       return NextResponse.redirect(new URL("/barista/login", req.url));
     }
-    if (role === "CUSTOMER") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
     return NextResponse.next();
   }
 
-  if (role === "BARISTA" && !pathname.startsWith("/barista")) {
+  // For any other path (like `/` or public pages)
+  // Restrict admins and baristas
+  if (role === "ADMIN") {
+    return NextResponse.redirect(new URL("/admin", req.url));
+  }
+
+  if (role === "BARISTA") {
     return NextResponse.redirect(new URL("/barista", req.url));
   }
 
-  if (role === "ADMIN" && !pathname.startsWith("/admin")) {
-    return NextResponse.redirect(new URL("/admin", req.url));
-  }
-  return NextResponse.next();
+  // CUSTOMER or unauthenticated users can access `/` or other pages
+  return NextResponse.next()
+
 });
 // // Optional: restrict which routes it applies to
 // export const config = {
