@@ -32,7 +32,7 @@ export function LatestOrdersCard({ orders }: LatestOrdersCardProps) {
         <Table className="text-sm">
           <TableHeader>
             <TableRow>
-              <TableHead>Product</TableHead>
+
               <TableHead>Order ID</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Customer</TableHead>
@@ -46,11 +46,6 @@ export function LatestOrdersCard({ orders }: LatestOrdersCardProps) {
               orders.map((order) => (
                 <TableRow key={order.id}>
                   {/* Show first product (or join names if multiple) */}
-                  <TableCell>
-                    {order.orderItems
-                      .map((item) => item.product.name)
-                      .join(", ")}
-                  </TableCell>
 
                   <TableCell className="font-medium">{order.id}</TableCell>
 
