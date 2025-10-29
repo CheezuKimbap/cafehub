@@ -38,7 +38,7 @@ export function InventorySummary() {
         </CardContent>
       </Card>
 
-      <Card>
+      {/* <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
           <AlertTriangle className="h-5 w-5 text-yellow-500" />
@@ -46,7 +46,7 @@ export function InventorySummary() {
         <CardContent>
           <div className="text-2xl font-bold">{lowStock}</div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }

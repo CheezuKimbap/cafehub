@@ -15,19 +15,6 @@ export const customerColumns: ColumnDef<Customer>[] = [
   },
   { accessorKey: "email", header: "Email" },
   {
-    accessorKey: "profile",
-    header: "Profile",
-    cell: ({ row }) =>
-      row.original.profile ? (
-        <div>
-          <div>Phone: {row.original.profile.phoneNumber}</div>
-          <div>Address: {row.original.profile.address}</div>
-        </div>
-      ) : (
-        "-"
-      ),
-  },
-  {
     accessorKey: "orders",
     header: "Orders",
     cell: ({ row }) => row.original.orders?.length ?? 0,
