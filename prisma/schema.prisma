@@ -164,17 +164,13 @@ enum DiscountType {
 // Product Table
 // -------------------------
 model Product {
-  id          String      @id @default(uuid()) @map("_id")
+  id          String           @id @default(uuid()) @map("_id")
   name        String
   image       String?
   description String
-  isDeleted   Boolean     @default(false)
-  price       Int
-  stock       Int         @default(0) // 👈 current stock level
-  lowStock    Int         @default(5) // 👈 threshold for low stock alerts
+  isDeleted   Boolean          @default(false)
+  variants    ProductVariant[]
   freeItems   FreeItem[]
-  orderItems  OrderItem[]
-  cartItems   CartItem[]
   reviews     Review[]
 
   canDiscount Boolean @default(false)
@@ -188,6 +184,19 @@ model Product {
   deletedBy String?
 
   status String @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
+}
+
+model ProductVariant {
+  id        String  @id @default(uuid()) @map("_id")
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  servingType ServingType // HOT | COLD
+  size        String? // SMALL | REGULAR | LARGE (optional)
+  price       Int
+
+  orderItems OrderItem[]
+  cartItems  CartItem[]
 }
 
 model Category {
@@ -243,17 +252,16 @@ enum ServingType {
 // OrderItem Table
 // -------------------------
 model OrderItem {
-  id              String      @id @default(uuid()) @map("_id")
+  id              String         @id @default(uuid()) @map("_id")
   orderId         String
-  productId       String
+  variantId       String
   quantity        Int
   priceAtPurchase Int
-  isDeleted       Boolean     @default(false)
+  isDeleted       Boolean        @default(false)
   deletedAt       DateTime?
   deletedBy       String?
-  servingType     ServingType
-  order           Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product         Product     @relation(fields: [productId], references: [id])
+  order           Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant         ProductVariant @relation(fields: [variantId], references: [id])
 
   discountId String?
   addons     OrderItemAddon[]
@@ -286,19 +294,18 @@ enum CartStatus {
 // CartItem Table
 // -------------------------
 model CartItem {
-  id          String      @id @default(uuid()) @map("_id")
-  cartId      String
-  productId   String
-  quantity    Int         @default(1)
-  price       Int // price at the time of adding to cart
-  isDeleted   Boolean     @default(false)
-  addedAt     DateTime    @default(now())
-  servingType ServingType
-  deletedAt   DateTime?
-  deletedBy   String?
+  id        String    @id @default(uuid()) @map("_id")
+  cartId    String
+  variantId String
+  quantity  Int       @default(1)
+  price     Int // price at the time of adding to cart
+  isDeleted Boolean   @default(false)
+  addedAt   DateTime  @default(now())
+  deletedAt DateTime?
+  deletedBy String?
 
   cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant  @relation(fields: [variantId], references: [id])
   addons  CartItemAddon[]
 }
 
