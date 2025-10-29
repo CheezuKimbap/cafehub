@@ -84,6 +84,7 @@ export default function BaristaBoard() {
 
           {orders
             .filter((o) => o.status === col.key)
+            .sort((a, b) => new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime())
             .map((order) => (
               <Card key={order.id} className="shadow-md">
                 <CardHeader>

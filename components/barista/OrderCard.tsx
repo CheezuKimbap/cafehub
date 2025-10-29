@@ -11,6 +11,7 @@ export type Order = {
   customer: string;
   items: { name: string; qty: number }[];
   status: OrderStatus;
+  orderDate: string;
 };
 
 type OrderCardProps = {
