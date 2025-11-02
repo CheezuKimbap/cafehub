@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { Kanit, Sora } from "next/font/google";
 import { useState } from "react";
+import { ProductVariant } from "@/redux/features/products/product";
 
 const kanit = Kanit({ subsets: ["latin"], weight: "400" });
 const sora = Sora({ subsets: ["latin"], weight: "400" });
@@ -13,14 +14,14 @@ type Props = {
   id: string;
   name: string;
   description?: string;
-  price: number;
+  variants: ProductVariant[];
   imageUrl?: string;
 };
 
 const FALLBACK_IMAGE =
   "https://res.cloudinary.com/du4kqqco7/image/upload/v1759020948/cihjvxbuf7tzbxwwfyp7.png";
 
-export function ProductCard({ id, name, price, imageUrl }: Props) {
+export function ProductCard({ id, name, variants, imageUrl }: Props) {
   const [imgSrc, setImgSrc] = useState(imageUrl || FALLBACK_IMAGE);
 
   return (
@@ -69,11 +70,14 @@ export function ProductCard({ id, name, price, imageUrl }: Props) {
           </div>
 
           {/* Price */}
-          <p
-            className={`${sora.className} text-xs sm:text-sm md:text-base text-[#94664C]`}
-          >
-            P {price}
-          </p>
+
+        {/* {variants.map((variant) => (
+          <div key={variant.id} className="flex justify-between text-sm py-1">
+            <span>{variant.servingType}{variant.size ? ` - ${variant.size}` : ""}</span>
+            <span>₱{variant.price}</span>
+          </div>
+        ))} */}
+
         </CardHeader>
       </Card>
     </Link>

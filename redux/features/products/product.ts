@@ -4,9 +4,8 @@ export interface Product {
   image?: string | null;
   description: string;
   isDeleted: boolean;
-  price: number;
-  stock: number; // 👈 current stock level
-  lowStock: number;
+
+  variants: ProductVariant[];
   // Relations (keep as arrays of any or define separately later)
   freeItems?: any[];
   orderItems?: any[];
@@ -21,4 +20,12 @@ export interface Product {
   deletedAt: string | null;
   deletedBy: string | null;
   status: "AVAILABLE" | "OUT_OF_STOCK" | "DISCONTINUED" | "INACTIVE";
+}
+
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  servingType: "HOT" | "COLD"; // from enum ServingType
+  size?: string | null;        // SMALL, REGULAR, LARGE, or null
+  price: number;
 }

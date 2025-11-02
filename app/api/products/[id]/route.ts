@@ -11,6 +11,7 @@ export async function GET(req: NextRequest, context: any) {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
+        variants: true,
         category: {
           select: {
             name: true, // ✅ only fetch category name

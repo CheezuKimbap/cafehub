@@ -41,39 +41,39 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
     }
   }, [customerId, dispatch]);
 
-  // ✅ compute subtotal from cart
+  // ✅ compute subtotal from variant.price
   const subtotal =
     cart?.items.reduce((acc, item) => {
-      let itemTotal = item.product.price * item.quantity;
+      const basePrice = item.variant?.price ?? 0;
+      let itemTotal = basePrice * item.quantity;
+
+      // ✅ addons pricing
       if (item.addons.length > 0) {
         item.addons.forEach((addon) => {
-          itemTotal += addon.addon?.price! * addon.quantity;
+          itemTotal += (addon.addon?.price ?? 0) * addon.quantity;
         });
       }
       return acc + itemTotal;
     }, 0) || 0;
 
-  // ✅ get selected discount
+  // ✅ selected discount
   const discount = discounts.find((d) => d.id === selectedVoucher);
 
-  // ✅ apply discount ONLY to one drink (choose cheapest drink here)
+  // ✅ apply discount to the cheapest drink (variant.price)
   let discountAmount = 0;
   if (discount && cart?.items.length) {
-    // pick cheapest drink
-    const targetItem = [...cart.items].sort(
-      (a, b) => a.product.price - b.product.price,
-    )[0];
+    const sortedItems = [...cart.items].sort(
+      (a, b) => (a.variant?.price ?? 0) - (b.variant?.price ?? 0),
+    );
+    const target = sortedItems[0];
+    const price = target.variant?.price ?? 0;
 
     if (discount.type === "PERCENTAGE_OFF" && discount.discountAmount) {
-      discountAmount =
-        (targetItem.product.price * discount.discountAmount) / 100;
+      discountAmount = (price * discount.discountAmount) / 100;
     } else if (discount.type === "FIXED_AMOUNT" && discount.discountAmount) {
-      discountAmount = Math.min(
-        discount.discountAmount,
-        targetItem.product.price,
-      );
+      discountAmount = Math.min(discount.discountAmount, price);
     } else if (discount.type === "FREE_ITEM") {
-      discountAmount = targetItem.product.price;
+      discountAmount = price;
     }
   }
 
@@ -106,41 +106,35 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
           <div key={item.id} className="space-y-1">
             <div className="flex items-center justify-between text-sm text-gray-700">
               <div className="flex items-center gap-3">
-                {item.product.image && (
+
+                {/* ✅ Image is now from variant.product.image */}
+                {item.variant?.product?.image && (
                   <img
-                    src={item.product.image}
-                    alt={item.product.name}
+                    src={item.variant.product.image}
+                    alt={item.variant.product.name}
                     className="w-12 h-12 object-cover rounded"
                   />
                 )}
 
-                {item.product.categoryId !== "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" ? (
-                    <>
-                     <span>
-                        {item.product.name} ({item.servingType}) x {item.quantity}
-                    </span>
-
-                    </>
-                    ) : (
-                   <>
-                    {item.product.name} x {item.quantity}</>
-                )}
-
+                <span>
+                  {item.variant.product.name} ({item.variant.servingType}) × {item.quantity}
+                </span>
               </div>
+
+              {/* ✅ Price from variant.price */}
               <span className="font-medium">
-                ₱{(item.product.price * item.quantity).toFixed(2)}
+                ₱{((item.variant?.price ?? 0) * item.quantity).toFixed(2)}
               </span>
             </div>
 
+            {/* Addons */}
             {item.addons.length > 0 && (
               <div className="pl-12 text-sm text-gray-600 space-y-1">
                 {item.addons.map((addon) => (
                   <div key={addon.addonId} className="flex justify-between">
+                    <span>+ {addon.addon?.name} x {addon.quantity}</span>
                     <span>
-                      + {addon.addon?.name} x {addon.quantity}
-                    </span>
-                    <span>
-                      ₱{(addon.addon?.price! * addon.quantity).toFixed(2)}
+                      ₱{((addon.addon?.price ?? 0) * addon.quantity).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -149,7 +143,7 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
           </div>
         ))}
 
-        {/* ✅ Summary with discount */}
+        {/* Summary */}
         <div className="border-t pt-2 mt-2 space-y-1 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
@@ -170,66 +164,54 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
         </div>
       </div>
 
-      <form className="space-y-6">
-        {/* Voucher selection */}
-        {discounts.length > 0 && (
-          <div>
-            <Label>Use a voucher</Label>
-            <RadioGroup
-              value={selectedVoucher ?? ""}
-              onValueChange={(val) =>
-                setSelectedVoucher(val === "" ? null : val)
-              }
-              className="space-y-2"
-            >
-              {discounts.map((d) => (
-                <div key={d.id} className="flex items-center justify-between">
-                  <RadioGroupItem value={d.id} />
-                  <span className="ml-2">
-                    {d.description}{" "}
-                    {d.type === "PERCENTAGE_OFF"
-                      ? `(${d.discountAmount}% off one drink)`
-                      : d.type === "FREE_ITEM"
-                        ? "(One free drink)"
-                        : d.type === "FIXED_AMOUNT"
-                          ? `(-₱${d.discountAmount} on one drink)`
-                          : ""}
-                  </span>
-                </div>
-              ))}
-              <div className="flex items-center mt-1">
-                <RadioGroupItem value="" />
-                <span className="ml-2">No voucher</span>
-              </div>
-            </RadioGroup>
-          </div>
-        )}
-
-        {/* Payment Method */}
+      {/* Voucher */}
+      {discounts.length > 0 && (
         <div>
-          <Label>Payment Method</Label>
-          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Choose payment method" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="CASH">Cash</SelectItem>
-              <SelectItem value="GCASH">GCash</SelectItem>
-
-            </SelectContent>
-          </Select>
+          <Label>Use a voucher</Label>
+          <RadioGroup
+            value={selectedVoucher ?? ""}
+            onValueChange={(val) =>
+              setSelectedVoucher(val === "" ? null : val)
+            }
+            className="space-y-2"
+          >
+            {discounts.map((d) => (
+              <div key={d.id} className="flex items-center gap-2">
+                <RadioGroupItem value={d.id} />
+                <span>{d.description}</span>
+              </div>
+            ))}
+            <div className="flex items-center mt-1">
+              <RadioGroupItem value="" />
+              <span>No voucher</span>
+            </div>
+          </RadioGroup>
         </div>
+      )}
 
-        {/* Confirm / Cancel */}
-        <CheckoutConfirm
-          total={finalTotal}
-          onCheckout={handleCheckout}
-          onCancel={onCancel}
-          loading={loading}
-        />
+      {/* Payment Method */}
+      <div>
+        <Label>Payment Method</Label>
+        <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Choose payment method" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="CASH">Cash</SelectItem>
+            <SelectItem value="GCASH">GCash</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-      </form>
+      {/* Confirm Buttons */}
+      <CheckoutConfirm
+        total={finalTotal}
+        onCheckout={handleCheckout}
+        onCancel={onCancel}
+        loading={loading}
+      />
+
+      {error && <p className="text-red-500 text-sm">{error}</p>}
     </>
   );
 }

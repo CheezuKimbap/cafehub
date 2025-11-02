@@ -3,31 +3,40 @@ import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@/prisma/generated/prisma";
 import { validateApiKey } from "@/lib/apiKeyGuard";
 
+// GET: Fetch orders for a customer (or all if customerId not provided)
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const customerId = url.searchParams.get("customerId");
 
-    // Build the where condition explicitly
     const whereCondition: any = { isDeleted: false };
-    if (customerId) {
-      whereCondition.customerId = customerId;
-    }
+    if (customerId) whereCondition.customerId = customerId;
 
     const orders = await prisma.order.findMany({
       where: whereCondition,
       include: {
         customer: true,
-        orderItems: { include: { product: true, addons: true } },
+        orderItems: {
+          include: {
+            variant: {
+              include: {
+                product: true, // product details like image, name, etc.
+              },
+            },
+            addons: {
+              include: { addon: true }, // addon details
+            },
+          },
+        },
       },
       orderBy: { orderDate: "desc" },
     });
 
-    if (!orders.length) {
-      return NextResponse.json(orders, { status: 201 });
+    if (!orders || orders.length === 0) {
+      return NextResponse.json([], { status: 200 });
     }
 
-    return NextResponse.json(orders);
+    return NextResponse.json(orders, { status: 200 });
   } catch (error) {
     console.error("Failed to fetch orders:", error);
     return NextResponse.json(
@@ -36,10 +45,12 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-// PUT: Update order status (e.g., mark as PAID, SHIPPED, CANCELLED)
+
+// PUT: Update order status
 export async function PUT(req: NextRequest) {
   const authError = validateApiKey(req);
   if (authError) return authError;
+
   try {
     const { customerId, status } = await req.json();
 
@@ -50,7 +61,6 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Validate enum
     if (!(Object.values(OrderStatus) as string[]).includes(status)) {
       return NextResponse.json(
         { error: `Invalid status: ${status}` },
@@ -58,23 +68,29 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Update the latest active order for this customer
-    const updatedOrder = await prisma.order.updateMany({
+    // Update the latest active order (optional: instead of all)
+    const latestOrder = await prisma.order.findFirst({
       where: { customerId, isDeleted: false },
-      data: { status: status as OrderStatus },
+      orderBy: { orderDate: "desc" },
     });
 
-    if (updatedOrder.count === 0) {
+    if (!latestOrder) {
       return NextResponse.json(
-        { error: "No order found for this customer" },
+        { error: "No active order found for this customer" },
         { status: 404 },
       );
     }
 
+    const updatedOrder = await prisma.order.update({
+      where: { id: latestOrder.id },
+      data: { status: status as OrderStatus },
+    });
+
     return NextResponse.json({
-      message: `Updated ${updatedOrder.count} order(s) for customer ${customerId}`,
+      message: `Updated order ${updatedOrder.id} to status ${status}`,
     });
   } catch (err: any) {
+    console.error("Failed to update order:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

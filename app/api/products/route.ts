@@ -6,6 +6,9 @@ export async function GET(req: NextRequest) {
   try {
     const products = await prisma.product.findMany({
       where: { isDeleted: false },
+      include: {
+        variants: true
+      },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(products);

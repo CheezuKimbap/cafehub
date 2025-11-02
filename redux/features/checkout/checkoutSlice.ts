@@ -1,12 +1,11 @@
 "use client";
 
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AppDispatch } from "@/redux/store";
+import { AppDispatch, RootState } from "@/redux/store";
 import { clearCart } from "@/redux/features/cart/cartSlice";
 import { Order } from "./checkout";
 
 // --- Types ---
-
 interface CheckoutState {
   order: Order | null;
   loading: boolean;
@@ -35,12 +34,16 @@ export const checkout = createAsyncThunk<
   });
 
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({ error: "Checkout failed" }));
     throw new Error(err.error || "Checkout failed");
   }
 
   const data = await res.json();
+
+  // Clear cart after successful checkout
   dispatch(clearCart());
+
+  // Return order object (with proper type)
   return data.order as Order;
 });
 
@@ -72,6 +75,11 @@ const checkoutSlice = createSlice({
       });
   },
 });
+
+// --- Selectors ---
+export const selectCheckoutOrder = (state: RootState) => state.checkout.order;
+export const selectCheckoutLoading = (state: RootState) => state.checkout.loading;
+export const selectCheckoutError = (state: RootState) => state.checkout.error;
 
 export const { resetCheckout } = checkoutSlice.actions;
 export default checkoutSlice.reducer;

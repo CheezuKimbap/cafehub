@@ -1,43 +1,17 @@
 import { Customer, ServingType } from "@/prisma/generated/prisma";
 import { Product } from "@/redux/features/products/product";
 
+// Order & Payment status enums
 export type OrderStatus =
   | "PENDING"
   | "PREPARING"
   | "COMPLETED"
   | "READYTOPICKUP"
   | "CANCELLED";
+
 export type PaymentStatus = "UNPAID" | "PAID" | "REFUNDED";
 
-export interface OrderItem {
-  id: string;
-  productId: string;
-  quantity: number;
-  servingType: ServingType;
-  priceAtPurchase: number;
-  product: Product; // Include product info for UI
-  addons: OrderItemAddon[];
-}
-
-export interface Order {
-  id: string;
-  customerId: string;
-  orderDate: string; // ISO date
-  totalAmount: number;
-  discountApplied?: number;
-  status: OrderStatus;
-  paymentStatus: PaymentStatus;
-  orderItems: OrderItem[];
-  customer: Customer;
-  paymentMethod?: {
-    type: string;
-    provider?: string;
-    details?: string;
-    status: string;
-    paidAt?: string;
-  };
-}
-
+// Addon interface
 export interface OrderItemAddon {
   id: string;
   orderItemId: string;
@@ -47,5 +21,41 @@ export interface OrderItemAddon {
     id: string;
     name: string;
     price: number;
+  };
+}
+
+// Order item now uses variant instead of product directly
+export interface OrderItem {
+  id: string;
+  variantId: string; // updated for variant usage
+  quantity: number;
+  servingType: ServingType;
+  priceAtPurchase: number;
+  variant: {
+    id: string;
+    price: number;
+    servingType: ServingType;
+    product: Product; // product info inside variant
+  };
+  addons: OrderItemAddon[];
+}
+
+// Main order interface
+export interface Order {
+  id: string;
+  customerId: string;
+  orderDate: string; // ISO date string
+  totalAmount: number;
+  discountApplied?: number;
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  orderItems: OrderItem[];
+  customer: Customer;
+  paymentMethod?: {
+    type: string; // e.g., "CASH" | "GCASH"
+    provider?: string; // optional provider info
+    details?: string; // optional payment details
+    status: PaymentStatus;
+    paidAt?: string; // ISO date if paid
   };
 }

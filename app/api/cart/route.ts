@@ -14,7 +14,11 @@ export async function GET(req: NextRequest) {
       include: {
         items: {
           include: {
-            product: true,
+           variant: {
+              include: {
+                product: true, // ✅ product is accessed THROUGH variant
+              },
+            },
             addons: {
               include: { addon: true },
             },
@@ -38,155 +42,111 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { customerId, productId, quantity, servingType, addons } =
-    await req.json();
+  const { customerId, variantId, quantity, addons } = await req.json();
 
-  if (!customerId || !productId || quantity <= 0) {
+  if (!customerId || !variantId || quantity <= 0) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
   try {
-    // ✅ Find or create cart
+    // Find or create cart
     let cart = await prisma.cart.findUnique({ where: { customerId } });
 
-    if (cart) {
-      if (cart.status !== "ACTIVE") {
-        cart = await prisma.cart.update({
-          where: { id: cart.id },
-          data: { status: "ACTIVE" },
-        });
-      }
-    } else {
+    if (!cart) {
       cart = await prisma.cart.create({
         data: { customerId, status: "ACTIVE" },
       });
+    } else if (cart.status !== "ACTIVE") {
+      cart = await prisma.cart.update({
+        where: { id: cart.id },
+        data: { status: "ACTIVE" },
+      });
     }
 
-    // ✅ Fetch product
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
+    // Fetch variant + product
+    const variant = await prisma.productVariant.findUnique({
+      where: { id: variantId },
+      include: { product: true },
     });
-    if (!product)
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
-    // ✅ Calculate addon total per drink
+    if (!variant) {
+      return NextResponse.json({ error: "Variant not found" }, { status: 404 });
+    }
+
+    // Calculate base price (variant price * qty)
+    const baseTotal = variant.price * quantity;
+
+    // Handle addons
     let addonTotalPerDrink = 0;
-    let dbAddons: { id: string; price: number }[] = [];
 
-    if (addons && Array.isArray(addons) && addons.length > 0) {
+    if (addons && addons.length > 0) {
       const addonIds = addons.map((a: any) => a.addonId);
-      dbAddons = await prisma.addon.findMany({
+      const dbAddons = await prisma.addon.findMany({
         where: { id: { in: addonIds } },
       });
 
       addonTotalPerDrink = addons.reduce((sum: number, addon: any) => {
-        const dbAddon = dbAddons.find((a) => a.id === addon.addonId);
-        if (dbAddon) {
-          return sum + dbAddon.price * addon.quantity;
-        }
-        return sum;
+        const db = dbAddons.find((d) => d.id === addon.addonId);
+        return db ? sum + db.price * addon.quantity : sum;
       }, 0);
     }
 
-    // ✅ Line total
-    const lineTotal = product.price * quantity + addonTotalPerDrink * quantity;
+    const lineTotal = baseTotal + addonTotalPerDrink * quantity;
 
-    // ✅ Check if identical item exists
-    const candidateItems = await prisma.cartItem.findMany({
-      where: { cartId: cart.id, productId, servingType },
+    // Check if exact item already exists
+    const existingItems = await prisma.cartItem.findMany({
+      where: { cartId: cart.id, variantId },
       include: { addons: true },
     });
 
-    // Normalize addons for comparison
-    const incomingAddonKey = JSON.stringify(
-      (addons || [])
-        .map((a: any) => ({ addonId: a.addonId, quantity: a.quantity }))
-        .sort((a: AddonKey, b: AddonKey) => a.addonId.localeCompare(b.addonId)),
-    );
-    let cartItem = null;
-    for (const item of candidateItems) {
-      const itemAddonKey = JSON.stringify(
+    const key = JSON.stringify(addons?.sort((a: any, b: any) => a.addonId.localeCompare(b.addonId)) ?? []);
+
+    let existingItem = existingItems.find((item) => {
+      const itemKey = JSON.stringify(
         item.addons
           .map((a) => ({ addonId: a.addonId, quantity: a.quantity }))
-          .sort((a, b) => a.addonId.localeCompare(b.addonId)),
+          .sort((a, b) => a.addonId.localeCompare(b.addonId))
       );
+      return itemKey === key;
+    });
 
-      if (itemAddonKey === incomingAddonKey) {
-        cartItem = item;
-        break;
-      }
-    }
+    if (existingItem) {
+      // Update quantity
+      const newQty = existingItem.quantity + quantity;
+      const newTotal = variant.price * newQty + addonTotalPerDrink * newQty;
 
-    // ✅ Update or Create
-    if (cartItem) {
-      // Merge quantities
-      const newQuantity = cartItem.quantity + quantity;
-      const updatedLineTotal =
-        product.price * newQuantity + addonTotalPerDrink * newQuantity;
-
-      cartItem = await prisma.cartItem.update({
-        where: { id: cartItem.id },
-        data: {
-          quantity: newQuantity,
-          price: updatedLineTotal,
-        },
+      await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: newQty, price: newTotal },
       });
-
-      // Update addon quantities too
-      if (addons && Array.isArray(addons)) {
-        for (const addon of addons) {
-          if (!addon.addonId || addon.quantity <= 0) continue;
-
-          const existingAddon = await prisma.cartItemAddon.findFirst({
-            where: {
-              cartItemId: cartItem.id,
-              addonId: addon.addonId,
-            },
-          });
-
-          if (existingAddon) {
-            await prisma.cartItemAddon.update({
-              where: { id: existingAddon.id },
-              data: {
-                quantity: existingAddon.quantity + addon.quantity * quantity,
-              },
-            });
-          }
-        }
-      }
     } else {
-      // Create new cartItem
-      cartItem = await prisma.cartItem.create({
+      // Create new item
+      const newItem = await prisma.cartItem.create({
         data: {
           cartId: cart.id,
-          productId,
+          variantId,
           quantity,
-          servingType,
           price: lineTotal,
         },
       });
 
-      // Add addons for this new item
-      if (addons && Array.isArray(addons)) {
-        for (const addon of addons) {
-          if (!addon.addonId || addon.quantity <= 0) continue;
-          await prisma.cartItemAddon.create({
-            data: {
-              cartItemId: cartItem.id,
-              addonId: addon.addonId,
-              quantity: addon.quantity * quantity,
-            },
-          });
-        }
+      // Add addons
+      if (addons && addons.length > 0) {
+        await prisma.cartItemAddon.createMany({
+          data: addons.map((a: any) => ({
+            cartItemId: newItem.id,
+            addonId: a.addonId,
+            quantity: a.quantity * quantity,
+          })),
+        });
       }
     }
 
     return NextResponse.json({ message: "Item added to cart" });
   } catch (error) {
-    console.error("Failed to add item to cart:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    console.error("Add to cart failed:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+

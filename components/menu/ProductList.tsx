@@ -35,7 +35,7 @@ export function ProductList({
           id={p.id}
           name={p.name}
           description={p.description}
-          price={p.price}
+          variants={p.variants}
           imageUrl={p.image ?? undefined}
         />
       ))}

@@ -68,7 +68,7 @@ export default function CartPage() {
 
     return cart.items.reduce((acc, item) => {
         // Base product total
-        const productTotal = item.product.price * item.quantity;
+        const productTotal = item.variant.price * item.quantity;
 
         // Addons total (addon price * addon quantity * cart item quantity)
         const addonsTotal = item.addons?.reduce(

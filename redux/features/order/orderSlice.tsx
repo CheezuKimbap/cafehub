@@ -1,12 +1,11 @@
 // redux/features/order/ordersSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { Order } from "../order/order";
 import type { RootState } from "@/redux/store";
-import { OrderStatus, PaymentStatus } from "@/prisma/generated/prisma";
+import { Order, OrderStatus, PaymentStatus } from "../order/order";
 
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
-// get list of all orders
+// Fetch all orders
 export const fetchOrders = createAsyncThunk<Order[]>(
   "orders/fetchOrders",
   async () => {
@@ -17,35 +16,32 @@ export const fetchOrders = createAsyncThunk<Order[]>(
       },
     });
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch orders");
-    }
-
+    if (!res.ok) throw new Error("Failed to fetch orders");
     return res.json();
-  },
+  }
 );
 
-// orderSlice.ts
+// Fetch orders by customer ID
 export const fetchOrdersByCustomerId = createAsyncThunk<
   Order[],
   { customerId: string }
->("order/fetchOrdersByCustomerId", async ({ customerId }) => {
+>("orders/fetchOrdersByCustomerId", async ({ customerId }) => {
   const res = await fetch(`/api/orders?customerId=${customerId}`, {
-    method: "GET",
     headers: {
       "Content-Type": "application/json",
       "x-api-key": API_KEY,
     },
   });
+
   if (!res.ok) throw new Error("Failed to fetch orders");
-  return (await res.json()) as Order[];
+  return res.json() as Promise<Order[]>;
 });
 
-// --- Thunks ---
+// Update order status and/or payment status
 export const updateOrderStatus = createAsyncThunk<
   Order,
   { id: string; status: OrderStatus; paymentStatus?: PaymentStatus }
->("order/updateOrderStatus", async ({ id, status, paymentStatus }) => {
+>("orders/updateOrderStatus", async ({ id, status, paymentStatus }) => {
   const res = await fetch(`/api/orders/${id}`, {
     method: "PUT",
     headers: {
@@ -54,23 +50,27 @@ export const updateOrderStatus = createAsyncThunk<
     },
     body: JSON.stringify({ status, paymentStatus }),
   });
+
   if (!res.ok) throw new Error("Failed to update order");
   const data = await res.json();
-  return data.order;
+  return data.order as Order;
 });
 
+// Slice state
 export interface OrdersState {
   orders: Order[];
-  status: "idle" | "loading" | "failed" | "success";
-  updatingOrderIds: string[]; // track which orders are being updated
+  status: "idle" | "loading" | "success" | "failed";
+  updatingOrderIds: string[];
   error?: string;
 }
+
 const initialState: OrdersState = {
   orders: [],
   status: "idle",
   updatingOrderIds: [],
 };
-const ordersSlice = createSlice({
+
+export const ordersSlice = createSlice({
   name: "orders",
   initialState,
   reducers: {
@@ -82,6 +82,20 @@ const ordersSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Fetch all orders
+      .addCase(fetchOrders.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
+        state.status = "success";
+        state.orders = action.payload;
+      })
+      .addCase(fetchOrders.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message ?? "Failed to fetch orders";
+      })
+
+      // Fetch by customer
       .addCase(fetchOrdersByCustomerId.pending, (state) => {
         state.status = "loading";
       })
@@ -90,33 +104,20 @@ const ordersSlice = createSlice({
         (state, action: PayloadAction<Order[]>) => {
           state.status = "success";
           state.orders = action.payload;
-        },
+        }
       )
       .addCase(fetchOrdersByCustomerId.rejected, (state, action) => {
         state.status = "failed";
-        state.error = action.error.message;
+        state.error = action.error.message ?? "Failed to fetch customer orders";
       })
-      .addCase(fetchOrders.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(
-        fetchOrders.fulfilled,
-        (state, action: PayloadAction<Order[]>) => {
-          state.status = "success";
-          state.orders = action.payload;
-        },
-      )
-      .addCase(fetchOrders.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message ?? "Something went wrong";
-      })
+
+      // Update order status
       .addCase(updateOrderStatus.pending, (state, action) => {
         const { id, status, paymentStatus } = action.meta.arg;
         state.updatingOrderIds.push(id);
 
         const index = state.orders.findIndex((o) => o.id === id);
         if (index !== -1) {
-          // Optimistically update
           state.orders[index] = {
             ...state.orders[index],
             status,
@@ -129,32 +130,28 @@ const ordersSlice = createSlice({
         const index = state.orders.findIndex((o) => o.id === updated.id);
         if (index !== -1) {
           state.orders[index] = {
-            ...state.orders[index],
-            // trust optimistic update for status
-            ...updated,
-            status: state.orders[index].status,
+            ...updated, // full updated order from API
           };
         }
         state.updatingOrderIds = state.updatingOrderIds.filter(
-          (orderId) => orderId !== updated.id,
+          (id) => id !== updated.id
         );
       })
       .addCase(updateOrderStatus.rejected, (state, action) => {
         const { id } = action.meta.arg;
         state.updatingOrderIds = state.updatingOrderIds.filter(
-          (orderId) => orderId !== id,
+          (orderId) => orderId !== id
         );
         state.error = action.error.message ?? "Failed to update order status";
-
-        // Rollback: could refetch or keep as-is
-        // Safer option: re-fetch orders
-        // (or you could snapshot previous state before optimistic update)
       });
   },
 });
 
-export const selectOrders = (state: RootState) => state.order?.orders ?? [];
-export const selectOrderStatus = (state: RootState) =>
-  state.order?.status ?? "idle";
+// Selectors
+export const selectOrders = (state: RootState) => state.order.orders;
+export const selectOrderStatus = (state: RootState) => state.order.status;
+export const selectUpdatingOrders = (state: RootState) =>
+  state.order.updatingOrderIds;
 
+export const { resetOrders } = ordersSlice.actions;
 export default ordersSlice.reducer;

@@ -32,9 +32,8 @@ export const addItemToCart = createAsyncThunk(
   "cart/addItem",
   async (payload: {
     customerId: string;
-    productId: string;
+    variantId: string;   // ✅ not productId
     quantity: number;
-    servingType: string;
     addons?: { addonId: string; quantity: number }[];
   }) => {
     const res = await fetch(`/api/cart`, {
@@ -42,10 +41,12 @@ export const addItemToCart = createAsyncThunk(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+
     if (!res.ok) throw new Error("Failed to add item to cart");
     return (await res.json()) as CartItem;
-  },
+  }
 );
+
 
 // Update cart item quantity
 export const updateCartItem = createAsyncThunk(
@@ -90,21 +91,33 @@ const cartSlice = createSlice({
     },
 
     // Update item quantity locally
-    updateItemQuantityLocally: (
-      state,
-      action: PayloadAction<{ itemId: string; quantity: number }>,
-    ) => {
-      if (!state.cart) return;
-      state.cart.items = state.cart.items.map((item) =>
-        item.id === action.payload.itemId
-          ? {
-              ...item,
-              quantity: action.payload.quantity,
-              price: item.product.price * action.payload.quantity, // recalc base total
-            }
-          : item,
-      );
-    },
+   updateItemQuantityLocally: (
+  state,
+  action: PayloadAction<{ itemId: string; quantity: number }>,
+) => {
+  if (!state.cart) return;
+
+  state.cart.items = state.cart.items.map((item) => {
+    if (item.id !== action.payload.itemId) return item;
+
+    const basePrice = item.variant.price; // ✅ variant controls price
+
+    // Recalculate total including addons
+    const addonsTotal = item.addons.reduce(
+      (sum, addon) => sum + addon.price * addon.quantity,
+      0
+    );
+
+    const newQty = action.payload.quantity;
+
+    return {
+      ...item,
+      quantity: newQty,
+      price: basePrice * newQty + addonsTotal, // ✅ correct total pricing logic
+    };
+  });
+},
+
 
     // Clear cart
     clearCart: (state) => {
