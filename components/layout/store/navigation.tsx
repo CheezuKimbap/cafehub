@@ -30,6 +30,15 @@ function CustomerNavigation() {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/barista");
 
+  const [bump, setBump] = useState(false);
+
+    useEffect(() => {
+    if (cartCount === 0) return;
+    setBump(true);
+    const timer = setTimeout(() => setBump(false), 300);
+    return () => clearTimeout(timer);
+    }, [cartCount]);
+
   // Close profile dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -95,16 +104,22 @@ function CustomerNavigation() {
           {/* Cart + Profile */}
           <div className="flex items-center space-x-4">
             {/* Cart */}
-            <Link href="/cart" className="relative">
-              <button className="flex items-center justify-center rounded-lg p-2 bg-orange-500 hover:bg-orange-600 transition-colors">
+            <Link href="/cart" className="relative" id="cart-icon">
+                <button
+                className={`flex items-center justify-center rounded-lg p-2 bg-orange-500 hover:bg-orange-600 transition-all ${
+                    bump ? "scale-110" : "scale-100"
+                }`}
+                >
                 <ShoppingBasket className="w-6 h-6 text-white" />
-              </button>
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
+                </button>
+
+                {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartCount}
+                    </span>
+                )}
             </Link>
+
 
             {/* Profile dropdown */}
             <div ref={profileRef} className="relative">

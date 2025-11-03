@@ -35,8 +35,8 @@ export function ProductDetails() {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedAddons, setSelectedAddons] = useState<{ addonId: string; quantity: number }[]>([]);
-  const [showPopup, setShowPopup] = useState(false);
 
+  const cart = useAppSelector((state) => state.cart.cart);
   const productState = useAppSelector((state) => state.products);
   const addonsState = useAppSelector((state) => state.addon);
 
@@ -59,14 +59,74 @@ export function ProductDetails() {
     );
   };
 
-  const handleAddToCart = () => {
-    if (!customerId) return alert("Please log in to add items to cart.");
-    if (!productId || !selectedVariant) return;
+  const animateToCart = () => {
+    const img = document.querySelector<HTMLImageElement>("#product-image");
+    const cartIcon = document.querySelector<HTMLDivElement>("#cart-icon");
+    if (!img || !cartIcon) return;
 
+    const imgRect = img.getBoundingClientRect();
+    const cartRect = cartIcon.getBoundingClientRect();
+
+    const clone = img.cloneNode(true) as HTMLImageElement;
+    clone.style.position = "fixed";
+    clone.style.left = imgRect.left + "px";
+    clone.style.top = imgRect.top + "px";
+    clone.style.width = imgRect.width + "px";
+    clone.style.height = imgRect.height + "px";
+    clone.style.transition =
+        "all 0.8s cubic-bezier(0.25, 1, 0.5, 1)";
+    clone.style.zIndex = "9999";
+    clone.style.borderRadius = "8px";
+    document.body.appendChild(clone);
+
+    // trigger reflow
+    requestAnimationFrame(() => {
+        clone.style.left = cartRect.left + "px";
+        clone.style.top = cartRect.top + "px";
+        clone.style.width = "40px";
+        clone.style.height = "40px";
+        clone.style.opacity = "0.4";
+    });
+
+    setTimeout(() => {
+        clone.remove();
+    }, 800);
+};
+
+const handleAddToCart = () => {
+  if (!customerId) return alert("Please log in to add items to cart.");
+  if (!productId || !selectedVariant) return;
+
+  // 🧩 Find if item already exists in the cart
+  const existingItem = cart?.items?.find(
+    (item) =>
+      item.variantId === selectedVariant.id &&
+      JSON.stringify(item.addons?.map((a: any) => a.addonId).sort()) ===
+        JSON.stringify(selectedAddons.map((a) => a.addonId).sort())
+  );
+
+  if (existingItem) {
+    // 🪄 Just increase quantity instead of adding duplicate
     dispatch(
       addItemToCart({
         customerId,
-        variantId: selectedVariant.id, // ✅ Send variant ID
+        variantId: selectedVariant.id,
+        quantity: existingItem.quantity + quantity, // increment existing
+        addons: selectedAddons,
+      })
+    )
+      .unwrap()
+      .then(() => {
+        dispatch(fetchCart(customerId));
+
+      })
+      .catch(() => alert("Failed to update cart"));
+  } else {
+    // 🪄 Otherwise add as a new item
+    dispatch(
+      addItemToCart({
+        customerId,
+        variantId: selectedVariant.id,
         quantity,
         addons: selectedAddons,
       })
@@ -74,10 +134,14 @@ export function ProductDetails() {
       .unwrap()
       .then(() => {
         dispatch(fetchCart(customerId));
-        setShowPopup(true);
+
       })
       .catch(() => alert("Failed to add item to cart"));
-  };
+  }
+
+  animateToCart(); // keep animation
+};
+
 
   if (!productId) return <div className="m-4">Invalid product ID</div>;
   if (loading) return <div className="m-4">Loading...</div>;
@@ -88,11 +152,13 @@ export function ProductDetails() {
     <Card className="w-full shadow-lg rounded-2xl p-6 grid md:grid-cols-2 gap-10 bg-white my-4">
       {/* Left - Image */}
       <div className="flex justify-center items-center">
-        <img
-          src={product.image || "/placeholder.png"}
-          alt={product.name}
-          className="rounded-lg shadow-md max-h-[400px] object-contain w-full"
+      <img
+        id="product-image"
+        src={product.image || "/placeholder.png"}
+        alt={product.name}
+        className="rounded-lg shadow-md max-h-[400px] object-contain w-full"
         />
+
       </div>
 
       {/* Right */}
@@ -168,7 +234,7 @@ export function ProductDetails() {
       </CardContent>
 
       {/* Popup */}
-      <Dialog open={showPopup} onOpenChange={setShowPopup}>
+      {/* <Dialog open={showPopup} onOpenChange={setShowPopup}>
         <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Added to Cart!</DialogTitle>
@@ -183,7 +249,7 @@ export function ProductDetails() {
             <Button onClick={() => (window.location.href = "/cart")}>View Cart</Button>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </Card>
   );
 }
