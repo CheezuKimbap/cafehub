@@ -1,39 +1,33 @@
-import { Product, ProductVariant } from "../products/product";
-
-export interface CartItem {
-  id: string;
-  quantity: number;
-  price: number;
-
-  variantId: string;
-  variant: {
-    id: string;
-    price: number;
-    servingType: string;
-    size?: string | null;
-
-    // ✅ include product inside variant
-    product: {
-      id: string;
-      name: string;
-      image?: string | null;
-      price: number
-    };
-  };
-
-  addons: CartItemAddon[];
-}
+// src/redux/features/cart/cart.ts
+import { ProductVariant } from "../products/product";
 
 export interface CartItemAddon {
   addonId: string;
   quantity: number;
-  price: number; // locked price
+  price: number; // stored locked price
   addon: {
     name: string;
     price: number;
   };
 }
 
+export interface CartItem {
+  id: string;
+  quantity: number;
+  price: number; // computed or stored
+  variantId: string;
+
+  variant: ProductVariant & {
+    product: {
+      id: string;
+      name: string;
+      image?: string | null;
+      price: number;
+    };
+  };
+
+  addons: CartItemAddon[];
+}
 
 export interface Cart {
   id: string;
@@ -45,14 +39,4 @@ export interface Cart {
 export interface CartState {
   cart: Cart | null;
   status: "idle" | "loading" | "failed";
-}
-
-export interface CartItemAddon {
-  addonId: string;
-  quantity: number;
-  price: number; // stored at add time
-  addon: {
-    name: string;
-    price: number;
-  };
 }
