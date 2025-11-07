@@ -12,11 +12,6 @@ export const columns: ColumnDef<Product>[] = [
     header: "Name",
     cell: ({ row }) => <span>{row.original.name}</span>,
   },
-  {
-    accessorKey: "price",
-    header: "Price",
-    cell: ({ row }) => <span>{row.original.price.toLocaleString()} ₱</span>,
-  },
 
   {
     accessorKey: "createdAt",

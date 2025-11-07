@@ -34,39 +34,71 @@ export function AddProductButton() {
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState<string>("");
 
-  // ✅ Fetch categories on mount
+  const [variants, setVariants] = useState<
+    { servingType: string | null; size?: string; price: number | null }[]
+  >([{ servingType: null, size: "", price: null }]); // start with one variant
+
+  // Fetch categories on mount
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  // ✅ handle image preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setPreview(URL.createObjectURL(file));
     else setPreview(null);
   };
 
+  // Variant handlers
+  const addVariant = () =>
+    setVariants([...variants, { servingType: null, size: "", price: null }]);
+  const removeVariant = (idx: number) => {
+    if (idx === 0) return; // first variant cannot be removed
+    setVariants(variants.filter((_, i) => i !== idx));
+  };
+  const updateVariant = (idx: number, field: string, value: any) =>
+    setVariants(
+      variants.map((v, i) => (i === idx ? { ...v, [field]: value } : v)),
+    );
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget; // capture form reference
+    const form = e.currentTarget;
     const formData = new FormData(form);
 
     if (categoryId) formData.append("categoryId", categoryId);
+
+    // Validate variant prices
+    const invalidVariant = variants.find(
+      (v) => v.price === null || v.price === undefined || isNaN(v.price),
+    );
+    if (invalidVariant) {
+      alert("Please enter a price for all variants.");
+      return;
+    }
+
+    formData.append("variants", JSON.stringify(variants));
 
     setLoading(true);
 
     dispatch(submitProduct(formData))
       .unwrap()
       .then(() => {
-        // ✅ Only reset after successful save
         form.reset();
         setPreview(null);
+        // Reset variants to one empty variant
+        setVariants([{ servingType: null, size: "", price: null }]);
       })
       .catch((err: string) => {
         console.error("❌ Failed to add product:", err);
       })
-      .finally(() => setLoading(false)); // keep dialog open
+      .finally(() => setLoading(false));
   };
+
+  // Determine if Serving Type should be shown
+  const showServingType =
+    categoryId !== "" &&
+    categories.find((cat) => cat.id === categoryId)?.name !== "Snacks";
 
   return (
     <Dialog>
@@ -91,30 +123,16 @@ export function AddProductButton() {
                 name="name"
                 placeholder="Product Name"
                 required
-                disabled={loading} // ✅ disable while saving
+                disabled={loading}
               />
               <Textarea
                 name="description"
                 placeholder="Description"
                 required
-                disabled={loading} // ✅ disable while saving
-              />
-              <Input
-                type="number"
-                name="price"
-                placeholder="Price"
-                required
-                disabled={loading} // ✅ disable while saving
-              />
-              <Input
-                type="number"
-                name="stock"
-                placeholder="Stock"
-                required
-                disabled={loading} // ✅ disable while saving
+                disabled={loading}
               />
 
-              {/* ✅ ShadCN Select for Category */}
+              {/* Category Select */}
               <div>
                 <Select
                   value={categoryId}
@@ -134,14 +152,13 @@ export function AddProductButton() {
                 </Select>
               </div>
 
-              {/* ✅ Can Discount Checkbox */}
+              {/* Can Discount Checkbox */}
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="canDiscount"
                   name="canDiscount"
                   disabled={loading}
                   onCheckedChange={(checked) => {
-                    // ✅ keep hidden input in sync for FormData
                     const input = document.querySelector<HTMLInputElement>(
                       'input[name="canDiscount"]',
                     );
@@ -154,9 +171,91 @@ export function AddProductButton() {
                 >
                   Can have discount
                 </label>
-
-                {/* ✅ hidden input to actually carry the value in FormData */}
                 <input type="hidden" name="canDiscount" value="false" />
+              </div>
+
+              {/* Variants Section */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-700">
+                  Variants
+                </label>
+
+                {variants.map((v, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    {/* Serving Type Dropdown (ShadCN) */}
+                    {showServingType && (
+                      <Select
+                        value={v.servingType ?? "NONE"}
+                        onValueChange={(val) =>
+                          updateVariant(
+                            idx,
+                            "servingType",
+                            val === "NONE" ? null : val,
+                          )
+                        }
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Serving Type (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="NONE">None</SelectItem>
+                          <SelectItem value="HOT">HOT</SelectItem>
+                          <SelectItem value="COLD">COLD</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+
+                    {/* Size Input */}
+                    <Input
+                      type="text"
+                      placeholder="Size (optional)"
+                      className="flex-1"
+                      value={v.size}
+                      onChange={(e) =>
+                        updateVariant(idx, "size", e.target.value)
+                      }
+                    />
+
+                    {/* Price Input */}
+                    <Input
+                      type="number"
+                      placeholder="Price"
+                      className="flex-1"
+                      value={v.price ?? ""}
+                      onChange={(e) =>
+                        updateVariant(
+                          idx,
+                          "price",
+                          e.target.value ? Number(e.target.value) : null,
+                        )
+                      }
+                      required
+                    />
+
+                    {/* Remove Button */}
+                    {idx !== 0 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeVariant(idx)}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                ))}
+
+                {/* Add Variant Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addVariant}
+                >
+                  Add Variant
+                </Button>
               </div>
 
               <Button
@@ -187,7 +286,7 @@ export function AddProductButton() {
                   required
                   className="absolute opacity-0 w-full h-full cursor-pointer"
                   onChange={handleImageChange}
-                  disabled={loading} // ✅ disable while saving
+                  disabled={loading}
                 />
               </label>
             </div>

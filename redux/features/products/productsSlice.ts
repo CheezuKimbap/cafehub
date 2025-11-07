@@ -59,25 +59,20 @@ export const fetchProductById = createAsyncThunk<Product, string>(
 
 // Inside your products slice file
 export const submitProduct = createAsyncThunk<
-  Product, // return type
-  FormData, // argument type
-  { rejectValue: string } // type for rejectWithValue
+  Product,
+  FormData,
+  { rejectValue: string }
 >("products/submit", async (formData, { rejectWithValue }) => {
   try {
-    // 1️⃣ Upload image
     const imageFile = formData.get("image") as File | null;
     let imageUrl = "";
+
     if (imageFile) {
       const uploadForm = new FormData();
       uploadForm.append("file", imageFile);
 
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: uploadForm,
-      });
-
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
       if (!uploadRes.ok) throw new Error("Image upload failed");
-
       const uploadData = await uploadRes.json();
       imageUrl = uploadData.url;
     }
@@ -85,15 +80,17 @@ export const submitProduct = createAsyncThunk<
     const canDiscountRaw = formData.get("canDiscount");
     const canDiscount = canDiscountRaw === "true" || canDiscountRaw === "on";
 
-    // 2️⃣ Product payload
-    const product = {
+    // Parse variants JSON
+    const variantsRaw = formData.get("variants") as string;
+    const variants = variantsRaw ? JSON.parse(variantsRaw) : [];
+
+    const payload = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      price: Number(formData.get("price")),
-      stock: Number(formData.get("stock")),
       image: imageUrl,
       categoryId: formData.get("categoryId") as string,
       canDiscount,
+      variants, // ✅ include variants
     };
 
     const res = await fetch("/api/products", {
@@ -102,23 +99,22 @@ export const submitProduct = createAsyncThunk<
         "Content-Type": "application/json",
         "x-api-key": process.env.NEXT_PUBLIC_API_KEY || "",
       },
-      body: JSON.stringify(product),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) throw new Error("Failed to save product");
-
     return (await res.json()) as Product;
   } catch (error: any) {
     return rejectWithValue(error.message);
   }
 });
+
 export const updateProductById = createAsyncThunk<
-  Product, // return type
-  UpdateProductPayload, // argument type
-  { rejectValue: string } // for rejectWithValue
+  Product,
+  UpdateProductPayload,
+  { rejectValue: string }
 >("products/update", async ({ id, formData }, { rejectWithValue }) => {
   try {
-    // 1️⃣ Upload image if provided
     const imageFile = formData.get("image") as File | null;
     let imageUrl: string | undefined = undefined;
 
@@ -126,32 +122,32 @@ export const updateProductById = createAsyncThunk<
       const uploadForm = new FormData();
       uploadForm.append("file", imageFile);
 
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: uploadForm,
-      });
-
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
       if (!uploadRes.ok) throw new Error("Image upload failed");
-
       const uploadData = await uploadRes.json();
       imageUrl = uploadData.url;
     }
 
-    // 2️⃣ Build payload for update
+    const canDiscountRaw = formData.get("canDiscount");
+    const canDiscount = canDiscountRaw === "true" || canDiscountRaw === "on";
+
+    // Parse variants JSON if present
+    const variantsRaw = formData.get("variants") as string;
+    const variants = variantsRaw ? JSON.parse(variantsRaw) : undefined;
+
     const payload: any = {
       name: formData.get("name") as string | undefined,
       description: formData.get("description") as string | undefined,
-      price: formData.get("price") ? Number(formData.get("price")) : undefined,
-      stock: formData.get("stock") ? Number(formData.get("stock")) : undefined,
+      ...(formData.get("price") && { price: Number(formData.get("price")) }),
+      ...(formData.get("stock") && { stock: Number(formData.get("stock")) }),
       ...(imageUrl && { image: imageUrl }),
+      canDiscount,
+      ...(variants && { variants }),
     };
 
-    // Remove undefined fields
-    Object.keys(payload).forEach(
-      (key) => payload[key] === undefined && delete payload[key],
-    );
+    // Remove undefined
+    Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
 
-    // 3️⃣ Call PUT endpoint
     const res = await fetch(`/api/products/${id}`, {
       method: "PUT",
       headers: {
@@ -162,7 +158,6 @@ export const updateProductById = createAsyncThunk<
     });
 
     if (!res.ok) throw new Error("Failed to update product");
-
     return (await res.json()) as Product;
   } catch (error: any) {
     return rejectWithValue(error.message);
