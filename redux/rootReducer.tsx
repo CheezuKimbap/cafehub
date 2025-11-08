@@ -13,6 +13,9 @@ import categoriesReducer from "./features/categories/categoriesSlice";
 import mostSoldReducer from "./features/reports/mostSoldSlice";
 import revenueReducer from "./features/reports/revenueSlice";
 import weeklySaleReducer from "./features/reports/weeklySaleSlice";
+import totalOrderReducer from "./features/reports/totalOrderSlice";
+import monthlyRevenueReducer from "./features/reports/monthlyRevenueSlice";
+
 const appReducer = combineReducers({
   products: productReducer,
   cart: cartReducer,
@@ -28,7 +31,9 @@ const appReducer = combineReducers({
 
    mostSold: mostSoldReducer,
    revenue: revenueReducer,
-   weeklySale: weeklySaleReducer
+   weeklySale: weeklySaleReducer,
+   totalOrder : totalOrderReducer,
+   monthlyRevenue : monthlyRevenueReducer
 });
 
 const rootReducer = (state: any, action: any) => {

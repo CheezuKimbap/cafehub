@@ -1,55 +1,42 @@
 "use client";
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  CartesianGrid,
-} from "recharts";
-
-import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { LineChart, Line } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "#2563eb",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "#60a5fa",
-  },
-} satisfies ChartConfig;
+type TotalOrderProps = {
+  amount: number | string;
+  chartData: { value: number }[];
+  label?: string;
+  loading?: boolean;
+  error?: string | null;
+};
 
-const weeklySalesData = [
-  { value: 10 },
-  { value: 20 },
-  { value: 15 },
-  { value: 25 },
-  { value: 22 },
-  { value: 30 },
-  { value: 28 },
-];
-export function TotalOrder() {
+export function TotalOrder({
+  amount,
+  chartData,
+  label = "Available to Payout",
+  loading,
+  error,
+}: TotalOrderProps) {
+  if (loading) return <Card><CardContent>Loading...</CardContent></Card>;
+  if (error) return <Card><CardContent className="text-red-500">Error: {error}</CardContent></Card>;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Total Orders</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-between gap-2">
+        <div className="flex justify-between gap-2 items-center">
           <div>
-            <p className="text-xl font-bold">1300</p>
-            <p className="text-gray-500 text-sm">Available to Payout</p>
+            <p className="text-xl font-bold">{amount}</p>
+            <p className="text-gray-500 text-sm">{label}</p>
           </div>
-          <LineChart width={120} height={50} data={weeklySalesData}>
+          <LineChart width={120} height={50} data={chartData}>
             <Line
               type="monotone"
               dataKey="value"
-              stroke="#F29A2E" // Indigo (match your screenshot)
+              stroke="#F29A2E"
               strokeWidth={3}
               dot={false}
             />

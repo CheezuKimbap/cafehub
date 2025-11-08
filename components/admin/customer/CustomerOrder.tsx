@@ -15,7 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface CustomerOrdersProps {
   customerId: string;
@@ -40,37 +43,56 @@ const CustomerOrders: React.FC<CustomerOrdersProps> = ({ customerId }) => {
 
   if (!orders || orders.length === 0) {
     return (
-      <div className="p-4 text-center">No orders found for this customer.</div>
+      <div className="p-4 text-center text-muted-foreground">
+        No orders found for this customer.
+      </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Order ID</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Total Amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Payment Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order.id}>
-              <TableCell>{order.id}</TableCell>
-              <TableCell>
-                {new Date(order.orderDate).toLocaleDateString()}
-              </TableCell>
-              <TableCell>${order.totalAmount.toLocaleString()}</TableCell>
-              <TableCell>{order.status}</TableCell>
-              <TableCell>{order.paymentStatus}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Customer Orders</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="w-full">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Total Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell>{order.id}</TableCell>
+                  <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
+                  <TableCell>₱{order.totalAmount.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Badge
+
+                    >
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+
+                    >
+                      {order.paymentStatus}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 };
 

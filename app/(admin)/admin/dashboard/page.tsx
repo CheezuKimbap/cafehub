@@ -14,6 +14,8 @@ import { fetchOrders } from "@/redux/features/order/orderSlice";
 import { fetchMostSold } from "@/redux/features/reports/mostSoldSlice";
 import { fetchRevenue, selectRevenue } from "@/redux/features/reports/revenueSlice";
 import { fetchWeeklySales, selectWeeklySales } from "@/redux/features/reports/weeklySaleSlice";
+import { fetchTotalOrders } from "@/redux/features/reports/totalOrderSlice"; // new slice
+import { fetchMonthlyRevenue, selectMonthlyRevenue } from "@/redux/features/reports/monthlyRevenueSlice";
 
 export default function Dashboard() {
   const dispatch = useAppDispatch();
@@ -31,6 +33,14 @@ export default function Dashboard() {
   // Weekly sales
   const { items: weeklyItems, totalRevenue, totalItemsSold, loading: weeklyLoading, error: weeklyError } =
     useAppSelector(selectWeeklySales);
+
+  // Total Orders
+  const { total: totalOrders, loading: totalLoading, error: totalError } = useAppSelector(
+    (state) => state.totalOrder
+  );
+
+  // Monthly Revenue
+  const { monthlyData, loading: monthlyLoading } = useAppSelector(selectMonthlyRevenue);
 
   // Fetch orders
   useEffect(() => {
@@ -60,6 +70,20 @@ export default function Dashboard() {
     }
   }, [dispatch, weeklyItems.length, weeklyLoading]);
 
+  // Fetch total orders
+  useEffect(() => {
+    if (totalOrders === null && !totalLoading) {
+      dispatch(fetchTotalOrders());
+    }
+  }, [dispatch, totalOrders, totalLoading]);
+
+  // Fetch monthly revenue
+  useEffect(() => {
+    if (monthlyData.length === 0 && !monthlyLoading) {
+      dispatch(fetchMonthlyRevenue());
+    }
+  }, [dispatch, monthlyData.length, monthlyLoading]);
+
   return (
     <div className="flex w-full h-full">
       <div className="flex-1 p-6 bg-gray-100 space-y-6">
@@ -71,15 +95,22 @@ export default function Dashboard() {
             loading={weeklyLoading}
           />
           <TodayRevenue amount={amount} loading={revenueLoading} error={revenueError} />
-          <TotalOrder />
+        <TotalOrder
+            amount={totalOrders ?? 0}
+            chartData={weeklyItems} // or any array like [{ value: 10 }, ...]
+            loading={totalLoading}
+            error={totalError}
+            label="Total Completed & Paid Orders"
+            />
+
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2">
-            <RevenueChart />
+          <div className="col-span-2 flex">
+            <RevenueChart className="flex-1" />
           </div>
-          <div className="col-span-1">
-            <MostSoldItemsCard items={mostSoldItems} />
+          <div className="col-span-1 flex">
+            <MostSoldItemsCard items={mostSoldItems} className="flex-1" />
           </div>
         </div>
 
