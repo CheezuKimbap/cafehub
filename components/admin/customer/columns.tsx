@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 export const customerColumns: ColumnDef<Customer>[] = [
-  { accessorKey: "id", header: "ID" },
+
   {
     accessorKey: "name",
     header: "Name",
