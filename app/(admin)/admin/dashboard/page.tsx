@@ -6,72 +6,71 @@ import { TodayRevenue } from "@/components/admin/charts/TodayRevenue";
 import { TotalOrder } from "@/components/admin/charts/TotalOrders";
 import { WeekSales } from "@/components/admin/charts/WeeklySales";
 import { LatestOrdersCard } from "@/components/admin/customer/OrderTable";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { fetchOrders } from "@/redux/features/order/orderSlice";
-import { fetchMostSold, selectMostSold } from "@/redux/features/reports/mostSoldSlice";
-import { fetchRevenue, selectRevenue } from "@/redux/features/reports/revenueSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
+import { fetchOrders } from "@/redux/features/order/orderSlice";
+import { fetchMostSold } from "@/redux/features/reports/mostSoldSlice";
+import { fetchRevenue, selectRevenue } from "@/redux/features/reports/revenueSlice";
+import { fetchWeeklySales, selectWeeklySales } from "@/redux/features/reports/weeklySaleSlice";
+
 export default function Dashboard() {
   const dispatch = useAppDispatch();
-    const { orders, status, error: orderError } = useAppSelector((state) => state.order);
-    const { data: session } = useSession();
+  const { data: session } = useSession();
 
-    const { items: mostSoldItems, loading: mostSoldLoading, error: mostSoldError } =
-    useAppSelector((state) => state.mostSold);
+  // Orders
+  const { orders, status, error: orderError } = useAppSelector((state) => state.order);
 
-    const { amount, loading: revenueLoading, error: revenueError } =
-    useAppSelector(selectRevenue);
+  // Most sold
+  const { items: mostSoldItems, loading: mostSoldLoading } = useAppSelector((state) => state.mostSold);
 
-    // --- CACHING LOGIC ---
+  // Revenue
+  const { amount, loading: revenueLoading, error: revenueError } = useAppSelector(selectRevenue);
 
-    // 1. Caching for Revenue
-    useEffect(() => {
-        // Fetch only if data is null AND we are not already loading
-        if (amount === null && !revenueLoading) {
-            dispatch(fetchRevenue());
-        }
-    }, [dispatch, session, amount, revenueLoading]); // Dependencies ensure re-evaluation when state changes
+  // Weekly sales
+  const { items: weeklyItems, totalRevenue, totalItemsSold, loading: weeklyLoading, error: weeklyError } =
+    useAppSelector(selectWeeklySales);
 
-    // 2. Caching for Most Sold Items
-    useEffect(() => {
-        // Fetch only if the items array is empty AND we are not already loading
-        if (mostSoldItems.length === 0 && !mostSoldLoading) {
-            dispatch(fetchMostSold());
-        }
-    }, [dispatch, session, mostSoldItems.length, mostSoldLoading]);
+  // Fetch orders
+  useEffect(() => {
+    if (orders.length === 0 && status !== "loading" && status !== "success") {
+      dispatch(fetchOrders());
+    }
+  }, [dispatch, orders.length, status]);
 
-    // 3. Caching for Orders
-    useEffect(() => {
-        // Fetch only if the orders array is empty AND status is not 'loading'
-        // Assuming initial status is 'idle' or similar, not 'success'
-        if (orders.length === 0 && status !== "loading" && status !== "success") {
-            dispatch(fetchOrders());
-        }
-    }, [dispatch, session, orders.length, status]);
+  // Fetch most sold
+  useEffect(() => {
+    if (mostSoldItems.length === 0 && !mostSoldLoading) {
+      dispatch(fetchMostSold());
+    }
+  }, [dispatch, mostSoldItems.length, mostSoldLoading]);
 
-  const totalRevenueData = [
-    { month: "Jan", profit: 90000, loss: 60000 },
-    { month: "Feb", profit: 75000, loss: 50000 },
-    { month: "Mar", profit: 80000, loss: 30000 },
-    { month: "Apr", profit: 65000, loss: 70000 },
-    { month: "May", profit: 75000, loss: 55000 },
-    { month: "Jun", profit: 50000, loss: 30000 },
-    { month: "Jul", profit: 70000, loss: 40000 },
-    { month: "Aug", profit: 80000, loss: 50000 },
-    { month: "Sep", profit: 75000, loss: 55000 },
-  ];
+  // Fetch revenue
+  useEffect(() => {
+    if (amount === null && !revenueLoading) {
+      dispatch(fetchRevenue());
+    }
+  }, [dispatch, amount, revenueLoading]);
 
-
+  // Fetch weekly sales
+  useEffect(() => {
+    if (weeklyItems.length === 0 && !weeklyLoading) {
+      dispatch(fetchWeeklySales() as any);
+    }
+  }, [dispatch, weeklyItems.length, weeklyLoading]);
 
   return (
     <div className="flex w-full h-full">
       <div className="flex-1 p-6 bg-gray-100 space-y-6">
         <div className="grid grid-cols-3 gap-4">
-          <WeekSales />
-        <TodayRevenue amount={amount} loading={revenueLoading} error={revenueError} />
+          <WeekSales
+            items={weeklyItems}
+            totalRevenue={totalRevenue}
+            totalItemsSold={totalItemsSold}
+            loading={weeklyLoading}
+          />
+          <TodayRevenue amount={amount} loading={revenueLoading} error={revenueError} />
           <TotalOrder />
         </div>
 
@@ -91,6 +90,8 @@ export default function Dashboard() {
         ) : (
           <div>No orders yet</div>
         )}
+
+        {weeklyError && <div className="text-red-500">Weekly Sales Error: {weeklyError}</div>}
       </div>
     </div>
   );

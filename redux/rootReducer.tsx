@@ -28,7 +28,7 @@ const appReducer = combineReducers({
 
    mostSold: mostSoldReducer,
    revenue: revenueReducer,
-   weeklySales: weeklySaleReducer
+   weeklySale: weeklySaleReducer
 });
 
 const rootReducer = (state: any, action: any) => {

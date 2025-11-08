@@ -1,59 +1,67 @@
 "use client";
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  CartesianGrid,
-} from "recharts";
-
-import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { LineChart, Line, Tooltip, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "#2563eb",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "#60a5fa",
-  },
-} satisfies ChartConfig;
+interface WeekSaleItem {
+  day: string;
+  value: number;     // revenue
+  itemsSold: number; // number of orders sold that day
+}
 
-const weeklySalesData = [
-  { value: 10 },
-  { value: 20 },
-  { value: 15 },
-  { value: 25 },
-  { value: 22 },
-  { value: 30 },
-  { value: 28 },
-];
-export function WeekSales() {
+interface WeekSalesProps {
+  items?: WeekSaleItem[];       // optional, defaults to empty
+  totalRevenue?: number;
+  totalItemsSold?: number;
+  loading?: boolean;
+}
+
+export function WeekSales({
+  items = [],
+  totalRevenue = 0,
+  totalItemsSold = 0,
+  loading = false,
+}: WeekSalesProps) {
+  const chartData = items.length
+    ? items
+    : [{ day: "N/A", value: 0, itemsSold: 0 }];
+
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle>Weekly Sales</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex justify-between gap-2">
-          <div>
-            <p className="text-xl font-bold">P20.4K</p>
-            <p className="text-gray-500 text-sm">We have sold 123 items</p>
-          </div>
-          <LineChart width={120} height={50} data={weeklySalesData}>
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#6366F1" // Indigo (match your screenshot)
-              strokeWidth={3}
-              dot={false}
-            />
-          </LineChart>
+      <CardContent className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        {/* Totals */}
+        <div className="flex flex-col">
+          <p className="text-2xl font-semibold text-gray-900">
+            P{totalRevenue.toLocaleString()}
+          </p>
+          <p className="text-sm text-gray-500">
+            {loading ? "Loading..." : `We have sold ${totalItemsSold} items`}
+          </p>
+        </div>
+
+        {/* Mini line chart */}
+        <div className="w-full sm:w-48 h-24">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+              <XAxis dataKey="day" hide />
+              <YAxis hide domain={['auto', 'auto']} />
+              <Tooltip
+                formatter={(value: number) => `P${value.toLocaleString()}`}
+                labelFormatter={(label) => `Day: ${label}`}
+              />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#F59E0B"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>
