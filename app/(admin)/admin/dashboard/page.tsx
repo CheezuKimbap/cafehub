@@ -8,18 +8,29 @@ import { WeekSales } from "@/components/admin/charts/WeeklySales";
 import { LatestOrdersCard } from "@/components/admin/customer/OrderTable";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { fetchOrders } from "@/redux/features/order/orderSlice";
+import { fetchMostSold, selectMostSold } from "@/redux/features/reports/mostSoldSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 export default function Dashboard() {
   const dispatch = useAppDispatch();
-  const { orders, status, error } = useAppSelector((state) => state.order);
+  const { orders, status, error: orderError } = useAppSelector((state) => state.order);
   const { data: session } = useSession();
+
+  const { items: mostSoldItems, loading: mostSoldLoading, error: mostSoldError } =
+  useAppSelector((state) => state.mostSold);
+
+
+  useEffect(() => {
+    dispatch(fetchMostSold());
+  }, [dispatch, session]);
 
   useEffect(() => {
     dispatch(fetchOrders());
   }, [dispatch, session]);
+
+
 
   const totalRevenueData = [
     { month: "Jan", profit: 90000, loss: 60000 },
@@ -33,32 +44,16 @@ export default function Dashboard() {
     { month: "Sep", profit: 75000, loss: 55000 },
   ];
 
-  const latestOrders = [
-    {
-      product: "Latte",
-      orderId: "#11232",
-      date: "May 29, 2025",
-      customer: "Joe Bama",
-      status: "Picked-up",
-      amount: "P400.00",
-    },
-    // ...other orders
-  ];
-  const mostSoldItems = [
-    { name: "Espresso", value: 80 },
-    { name: "Latte", value: 65 },
-    { name: "Cappuccino", value: 50 },
-    { name: "Americano", value: 40 },
-  ];
+
 
   return (
     <div className="flex w-full h-full">
       <div className="flex-1 p-6 bg-gray-100 space-y-6">
-        <div className="grid grid-cols-3 gap-4">
-          <WeekSales />
-          <TodayRevenue />
+        {/* <div className="grid grid-cols-3 gap-4"> */}
+          {/* <WeekSales /> */}
+        {/* <TodayRevenue data={[{ value: amount ?? 0 }]} />
           <TotalOrder />
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">

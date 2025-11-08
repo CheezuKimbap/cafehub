@@ -38,7 +38,7 @@ interface Product {
   categoryId?: string;
   canDiscount?: boolean;
   variants?: Variant[];
-  status: "AVAILABLE" | "OUT_OF_STOCK" | "DISCONTINUED" | "INACTIVE";
+  status: "AVAILABLE" | "NOT_AVAILABLE";
 }
 
 interface ProductEditButtonProps {
@@ -59,7 +59,7 @@ export function ProductEditButton({ product }: ProductEditButtonProps) {
   const [canDiscount, setCanDiscount] = useState<boolean>(product.canDiscount || false);
 
   const [status, setStatus] = useState<
-    "AVAILABLE" | "OUT_OF_STOCK" | "DISCONTINUED" | "INACTIVE"
+    "AVAILABLE" | "NOT_AVAILABLE"
   >(product.status);
 
   const [variants, setVariants] = useState<Variant[]>(
@@ -146,14 +146,12 @@ export function ProductEditButton({ product }: ProductEditButtonProps) {
                 </SelectContent>
               </Select>
 
-              {/* ✅ STATUS SELECT */}
+
               <Select value={status} onValueChange={(val) => setStatus(val as any)} disabled={loading}>
                 <SelectTrigger><SelectValue placeholder="Product Status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="AVAILABLE">Available</SelectItem>
-                  <SelectItem value="OUT_OF_STOCK">Out of Stock</SelectItem>
-                  <SelectItem value="DISCONTINUED">Discontinued</SelectItem>
-                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="NOT_AVAILABLE">Not Available</SelectItem>
                 </SelectContent>
               </Select>
 

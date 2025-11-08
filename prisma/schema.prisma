@@ -183,7 +183,7 @@ model Product {
   deletedAt DateTime?
   deletedBy String?
 
-  status String @default("AVAILABLE") // AVAILABLE, OUT_OF_STOCK, DISCONTINUED
+  status String @default("AVAILABLE")
 }
 
 model ProductVariant {

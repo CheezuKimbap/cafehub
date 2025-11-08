@@ -10,7 +10,9 @@ import addonReducer from "./features/addons/addonsSlice";
 import profileReducer from "./features/profile/profileslice";
 import baristaCartReducer from "./features/cart/baristaCartSlice";
 import categoriesReducer from "./features/categories/categoriesSlice";
-
+import mostSoldReducer from "./features/reports/mostSoldSlice";
+import revenueReducer from "./features/reports/revenueSlice";
+import weeklySaleReducer from "./features/reports/weeklySaleSlice";
 const appReducer = combineReducers({
   products: productReducer,
   cart: cartReducer,
@@ -23,11 +25,15 @@ const appReducer = combineReducers({
   categories: categoriesReducer,
 
   baristaCart: baristaCartReducer,
+
+   mostSold: mostSoldReducer,
+   revenue: revenueReducer,
+   weeklySales: weeklySaleReducer
 });
 
 const rootReducer = (state: any, action: any) => {
   if (action.type === "auth/signOut") {
-    state = undefined; // 🔥 clears all slices
+    state = undefined;
   }
   return appReducer(state, action);
 };

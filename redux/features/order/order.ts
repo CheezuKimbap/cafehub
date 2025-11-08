@@ -1,5 +1,5 @@
 import { Customer, ServingType } from "@/prisma/generated/prisma";
-import { Product } from "@/redux/features/products/product";
+import { Product } from "@/prisma/generated/prisma";
 
 // Order & Payment status enums
 export type OrderStatus =

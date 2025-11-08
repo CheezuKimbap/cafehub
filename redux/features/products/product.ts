@@ -19,7 +19,7 @@ export interface Product {
 
   deletedAt: string | null;
   deletedBy: string | null;
-  status: "AVAILABLE" | "OUT_OF_STOCK" | "DISCONTINUED" | "INACTIVE";
+  status: "AVAILABLE" | "NOT_AVAILABLE";
 }
 
 export interface ProductVariant {

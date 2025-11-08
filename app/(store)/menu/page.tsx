@@ -28,29 +28,33 @@ function ProductPage() {
     dispatch(fetchProducts());
     dispatch(fetchCategories());
   }, [dispatch]);
+const filteredProducts = useMemo(() => {
+  // Always show only AVAILABLE products
+  let result = items.filter((p: any) => p.status === "AVAILABLE");
 
-  // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    let result = !selectedCategory
-      ? items
-      : items.filter((p) => p.categoryId === selectedCategory.id);
+  // Filter by category if selected
+  if (selectedCategory) {
+    result = result.filter((p: any) => p.categoryId === selectedCategory.id);
+  }
 
-    if (sortKey) {
-      result = [...result].sort((a, b) => {
-        let aValue = a[sortKey];
-        let bValue = b[sortKey];
+  // Sorting
+  if (sortKey) {
+    result = [...result].sort((a: any, b: any) => {
+      let aValue = a[sortKey];
+      let bValue = b[sortKey];
 
-        if (typeof aValue === "string") aValue = aValue.toLowerCase();
-        if (typeof bValue === "string") bValue = bValue.toLowerCase();
+      if (typeof aValue === "string") aValue = aValue.toLowerCase();
+      if (typeof bValue === "string") bValue = bValue.toLowerCase();
 
-        if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
 
-    return result;
-  }, [items, selectedCategory, sortKey, sortOrder]);
+  return result;
+}, [items, selectedCategory, sortKey, sortOrder]);
+
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -106,7 +110,7 @@ function ProductPage() {
                 {key} {sortKey === key ? (sortOrder === "asc" ? "↑" : "↓") : ""}
               </Button>
             ))}
-          </div>    
+          </div>
         </div>
       </aside>
 
