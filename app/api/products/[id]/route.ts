@@ -39,36 +39,91 @@ export async function GET(req: NextRequest, context: any) {
   }
 }
 
-// ✅ PUT update product
 export async function PUT(req: NextRequest, context: any) {
   const { id } = (await context.params) as { id: string };
 
   try {
     const body = await req.json();
-    const { name, description, price, image, stock } = body;
+    const { name, description, price, image, status, variants } = body;
 
-    if (!name && !description && price === undefined && !image) {
-      return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    const updateData: any = {
+      ...(name && { name }),
+      ...(description && { description }),
+      ...(price !== undefined && { price }),
+      ...(status && { status }),
+      updatedAt: new Date(),
+    };
+
+    if (image) {
+      updateData.image = image;
     }
 
-    const updated = await prisma.product.update({
+    // ✅ Update main product first (without variants)
+    const updatedProduct = await prisma.product.update({
       where: { id },
-      data: {
-        ...(name && { name }),
-        ...(description && { description }),
-        ...(price !== undefined && { price }),
-        ...(image && { image }),
-        ...(stock && { stock }),
-        updatedAt: new Date(),
-      },
+      data: updateData,
     });
 
-    return NextResponse.json(updated, { status: 200 });
+    // ✅ If variants provided, perform UPSERT logic
+    if (Array.isArray(variants)) {
+      // Fetch existing variants
+      const existingVariants = await prisma.productVariant.findMany({
+        where: { productId: id },
+      });
+
+      // Convert to easier check format
+      const existingIds = new Set(existingVariants.map((v) => v.id));
+      const incomingIds = new Set(
+        variants.filter((v) => v.id).map((v) => v.id)
+      );
+
+      // ✅ Delete variants that were removed
+      const variantsToDelete = [...existingIds].filter(
+        (variantId) => !incomingIds.has(variantId)
+      );
+
+      await prisma.productVariant.deleteMany({
+        where: { id: { in: variantsToDelete } },
+      });
+
+      // ✅ Create or Update incoming variants
+      for (const v of variants) {
+        if (v.id) {
+          // Update existing
+          await prisma.productVariant.update({
+            where: { id: v.id },
+            data: {
+              servingType: v.servingType,
+              size: v.size ?? null,
+              price: Number(v.price),
+            },
+          });
+        } else {
+          // Create new
+          await prisma.productVariant.create({
+            data: {
+              productId: id,
+              servingType: v.servingType,
+              size: v.size ?? null,
+              price: Number(v.price),
+            },
+          });
+        }
+      }
+    }
+
+    // ✅ Return updated product with variants
+    const finalProduct = await prisma.product.findUnique({
+      where: { id },
+      include: { variants: true },
+    });
+
+    return NextResponse.json(finalProduct, { status: 200 });
   } catch (error) {
     console.error("Failed to update product:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Product } from "@/redux/features/products/product";
 import { InventoryStatusBadge } from "./InventoryStatusBadge";
 import { Button } from "@/components/ui/button";
+import { ProductEditButton } from "./EditProduct";
 
 // Define columns for the Product table
 export const columns: ColumnDef<Product>[] = [
@@ -37,12 +38,8 @@ export const columns: ColumnDef<Product>[] = [
     header: "Actions",
     cell: ({ row }) => (
       <div className="flex gap-2">
-        <Button size="sm" variant="outline">
-          Edit
-        </Button>
-        <Button size="sm" variant="destructive">
-          Delete
-        </Button>
+         <ProductEditButton product={row.original} />
+
       </div>
     ),
   },

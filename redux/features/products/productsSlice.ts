@@ -116,37 +116,58 @@ export const updateProductById = createAsyncThunk<
 >("products/update", async ({ id, formData }, { rejectWithValue }) => {
   try {
     const imageFile = formData.get("image") as File | null;
-    let imageUrl: string | undefined = undefined;
+    let imageUrl: string | undefined;
 
-    if (imageFile) {
+    // ✅ Upload ONLY if actual real file is selected
+    if (
+      imageFile &&
+      imageFile instanceof File &&
+      imageFile.size > 0
+    ) {
       const uploadForm = new FormData();
       uploadForm.append("file", imageFile);
 
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: uploadForm,
+      });
+
       if (!uploadRes.ok) throw new Error("Image upload failed");
+
       const uploadData = await uploadRes.json();
       imageUrl = uploadData.url;
     }
 
+    // ✅ Handle boolean checkbox
     const canDiscountRaw = formData.get("canDiscount");
     const canDiscount = canDiscountRaw === "true" || canDiscountRaw === "on";
 
-    // Parse variants JSON if present
-    const variantsRaw = formData.get("variants") as string;
+    // ✅ Parse variants JSON
+    const variantsRaw = formData.get("variants") as string | null;
     const variants = variantsRaw ? JSON.parse(variantsRaw) : undefined;
 
+    // ✅ New: Read status value
+    const status = formData.get("status") as
+      | "AVAILABLE"
+      | "OUT_OF_STOCK"
+      | "DISCONTINUED"
+      | "INACTIVE"
+      | null;
+
     const payload: any = {
-      name: formData.get("name") as string | undefined,
-      description: formData.get("description") as string | undefined,
-      ...(formData.get("price") && { price: Number(formData.get("price")) }),
-      ...(formData.get("stock") && { stock: Number(formData.get("stock")) }),
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
       ...(imageUrl && { image: imageUrl }),
       canDiscount,
       ...(variants && { variants }),
+      ...(status && { status }),
+      updatedAt: new Date().toISOString(),
     };
 
-    // Remove undefined
-    Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+    // Remove keys that are undefined/null
+    Object.keys(payload).forEach((k) => {
+      if (payload[k] === undefined || payload[k] === null) delete payload[k];
+    });
 
     const res = await fetch(`/api/products/${id}`, {
       method: "PUT",
@@ -158,11 +179,13 @@ export const updateProductById = createAsyncThunk<
     });
 
     if (!res.ok) throw new Error("Failed to update product");
+
     return (await res.json()) as Product;
   } catch (error: any) {
     return rejectWithValue(error.message);
   }
 });
+
 
 // --------------------
 // Slice State
