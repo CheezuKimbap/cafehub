@@ -15,6 +15,7 @@ import revenueReducer from "./features/reports/revenueSlice";
 import weeklySaleReducer from "./features/reports/weeklySaleSlice";
 import totalOrderReducer from "./features/reports/totalOrderSlice";
 import monthlyRevenueReducer from "./features/reports/monthlyRevenueSlice";
+import stampReducer from "./features/stamp/stampSlice";
 
 const appReducer = combineReducers({
   products: productReducer,
@@ -33,7 +34,9 @@ const appReducer = combineReducers({
    revenue: revenueReducer,
    weeklySale: weeklySaleReducer,
    totalOrder : totalOrderReducer,
-   monthlyRevenue : monthlyRevenueReducer
+   monthlyRevenue : monthlyRevenueReducer,
+
+   stamp: stampReducer,
 });
 
 const rootReducer = (state: any, action: any) => {

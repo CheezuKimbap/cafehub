@@ -10,7 +10,6 @@ export default async function Page({ params }: PageProps) {
   // Now you can use 'id' as a string
   return (
     <div>
-      <h1>Customer ID: {id}</h1>
       <CustomerOrders customerId={id} />
     </div>
   );

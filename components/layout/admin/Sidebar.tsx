@@ -3,7 +3,7 @@
 import { Manrope, Sora } from "next/font/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Home, Package, Settings, User, Menu } from "lucide-react";
+import { LogOut, Home, Package, Settings, User, Menu, Stamp } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { resetStore } from "@/redux/store";
 
@@ -25,6 +25,7 @@ const icons = {
   user: User,
   settings: Settings,
   menu: Menu,
+  stamp: Stamp,
 };
 
 export interface NavItem {

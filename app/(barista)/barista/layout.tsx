@@ -7,9 +7,10 @@ export default function BaristaLayout({
   children: React.ReactNode;
 }) {
   const baristaNav: NavItem[] = [
-    { label: "Dashboard", href: "/barista/dashboard", icon: "home" },
+    // { label: "Dashboard", href: "/barista/dashboard", icon: "home" },
     { label: "Orders", href: "/barista/orders", icon: "package" },
     { label: "Barista Panel", href: "/barista/barista-panel", icon: "menu" },
+    { label: "Stamps", href: "/barista/stamps", icon: "stamp" },
     {
       label: "Settings",
       href: "/admin/settings",

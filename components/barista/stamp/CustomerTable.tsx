@@ -8,7 +8,7 @@ import {
   selectCustomers,
 } from "@/redux/features/customer/customerSlice";
 import { DataTable } from "@/components/ui/data-table";
-import { customerColumns } from "./columns";
+import { customerColumns } from "./Columns";
 
 export default function CustomerTablePage() {
   const dispatch = useAppDispatch();
@@ -18,7 +18,10 @@ export default function CustomerTablePage() {
     dispatch(fetchCustomers());
   }, [dispatch]);
 
-  return (<><div className="bg-white rounded-xl shadow p-4">
-          <DataTable columns={customerColumns} data={customers} />
-      </div></>);
+  return (<>
+   <div className="bg-white rounded-xl shadow p-4">
+        <DataTable columns={customerColumns} data={customers} />
+    </div>
+
+  </>);
 }
