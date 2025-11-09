@@ -5,9 +5,11 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { fetchProducts } from "@/redux/features/products/productsSlice";
 import { fetchCategories } from "@/redux/features/categories/categoriesSlice";
 import { ProductList } from "@/components/menu/ProductList";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
-type SortKey = "name" | "price" | "status";
+type SortKey = "name" | "price";
 
 function ProductPage() {
   const dispatch = useAppDispatch();
@@ -16,11 +18,7 @@ function ProductPage() {
     (state) => state.categories
   );
 
-  const [selectedCategory, setSelectedCategory] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
-
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -28,33 +26,37 @@ function ProductPage() {
     dispatch(fetchProducts());
     dispatch(fetchCategories());
   }, [dispatch]);
-const filteredProducts = useMemo(() => {
-  // Always show only AVAILABLE products
-  let result = items.filter((p: any) => p.status === "AVAILABLE");
 
-  // Filter by category if selected
-  if (selectedCategory) {
-    result = result.filter((p: any) => p.categoryId === selectedCategory.id);
-  }
+  const filteredProducts = useMemo(() => {
+    let result = items.filter((p: any) => p.status === "AVAILABLE");
 
-  // Sorting
-  if (sortKey) {
-    result = [...result].sort((a: any, b: any) => {
-      let aValue = a[sortKey];
-      let bValue = b[sortKey];
+    if (selectedCategories.size > 0) {
+      result = result.filter((p: any) => selectedCategories.has(p.categoryId));
+    }
 
-      if (typeof aValue === "string") aValue = aValue.toLowerCase();
-      if (typeof bValue === "string") bValue = bValue.toLowerCase();
+    if (sortKey) {
+      result = result.sort((a: any, b: any) => {
+        let aValue = a[sortKey];
+        let bValue = b[sortKey];
 
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-  }
+        if (typeof aValue === "string") aValue = aValue.toLowerCase();
+        if (typeof bValue === "string") bValue = bValue.toLowerCase();
 
-  return result;
-}, [items, selectedCategory, sortKey, sortOrder]);
+        if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
 
+    return result;
+  }, [items, selectedCategories, sortKey, sortOrder]);
+
+  const handleCategoryChange = (id: string) => {
+    const newSet = new Set(selectedCategories);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedCategories(newSet);
+  };
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -66,48 +68,65 @@ const filteredProducts = useMemo(() => {
   };
 
   return (
-    <section className="flex p-4 gap-6">
-      {/* Side Nav */}
-      <aside className="w-48 flex-shrink-0">
-        <h2 className="text-lg font-semibold mb-4">Sort & Filter</h2>
+    <section className="flex flex-col md:flex-row p-4 gap-6">
+      {/* Sidebar */}
+      <aside className="w-full md:w-48 flex-shrink-0 space-y-6">
+        <h2 className="text-lg font-semibold mb-2">Sort & Filter</h2>
 
-        {/* Categories */}
-        <div className="mb-6">
+        {/* Category Checkboxes */}
+        <div>
           <h3 className="font-medium mb-2">Categories</h3>
           {catError && <p className="text-red-500 text-sm">{catError}</p>}
-          <div className="flex flex-col gap-2">
-            <Button
-              variant={!selectedCategory ? "default" : "outline"}
-              onClick={() => setSelectedCategory(null)}
-              className="rounded-full"
-            >
-              All
-            </Button>
-            {!catLoading &&
-              categories.map((cat) => (
-                <Button
-                  key={cat.id}
-                  variant={selectedCategory?.id === cat.id ? "default" : "outline"}
-                  onClick={() => setSelectedCategory(cat)}
-                  className="rounded-full"
-                >
-                  {cat.name}
-                </Button>
+          {!catLoading && (
+            <div className="flex flex-col gap-2">
+              {categories.map((cat) => (
+               <label
+  key={cat.id}
+  className="flex items-center gap-2 cursor-pointer"
+>
+  <Checkbox
+    checked={selectedCategories.has(cat.id)}
+    className="border-black bg-white checked:bg-blue-500 checked:border-blue-500 h-4 w-4"
+    onCheckedChange={(checked) => {
+      // Convert to boolean (ignore "indeterminate")
+      if (checked) {
+        setSelectedCategories((prev) => new Set(prev).add(cat.id));
+      } else {
+        setSelectedCategories((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(cat.id);
+          return newSet;
+        });
+      }
+    }}
+  />
+  <span className="text-sm">{cat.name}</span>
+</label>
+
               ))}
-          </div>
+            </div>
+          )}
         </div>
 
-        {/* Sorting */}
+        {/* Sorting Buttons */}
         <div>
           <h3 className="font-medium mb-2">Sort By</h3>
-          <div className="flex flex-col gap-2">
-            {(["name", "price", "status"] as SortKey[]).map((key) => (
+          <div className="flex gap-2">
+            {(["name", "price"] as SortKey[]).map((key) => (
               <Button
                 key={key}
                 variant={sortKey === key ? "default" : "outline"}
+                size="sm"
                 onClick={() => handleSort(key)}
+                className="flex items-center gap-1"
               >
-                {key} {sortKey === key ? (sortOrder === "asc" ? "↑" : "↓") : ""}
+                {key.charAt(0).toUpperCase() + key.slice(1)}
+                {sortKey === key &&
+                  (sortOrder === "asc" ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  ))}
               </Button>
             ))}
           </div>
