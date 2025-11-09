@@ -104,7 +104,7 @@ export default function BaristaBoard() {
                 <Card key={order.id} className="shadow-md">
                   <CardHeader>
                     <CardTitle className="flex justify-between items-center">
-                      <span>#{order.id}</span>
+                      <span>#{order.orderNumber}</span>
                       <Badge
                         className={
                           order.paymentStatus === "UNPAID"

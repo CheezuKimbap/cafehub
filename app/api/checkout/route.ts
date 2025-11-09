@@ -85,12 +85,36 @@ export async function POST(req: NextRequest) {
       });
     }
 
+     const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    // Count how many orders were made today
+    const todaysOrdersCount = await prisma.order.count({
+        where: {
+        orderDate: {
+            gte: startOfDay,
+        },
+        },
+    });
+
+    // Increment count to get the next order number for today
+    const nextSequence = todaysOrdersCount + 1;
+
+    // Format YYYYMMDD
+    const y = startOfDay.getFullYear();
+    const m = String(startOfDay.getMonth() + 1).padStart(2, "0");
+    const d = String(startOfDay.getDate()).padStart(2, "0");
+
+  // Format the order number with leading zeros
+    const orderNumber = `CH-${String(nextSequence).padStart(4, "0")}`;
+
     // 4. Transaction → create Order + close Cart + delete cartItems
     const [order] = await prisma.$transaction([
       prisma.order.create({
         data: {
           customerId,
           orderDate: new Date(),
+          orderNumber,
           totalAmount,
           discountApplied,
           orderItems: {

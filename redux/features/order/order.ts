@@ -44,6 +44,7 @@ export interface OrderItem {
 export interface Order {
   id: string;
   customerId: string;
+  orderNumber : string;
   orderDate: string; // ISO date string
   totalAmount: number;
   discountApplied?: number;

@@ -215,6 +215,7 @@ model Category {
 model Order {
   id              String    @id @default(uuid()) @map("_id")
   customerId      String
+  orderNumber     String
   orderDate       DateTime
   totalAmount     Int
   discountApplied Int?

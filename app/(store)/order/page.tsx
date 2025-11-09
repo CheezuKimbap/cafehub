@@ -57,7 +57,7 @@ export default function OrdersPage() {
             ) : (
               orders
                 .filter((o) => o.status === s)
-                .map((order) => <OrderCard key={order.id} order={order} />)
+                .map((order) => <OrderCard key={order.orderNumber} order={order} />)
             )}
           </TabsContent>
         ))}
