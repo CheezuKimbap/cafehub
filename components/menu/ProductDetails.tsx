@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ProductReviews } from "../reviews/ReviewSection";
 
 type Addon = {
   id: string;
@@ -149,7 +150,8 @@ const handleAddToCart = () => {
   if (!product) return <div className="m-4">Product not found</div>;
 
   return (
-    <Card className="w-full shadow-lg rounded-2xl p-6 grid md:grid-cols-2 gap-10 bg-white my-4">
+    <>
+     <Card className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-sm border p-6 grid md:grid-cols-2 gap-10 bg-white my-4">
       {/* Left - Image */}
       <div className="flex justify-center items-center">
       <img
@@ -186,7 +188,7 @@ const handleAddToCart = () => {
                 <SelectValue placeholder="Select variant" />
             </SelectTrigger>
             <SelectContent>
-                {product.variants.map((variant) => (
+                {product.variants.map((variant: any) => (
                 <SelectItem key={variant.id} value={variant.id}>
                     {variant.servingType} {variant.size ? `- ${variant.size}` : ""} (₱{variant.price})
                 </SelectItem>
@@ -198,19 +200,24 @@ const handleAddToCart = () => {
 
         {/* Add-ons */}
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
-          <div className="grid grid-cols-2 gap-2 overflow-y-auto max-h-48 p-2 border rounded">
+        <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
+        <div className="grid grid-cols-1 gap-2 p-2 border rounded h-48 overflow-y-auto">
             {addonsState.list.map((addon: Addon) => (
-              <label key={addon.id} className="flex items-center gap-2 text-gray-700">
+            <label
+                key={addon.id}
+                className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded"
+            >
                 <Checkbox
-                  checked={!!selectedAddons.find((a) => a.addonId === addon.id)}
-                  onCheckedChange={() => toggleAddon(addon.id)}
+                checked={!!selectedAddons.find((a) => a.addonId === addon.id)}
+                onCheckedChange={() => toggleAddon(addon.id)}
                 />
-                {addon.name} (+₱{addon.price})
-              </label>
+                <span>{addon.name} (+₱{addon.price})</span>
+            </label>
             ))}
-          </div>
         </div>
+        </div>
+
+
 
         {/* Quantity + Add to Cart */}
         <div className="flex items-center gap-6 mt-4">
@@ -251,5 +258,12 @@ const handleAddToCart = () => {
         </DialogContent>
       </Dialog> */}
     </Card>
+
+    <ProductReviews
+        productId={product.id}
+        customerId={session?.user?.customerId ?? undefined} // optional, only needed for submitting
+      />
+    </>
+
   );
 }

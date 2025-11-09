@@ -34,6 +34,7 @@ export function ProductList({
           key={p.id}
           id={p.id}
           name={p.name}
+          rating={p.avgRating}
           description={p.description}
           variants={p.variants}
           imageUrl={p.image ?? undefined}

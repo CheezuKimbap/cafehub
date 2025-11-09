@@ -4,6 +4,7 @@ import Navigation from "@/components/layout/client/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { HomeReviews } from "@/components/reviews/HomeReviews";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -134,40 +135,14 @@ export default async function Home() {
 
         {/* Reviews */}
         <section
-          id="reviews"
-          className="relative w-full bg-[#5E4430] pb-24 overflow-hidden px-4 sm:px-8"
-        >
-          <div
-            className={`${playfair.className} text-center text-white text-3xl sm:text-4xl py-8`}
-          >
-            Our customers reviews
-          </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="px-4 bg-[#A78868] rounded-lg cursor-pointer border-black border-2">
-              <MoveLeft className="w-6 h-6 sm:w-8 sm:h-8" />
-            </button>
-            <div className="bg-[#A78868] w-full sm:w-8/12 text-center p-6 rounded-lg relative">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 p-6 rounded-full bg-white border-4 border-[#A78868] mx-auto mt-12"></div>
-              <p className="mt-4 font-bold">Chad Chungus</p>
-              <div className="flex justify-center mt-2 mb-4 space-x-1">
-                {Array(5)
-                  .fill(0)
-                  .map((_, i) => (
-                    <Star
-                      key={i}
-                      className="inline fill-yellow-500 text-yellow-500 w-4 h-4 sm:w-5 sm:h-5"
-                    />
-                  ))}
-              </div>
-              <p className="text-white text-sm sm:text-base px-4 sm:px-12">
-                Creamy and well-balanced, with smooth espresso and velvety milk.
-                Subtle notes of caramel and chocolate. Comfort in a cup.
-              </p>
+            id="reviews"
+            className="relative w-full bg-[#5E4430] pb-24 overflow-hidden px-4 sm:px-8"
+            >
+            <div className={`${playfair.className} text-center text-white text-3xl sm:text-4xl py-8`}>
+                Our customers reviews
             </div>
-            <button className="px-4 bg-[#A78868] rounded-lg cursor-pointer border-black border-2">
-              <MoveRight className="w-6 h-6 sm:w-8 sm:h-8" />
-            </button>
-          </div>
+
+            <HomeReviews />
         </section>
       </main>
     </>

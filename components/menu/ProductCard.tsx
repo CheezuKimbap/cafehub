@@ -16,12 +16,13 @@ type Props = {
   description?: string;
   variants: ProductVariant[];
   imageUrl?: string;
+  rating?: number;
 };
 
 const FALLBACK_IMAGE =
   "https://res.cloudinary.com/du4kqqco7/image/upload/v1759020948/cihjvxbuf7tzbxwwfyp7.png";
 
-export function ProductCard({ id, name, variants, imageUrl }: Props) {
+export function ProductCard({ id, name, variants, imageUrl, rating }: Props) {
   const [imgSrc, setImgSrc] = useState(imageUrl || FALLBACK_IMAGE);
 
   return (
@@ -65,7 +66,7 @@ export function ProductCard({ id, name, variants, imageUrl }: Props) {
             <span
               className={`${sora.className} text-xs sm:text-sm md:text-base text-[#FF9736] font-bold`}
             >
-              4.9
+              {rating ?? 0}
             </span>
           </div>
 

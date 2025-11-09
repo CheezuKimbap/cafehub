@@ -331,14 +331,19 @@ model PaymentMethod {
 // Review Table
 // -------------------------
 model Review {
-  id         String @id @default(uuid()) @map("_id")
+  id         String   @id @default(uuid()) @map("_id")
   customerId String
   productId  String
   rating     Int
   comment    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   product  Product  @relation(fields: [productId], references: [id])
+
+
+  @@index([productId, createdAt])
 }
 
 // -------------------------

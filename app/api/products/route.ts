@@ -7,19 +7,41 @@ export async function GET(req: NextRequest) {
     const products = await prisma.product.findMany({
       where: { isDeleted: false },
       include: {
-        variants: true
+        variants: true,
+        reviews: {
+          select: { rating: true }, // only fetch the rating field
+        },
       },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(products);
+
+    // calculate average rating
+    const productsWithRating = products.map((product) => {
+      const totalReviews = product.reviews.length;
+      const avgRating =
+        totalReviews > 0
+          ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+          : 0;
+
+      // return product without reviews array
+      const { reviews, ...rest } = product;
+      return {
+        ...rest,
+        avgRating,
+        totalReviews,
+      };
+    });
+
+    return NextResponse.json(productsWithRating);
   } catch (error) {
     console.error("Failed to fetch products:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
+
 
 export async function POST(req: NextRequest) {
   try {

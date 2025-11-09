@@ -20,6 +20,9 @@ export interface Product {
   deletedAt: string | null;
   deletedBy: string | null;
   status: "AVAILABLE" | "NOT_AVAILABLE";
+
+  avgRating: number;       // average rating of the product
+  totalReviews: number;    // number of reviews
 }
 
 export interface ProductVariant {
