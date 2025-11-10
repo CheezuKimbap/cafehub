@@ -13,12 +13,12 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({totalOrders});
+    return NextResponse.json({ totalOrders });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
       { error: "Failed to fetch total orders" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

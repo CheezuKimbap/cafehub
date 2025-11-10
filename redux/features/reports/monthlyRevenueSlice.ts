@@ -48,10 +48,13 @@ const monthlyRevenueSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchMonthlyRevenue.fulfilled, (state, action: PayloadAction<MonthlyRevenueItem[]>) => {
-        state.loading = false;
-        state.monthlyData = action.payload;
-      })
+      .addCase(
+        fetchMonthlyRevenue.fulfilled,
+        (state, action: PayloadAction<MonthlyRevenueItem[]>) => {
+          state.loading = false;
+          state.monthlyData = action.payload;
+        },
+      )
       .addCase(fetchMonthlyRevenue.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload ?? "Something went wrong";

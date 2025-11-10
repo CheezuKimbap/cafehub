@@ -31,14 +31,14 @@ const appReducer = combineReducers({
 
   baristaCart: baristaCartReducer,
 
-   mostSold: mostSoldReducer,
-   revenue: revenueReducer,
-   weeklySale: weeklySaleReducer,
-   totalOrder : totalOrderReducer,
-   monthlyRevenue : monthlyRevenueReducer,
+  mostSold: mostSoldReducer,
+  revenue: revenueReducer,
+  weeklySale: weeklySaleReducer,
+  totalOrder: totalOrderReducer,
+  monthlyRevenue: monthlyRevenueReducer,
 
-   stamp: stampReducer,
-   reviews: reviewReducer,
+  stamp: stampReducer,
+  reviews: reviewReducer,
 });
 
 const rootReducer = (state: any, action: any) => {

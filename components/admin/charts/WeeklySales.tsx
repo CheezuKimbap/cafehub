@@ -1,16 +1,23 @@
 "use client";
 
-import { LineChart, Line, Tooltip, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  Tooltip,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface WeekSaleItem {
   day: string;
-  value: number;     // revenue
+  value: number; // revenue
   itemsSold: number; // number of orders sold that day
 }
 
 interface WeekSalesProps {
-  items?: WeekSaleItem[];       // optional, defaults to empty
+  items?: WeekSaleItem[]; // optional, defaults to empty
   totalRevenue?: number;
   totalItemsSold?: number;
   loading?: boolean;
@@ -45,9 +52,12 @@ export function WeekSales({
         {/* Mini line chart */}
         <div className="w-full sm:w-48 h-24">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+            <LineChart
+              data={chartData}
+              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+            >
               <XAxis dataKey="day" hide />
-              <YAxis hide domain={['auto', 'auto']} />
+              <YAxis hide domain={["auto", "auto"]} />
               <Tooltip
                 formatter={(value: number) => `P${value.toLocaleString()}`}
                 labelFormatter={(label) => `Day: ${label}`}

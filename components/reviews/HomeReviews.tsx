@@ -53,7 +53,7 @@ export function HomeReviews() {
             }));
           })
           .catch(() =>
-            setUserNames((prev) => ({ ...prev, [r.customerId]: "Anonymous" }))
+            setUserNames((prev) => ({ ...prev, [r.customerId]: "Anonymous" })),
           );
       }
     });
@@ -62,7 +62,8 @@ export function HomeReviews() {
   const prev = () => setIndex((i) => (i > 0 ? i - 1 : reviews.length - 1));
   const next = () => setIndex((i) => (i < reviews.length - 1 ? i + 1 : 0));
 
-  if (reviews.length === 0) return <p className="text-white text-center">No reviews yet</p>;
+  if (reviews.length === 0)
+    return <p className="text-white text-center">No reviews yet</p>;
 
   const r = reviews[index];
 
@@ -70,7 +71,7 @@ export function HomeReviews() {
   const name =
     r.customer?.firstName || r.customer?.lastName
       ? `${r.customer?.firstName ?? ""} ${r.customer?.lastName ?? ""}`.trim()
-      : userNames[r.customerId] ?? "Anonymous";
+      : (userNames[r.customerId] ?? "Anonymous");
 
   const initials =
     r.customer?.firstName || r.customer?.lastName
@@ -79,7 +80,10 @@ export function HomeReviews() {
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-      <button onClick={prev} className="px-4 bg-[#A78868] rounded-lg cursor-pointer border-black border-2">
+      <button
+        onClick={prev}
+        className="px-4 bg-[#A78868] rounded-lg cursor-pointer border-black border-2"
+      >
         <MoveLeft className="w-6 h-6 sm:w-8 sm:h-8" />
       </button>
 
@@ -96,15 +100,22 @@ export function HomeReviews() {
               <Star
                 key={i}
                 className={`inline w-4 h-4 sm:w-5 sm:h-5 ${
-                  i < r.rating ? "fill-yellow-500 text-yellow-500" : "fill-gray-300 text-gray-300"
+                  i < r.rating
+                    ? "fill-yellow-500 text-yellow-500"
+                    : "fill-gray-300 text-gray-300"
                 }`}
               />
             ))}
         </div>
-        <p className="text-white text-sm sm:text-base px-4 sm:px-12">{r.comment}</p>
+        <p className="text-white text-sm sm:text-base px-4 sm:px-12">
+          {r.comment}
+        </p>
       </div>
 
-      <button onClick={next} className="px-4 bg-[#A78868] rounded-lg cursor-pointer border-black border-2">
+      <button
+        onClick={next}
+        className="px-4 bg-[#A78868] rounded-lg cursor-pointer border-black border-2"
+      >
         <MoveRight className="w-6 h-6 sm:w-8 sm:h-8" />
       </button>
     </div>

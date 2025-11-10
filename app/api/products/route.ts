@@ -37,19 +37,22 @@ export async function GET(req: NextRequest) {
     console.error("Failed to fetch products:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, description, image, categoryId, canDiscount, variants } = body;
+    const { name, description, image, categoryId, canDiscount, variants } =
+      body;
 
     if (!name || !description || !categoryId || !variants?.length) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 },
+      );
     }
 
     const product = await prisma.product.create({
@@ -73,6 +76,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

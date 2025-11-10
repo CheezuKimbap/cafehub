@@ -32,12 +32,12 @@ function CustomerNavigation() {
 
   const [bump, setBump] = useState(false);
 
-    useEffect(() => {
+  useEffect(() => {
     if (cartCount === 0) return;
     setBump(true);
     const timer = setTimeout(() => setBump(false), 300);
     return () => clearTimeout(timer);
-    }, [cartCount]);
+  }, [cartCount]);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -105,21 +105,20 @@ function CustomerNavigation() {
           <div className="flex items-center space-x-4">
             {/* Cart */}
             <Link href="/cart" className="relative" id="cart-icon">
-                <button
+              <button
                 className={`flex items-center justify-center rounded-lg p-2 bg-orange-500 hover:bg-orange-600 transition-all ${
-                    bump ? "scale-110" : "scale-100"
+                  bump ? "scale-110" : "scale-100"
                 }`}
-                >
+              >
                 <ShoppingBasket className="w-6 h-6 text-white" />
-                </button>
+              </button>
 
-                {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartCount}
-                    </span>
-                )}
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
             </Link>
-
 
             {/* Profile dropdown */}
             <div ref={profileRef} className="relative">

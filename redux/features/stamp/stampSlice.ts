@@ -56,7 +56,9 @@ export const stampSlice = createSlice({
       })
       .addCase(addStamp.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.customers.findIndex(c => c.id === action.payload.id);
+        const index = state.customers.findIndex(
+          (c) => c.id === action.payload.id,
+        );
         if (index !== -1) {
           state.customers[index].currentStamps = action.payload.currentStamps;
         }

@@ -13,14 +13,22 @@ interface TodayRevenueProps {
 }
 
 // 2. UPDATE FUNCTION SIGNATURE and handle state
-export function TodayRevenue({ amount, loading, error, title = "Today's Revenue" }: TodayRevenueProps) {
-
+export function TodayRevenue({
+  amount,
+  loading,
+  error,
+  title = "Today's Revenue",
+}: TodayRevenueProps) {
   // Handle Loading State
   if (loading) {
     return (
       <Card>
-        <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
-        <CardContent><div>Loading revenue...</div></CardContent>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div>Loading revenue...</div>
+        </CardContent>
       </Card>
     );
   }
@@ -29,8 +37,12 @@ export function TodayRevenue({ amount, loading, error, title = "Today's Revenue"
   if (error) {
     return (
       <Card>
-        <CardHeader><CardTitle>{title}</CardTitle></CardHeader>
-        <CardContent><div className="text-red-500">Error: {error}</div></CardContent>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-red-500">Error: {error}</div>
+        </CardContent>
       </Card>
     );
   }

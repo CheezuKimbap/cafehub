@@ -12,35 +12,62 @@ import { useEffect } from "react";
 
 import { fetchOrders } from "@/redux/features/order/orderSlice";
 import { fetchMostSold } from "@/redux/features/reports/mostSoldSlice";
-import { fetchRevenue, selectRevenue } from "@/redux/features/reports/revenueSlice";
-import { fetchWeeklySales, selectWeeklySales } from "@/redux/features/reports/weeklySaleSlice";
+import {
+  fetchRevenue,
+  selectRevenue,
+} from "@/redux/features/reports/revenueSlice";
+import {
+  fetchWeeklySales,
+  selectWeeklySales,
+} from "@/redux/features/reports/weeklySaleSlice";
 import { fetchTotalOrders } from "@/redux/features/reports/totalOrderSlice"; // new slice
-import { fetchMonthlyRevenue, selectMonthlyRevenue } from "@/redux/features/reports/monthlyRevenueSlice";
+import {
+  fetchMonthlyRevenue,
+  selectMonthlyRevenue,
+} from "@/redux/features/reports/monthlyRevenueSlice";
 
 export default function Dashboard() {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
 
   // Orders
-  const { orders, status, error: orderError } = useAppSelector((state) => state.order);
+  const {
+    orders,
+    status,
+    error: orderError,
+  } = useAppSelector((state) => state.order);
 
   // Most sold
-  const { items: mostSoldItems, loading: mostSoldLoading } = useAppSelector((state) => state.mostSold);
-
-  // Revenue
-  const { amount, loading: revenueLoading, error: revenueError } = useAppSelector(selectRevenue);
-
-  // Weekly sales
-  const { items: weeklyItems, totalRevenue, totalItemsSold, loading: weeklyLoading, error: weeklyError } =
-    useAppSelector(selectWeeklySales);
-
-  // Total Orders
-  const { total: totalOrders, loading: totalLoading, error: totalError } = useAppSelector(
-    (state) => state.totalOrder
+  const { items: mostSoldItems, loading: mostSoldLoading } = useAppSelector(
+    (state) => state.mostSold,
   );
 
+  // Revenue
+  const {
+    amount,
+    loading: revenueLoading,
+    error: revenueError,
+  } = useAppSelector(selectRevenue);
+
+  // Weekly sales
+  const {
+    items: weeklyItems,
+    totalRevenue,
+    totalItemsSold,
+    loading: weeklyLoading,
+    error: weeklyError,
+  } = useAppSelector(selectWeeklySales);
+
+  // Total Orders
+  const {
+    total: totalOrders,
+    loading: totalLoading,
+    error: totalError,
+  } = useAppSelector((state) => state.totalOrder);
+
   // Monthly Revenue
-  const { monthlyData, loading: monthlyLoading } = useAppSelector(selectMonthlyRevenue);
+  const { monthlyData, loading: monthlyLoading } =
+    useAppSelector(selectMonthlyRevenue);
 
   // Fetch orders
   useEffect(() => {
@@ -94,15 +121,18 @@ export default function Dashboard() {
             totalItemsSold={totalItemsSold}
             loading={weeklyLoading}
           />
-          <TodayRevenue amount={amount} loading={revenueLoading} error={revenueError} />
-        <TotalOrder
+          <TodayRevenue
+            amount={amount}
+            loading={revenueLoading}
+            error={revenueError}
+          />
+          <TotalOrder
             amount={totalOrders ?? 0}
             chartData={weeklyItems} // or any array like [{ value: 10 }, ...]
             loading={totalLoading}
             error={totalError}
             label="Total Completed & Paid Orders"
-            />
-
+          />
         </div>
 
         <div className="grid grid-cols-3 gap-4">
@@ -122,7 +152,9 @@ export default function Dashboard() {
           <div>No orders yet</div>
         )}
 
-        {weeklyError && <div className="text-red-500">Weekly Sales Error: {weeklyError}</div>}
+        {weeklyError && (
+          <div className="text-red-500">Weekly Sales Error: {weeklyError}</div>
+        )}
       </div>
     </div>
   );

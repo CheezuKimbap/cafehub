@@ -106,7 +106,6 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
           <div key={item.id} className="space-y-1">
             <div className="flex items-center justify-between text-sm text-gray-700">
               <div className="flex items-center gap-3">
-
                 {/* ✅ Image is now from variant.product.image */}
                 {item.variant?.product?.image && (
                   <img
@@ -117,7 +116,8 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
                 )}
 
                 <span>
-                  {item.variant.product.name} ({item.variant.servingType}) × {item.quantity}
+                  {item.variant.product.name} ({item.variant.servingType}) ×{" "}
+                  {item.quantity}
                 </span>
               </div>
 
@@ -132,7 +132,9 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
               <div className="pl-12 text-sm text-gray-600 space-y-1">
                 {item.addons.map((addon) => (
                   <div key={addon.addonId} className="flex justify-between">
-                    <span>+ {addon.addon?.name} x {addon.quantity}</span>
+                    <span>
+                      + {addon.addon?.name} x {addon.quantity}
+                    </span>
                     <span>
                       ₱{((addon.addon?.price ?? 0) * addon.quantity).toFixed(2)}
                     </span>
@@ -170,9 +172,7 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
           <Label>Use a voucher</Label>
           <RadioGroup
             value={selectedVoucher ?? ""}
-            onValueChange={(val) =>
-              setSelectedVoucher(val === "" ? null : val)
-            }
+            onValueChange={(val) => setSelectedVoucher(val === "" ? null : val)}
             className="space-y-2"
           >
             {discounts.map((d) => (

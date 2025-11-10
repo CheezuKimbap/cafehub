@@ -36,7 +36,7 @@ export const fetchWeeklySales = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 const weeklySaleSlice = createSlice({

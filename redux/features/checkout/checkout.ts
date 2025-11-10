@@ -4,7 +4,7 @@ import { ServingType } from "@/prisma/generated/prisma";
 export interface OrderItem {
   id: string;
   productId: string;
-  variantId?: string;        // Optional variant reference
+  variantId?: string; // Optional variant reference
   quantity: number;
   servingType: ServingType;
   priceAtPurchase: number;
@@ -17,20 +17,26 @@ export interface OrderItemAddon {
   orderItemId: string;
   addonId: string;
   quantity: number;
-  name?: string;             // optional for UI
-  price?: number;            // optional for UI
+  name?: string; // optional for UI
+  price?: number; // optional for UI
 }
 
 // Main order interface
 export interface Order {
   id: string;
   customerId: string;
-  orderDate: string;         // ISO date string
+  orderDate: string; // ISO date string
   totalAmount: number;
   discountApplied: number;
-  status?: "PENDING" | "PREPARING" | "COMPLETED" | "READYTOPICKUP" | "CANCELLED";
+  status?:
+    | "PENDING"
+    | "PREPARING"
+    | "COMPLETED"
+    | "READYTOPICKUP"
+    | "CANCELLED";
   paymentStatus?: "UNPAID" | "PAID" | "REFUNDED";
-  paymentMethod?: {          // optional payment details
+  paymentMethod?: {
+    // optional payment details
     type: string;
     provider?: string;
     details?: string;

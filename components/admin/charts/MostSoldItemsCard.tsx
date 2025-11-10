@@ -12,7 +12,10 @@ interface MostSoldItemsCardProps {
   className?: string; // allow parent to pass classes
 }
 
-export function MostSoldItemsCard({ items, className }: MostSoldItemsCardProps) {
+export function MostSoldItemsCard({
+  items,
+  className,
+}: MostSoldItemsCardProps) {
   return (
     <Card className={`h-full ${className ?? ""}`}>
       <CardHeader>

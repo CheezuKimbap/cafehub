@@ -78,7 +78,8 @@ const checkoutSlice = createSlice({
 
 // --- Selectors ---
 export const selectCheckoutOrder = (state: RootState) => state.checkout.order;
-export const selectCheckoutLoading = (state: RootState) => state.checkout.loading;
+export const selectCheckoutLoading = (state: RootState) =>
+  state.checkout.loading;
 export const selectCheckoutError = (state: RootState) => state.checkout.error;
 
 export const { resetCheckout } = checkoutSlice.actions;

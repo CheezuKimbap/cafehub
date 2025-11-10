@@ -72,13 +72,12 @@ export function ProductCard({ id, name, variants, imageUrl, rating }: Props) {
 
           {/* Price */}
 
-        {/* {variants.map((variant) => (
+          {/* {variants.map((variant) => (
           <div key={variant.id} className="flex justify-between text-sm py-1">
             <span>{variant.servingType}{variant.size ? ` - ${variant.size}` : ""}</span>
             <span>₱{variant.price}</span>
           </div>
         ))} */}
-
         </CardHeader>
       </Card>
     </Link>

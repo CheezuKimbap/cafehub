@@ -32,7 +32,6 @@ export function LatestOrdersCard({ orders }: LatestOrdersCardProps) {
         <Table className="text-sm">
           <TableHeader>
             <TableRow>
-
               <TableHead>Order ID</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Customer</TableHead>

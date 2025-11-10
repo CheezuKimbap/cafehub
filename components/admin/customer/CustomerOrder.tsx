@@ -70,21 +70,15 @@ const CustomerOrders: React.FC<CustomerOrdersProps> = ({ customerId }) => {
               {orders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>{order.id}</TableCell>
-                  <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {new Date(order.orderDate).toLocaleDateString()}
+                  </TableCell>
                   <TableCell>₱{order.totalAmount.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Badge
-
-                    >
-                      {order.status}
-                    </Badge>
+                    <Badge>{order.status}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge
-
-                    >
-                      {order.paymentStatus}
-                    </Badge>
+                    <Badge>{order.paymentStatus}</Badge>
                   </TableCell>
                 </TableRow>
               ))}

@@ -18,7 +18,11 @@ export default function CustomerTablePage() {
     dispatch(fetchCustomers());
   }, [dispatch]);
 
-  return (<><div className="bg-white rounded-xl shadow p-4">
-          <DataTable columns={customerColumns} data={customers} />
-      </div></>);
+  return (
+    <>
+      <div className="bg-white rounded-xl shadow p-4">
+        <DataTable columns={customerColumns} data={customers} />
+      </div>
+    </>
+  );
 }

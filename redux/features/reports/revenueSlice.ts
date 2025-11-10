@@ -42,10 +42,13 @@ const revenueSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchRevenue.fulfilled, (state, action: PayloadAction<number>) => {
-        state.loading = false;
-        state.amount = action.payload;
-      })
+      .addCase(
+        fetchRevenue.fulfilled,
+        (state, action: PayloadAction<number>) => {
+          state.loading = false;
+          state.amount = action.payload;
+        },
+      )
       .addCase(fetchRevenue.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Unknown error";

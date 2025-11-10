@@ -3,9 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSession } from "next-auth/react";
-import {
-  fetchProducts,
-} from "@/redux/features/products/productsSlice";
+import { fetchProducts } from "@/redux/features/products/productsSlice";
 import {
   fetchBaristaCart,
   addBaristaItem,
@@ -17,9 +15,7 @@ import type { RootState, AppDispatch } from "@/redux/store";
 import type { CartItemAddon } from "@/redux/features/cart/cart";
 import { Addon } from "@/prisma/generated/prisma";
 
-import {
-  Button,
-} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -27,22 +23,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ScrollArea,
-} from "@/components/ui/scroll-area";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/components/ui/radio-group";
-import {
-  Checkbox,
-} from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 export default function BaristaPOS() {
@@ -50,10 +34,20 @@ export default function BaristaPOS() {
   const { data: session } = useSession();
   const customerId = session?.user.customerId;
 
-  const { items: products, loading, error } = useSelector((s: RootState) => s.products);
+  const {
+    items: products,
+    loading,
+    error,
+  } = useSelector((s: RootState) => s.products);
   const cart = useSelector((s: RootState) => s.baristaCart.cart);
-  const { list: addons, loading: addonsLoading } = useSelector((s: RootState) => s.addon);
-  const { loading: checkoutLoading, error: checkoutError, order } = useSelector((s: RootState) => s.checkout);
+  const { list: addons, loading: addonsLoading } = useSelector(
+    (s: RootState) => s.addon,
+  );
+  const {
+    loading: checkoutLoading,
+    error: checkoutError,
+    order,
+  } = useSelector((s: RootState) => s.checkout);
 
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
@@ -110,7 +104,7 @@ export default function BaristaPOS() {
         variantId: selectedVariant,
         quantity,
         addons: addonsPayload,
-      })
+      }),
     ).then(() => {
       dispatch(fetchBaristaCart(customerId));
     });
@@ -146,7 +140,7 @@ export default function BaristaPOS() {
       const addonTotal =
         item.addons?.reduce(
           (sum: any, a: any) => sum + (a.price || a.addon.price) * a.quantity,
-          0
+          0,
         ) ?? 0;
       return acc + base + addonTotal;
     }, 0);
@@ -175,7 +169,10 @@ export default function BaristaPOS() {
                     </CardHeader>
                     <CardContent>
                       {p.variants?.map((v: any) => (
-                        <div key={v.id} className="flex justify-between text-sm">
+                        <div
+                          key={v.id}
+                          className="flex justify-between text-sm"
+                        >
                           <span>{v.servingType}</span>
                           <span>₱{v.price}</span>
                         </div>
@@ -208,7 +205,10 @@ export default function BaristaPOS() {
                         onValueChange={setSelectedVariant}
                       >
                         {p.variants?.map((v: any) => (
-                          <div key={v.id} className="flex items-center space-x-2">
+                          <div
+                            key={v.id}
+                            className="flex items-center space-x-2"
+                          >
                             <RadioGroupItem value={v.id} id={`v-${v.id}`} />
                             <Label htmlFor={`v-${v.id}`}>
                               {v.servingType} - ₱{v.price}
@@ -219,32 +219,49 @@ export default function BaristaPOS() {
 
                       {/* Quantity */}
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={() => setQuantity((q) => Math.max(1, q - 1))}>-</Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                        >
+                          -
+                        </Button>
                         <span>{quantity}</span>
-                        <Button variant="outline" onClick={() => setQuantity((q) => q + 1)}>+</Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setQuantity((q) => q + 1)}
+                        >
+                          +
+                        </Button>
                       </div>
 
                       {/* Addons */}
-{p.categoryId !== "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" && (
-  <ScrollArea className="h-40 border p-2 rounded-md">
-    {addonsLoading ? (
-      <p>Loading addons...</p>
-    ) : (
-      addons.map((a: Addon) => (
-        <div key={a.id} className="flex items-center space-x-2">
-          <Checkbox
-            checked={!!selectedAddons.find((s) => s.addonId === a.id)}
-            onCheckedChange={() => toggleAddon(a)}
-          />
-          <Label>
-            {a.name} (+₱{a.price})
-          </Label>
-        </div>
-      ))
-    )}
-  </ScrollArea>
-)}
-
+                      {p.categoryId !==
+                        "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" && (
+                        <ScrollArea className="h-40 border p-2 rounded-md">
+                          {addonsLoading ? (
+                            <p>Loading addons...</p>
+                          ) : (
+                            addons.map((a: Addon) => (
+                              <div
+                                key={a.id}
+                                className="flex items-center space-x-2"
+                              >
+                                <Checkbox
+                                  checked={
+                                    !!selectedAddons.find(
+                                      (s) => s.addonId === a.id,
+                                    )
+                                  }
+                                  onCheckedChange={() => toggleAddon(a)}
+                                />
+                                <Label>
+                                  {a.name} (+₱{a.price})
+                                </Label>
+                              </div>
+                            ))
+                          )}
+                        </ScrollArea>
+                      )}
 
                       {/* Add to cart */}
                       <Button
@@ -270,7 +287,10 @@ export default function BaristaPOS() {
           {cart?.items?.length ? (
             <div className="flex flex-col gap-3">
               {cart.items.map((item: any) => (
-                <Card key={item.id} className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                <Card
+                  key={item.id}
+                  className="bg-white border border-gray-200 rounded-lg shadow-sm"
+                >
                   <CardContent className="p-3 flex flex-col gap-1">
                     <p className="font-medium">{item.variant?.product?.name}</p>
                     <p className="text-sm text-muted-foreground">
@@ -282,7 +302,8 @@ export default function BaristaPOS() {
                       <ul className="pl-4 text-sm text-muted-foreground">
                         {item.addons.map((a: any) => (
                           <li key={`${item.id}-${a.addonId}`}>
-                            {a.addon?.name} - ₱{(a.price || a.addon.price) * a.quantity}
+                            {a.addon?.name} - ₱
+                            {(a.price || a.addon.price) * a.quantity}
                           </li>
                         ))}
                       </ul>

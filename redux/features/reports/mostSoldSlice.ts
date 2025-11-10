@@ -57,7 +57,7 @@ const mostSoldSlice = createSlice({
         (state, action: PayloadAction<MostSoldItem[]>) => {
           state.loading = false;
           state.items = action.payload;
-        }
+        },
       )
       .addCase(fetchMostSold.rejected, (state, action) => {
         state.loading = false;

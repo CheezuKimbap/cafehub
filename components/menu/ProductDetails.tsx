@@ -10,7 +10,13 @@ import { fetchProductById } from "@/redux/features/products/productsSlice";
 import { fetchAddons } from "@/redux/features/addons/addonsSlice";
 import { useSession } from "next-auth/react";
 import { addItemToCart, fetchCart } from "@/redux/features/cart/cartSlice";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import {
   Select,
   SelectContent,
@@ -33,9 +39,13 @@ export function ProductDetails() {
   const { data: session } = useSession();
   const customerId = session?.user.customerId;
 
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
+  );
   const [quantity, setQuantity] = useState(1);
-  const [selectedAddons, setSelectedAddons] = useState<{ addonId: string; quantity: number }[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<
+    { addonId: string; quantity: number }[]
+  >([]);
 
   const cart = useAppSelector((state) => state.cart.cart);
   const productState = useAppSelector((state) => state.products);
@@ -49,14 +59,17 @@ export function ProductDetails() {
   const { selected: product, loading, error } = productState;
 
   const selectedVariant = useMemo(() => {
-    return product?.variants.find((v) => v.id === selectedVariantId) || product?.variants[0];
+    return (
+      product?.variants.find((v) => v.id === selectedVariantId) ||
+      product?.variants[0]
+    );
   }, [product, selectedVariantId]);
 
   const toggleAddon = (addonId: string) => {
     setSelectedAddons((prev) =>
       prev.find((a) => a.addonId === addonId)
         ? prev.filter((a) => a.addonId !== addonId)
-        : [...prev, { addonId, quantity: 1 }]
+        : [...prev, { addonId, quantity: 1 }],
     );
   };
 
@@ -74,75 +87,71 @@ export function ProductDetails() {
     clone.style.top = imgRect.top + "px";
     clone.style.width = imgRect.width + "px";
     clone.style.height = imgRect.height + "px";
-    clone.style.transition =
-        "all 0.8s cubic-bezier(0.25, 1, 0.5, 1)";
+    clone.style.transition = "all 0.8s cubic-bezier(0.25, 1, 0.5, 1)";
     clone.style.zIndex = "9999";
     clone.style.borderRadius = "8px";
     document.body.appendChild(clone);
 
     // trigger reflow
     requestAnimationFrame(() => {
-        clone.style.left = cartRect.left + "px";
-        clone.style.top = cartRect.top + "px";
-        clone.style.width = "40px";
-        clone.style.height = "40px";
-        clone.style.opacity = "0.4";
+      clone.style.left = cartRect.left + "px";
+      clone.style.top = cartRect.top + "px";
+      clone.style.width = "40px";
+      clone.style.height = "40px";
+      clone.style.opacity = "0.4";
     });
 
     setTimeout(() => {
-        clone.remove();
+      clone.remove();
     }, 800);
-};
+  };
 
-const handleAddToCart = () => {
-  if (!customerId) return alert("Please log in to add items to cart.");
-  if (!productId || !selectedVariant) return;
+  const handleAddToCart = () => {
+    if (!customerId) return alert("Please log in to add items to cart.");
+    if (!productId || !selectedVariant) return;
 
-  // 🧩 Find if item already exists in the cart
-  const existingItem = cart?.items?.find(
-    (item) =>
-      item.variantId === selectedVariant.id &&
-      JSON.stringify(item.addons?.map((a: any) => a.addonId).sort()) ===
-        JSON.stringify(selectedAddons.map((a) => a.addonId).sort())
-  );
+    // 🧩 Find if item already exists in the cart
+    const existingItem = cart?.items?.find(
+      (item) =>
+        item.variantId === selectedVariant.id &&
+        JSON.stringify(item.addons?.map((a: any) => a.addonId).sort()) ===
+          JSON.stringify(selectedAddons.map((a) => a.addonId).sort()),
+    );
 
-  if (existingItem) {
-    // 🪄 Just increase quantity instead of adding duplicate
-    dispatch(
-      addItemToCart({
-        customerId,
-        variantId: selectedVariant.id,
-        quantity: existingItem.quantity + quantity, // increment existing
-        addons: selectedAddons,
-      })
-    )
-      .unwrap()
-      .then(() => {
-        dispatch(fetchCart(customerId));
+    if (existingItem) {
+      // 🪄 Just increase quantity instead of adding duplicate
+      dispatch(
+        addItemToCart({
+          customerId,
+          variantId: selectedVariant.id,
+          quantity: existingItem.quantity + quantity, // increment existing
+          addons: selectedAddons,
+        }),
+      )
+        .unwrap()
+        .then(() => {
+          dispatch(fetchCart(customerId));
+        })
+        .catch(() => alert("Failed to update cart"));
+    } else {
+      // 🪄 Otherwise add as a new item
+      dispatch(
+        addItemToCart({
+          customerId,
+          variantId: selectedVariant.id,
+          quantity,
+          addons: selectedAddons,
+        }),
+      )
+        .unwrap()
+        .then(() => {
+          dispatch(fetchCart(customerId));
+        })
+        .catch(() => alert("Failed to add item to cart"));
+    }
 
-      })
-      .catch(() => alert("Failed to update cart"));
-  } else {
-    // 🪄 Otherwise add as a new item
-    dispatch(
-      addItemToCart({
-        customerId,
-        variantId: selectedVariant.id,
-        quantity,
-        addons: selectedAddons,
-      })
-    )
-      .unwrap()
-      .then(() => {
-        dispatch(fetchCart(customerId));
-
-      })
-      .catch(() => alert("Failed to add item to cart"));
-  }
-
-  animateToCart(); // keep animation
-};
-
+    animateToCart(); // keep animation
+  };
 
   if (!productId) return <div className="m-4">Invalid product ID</div>;
   if (loading) return <div className="m-4">Loading...</div>;
@@ -151,97 +160,114 @@ const handleAddToCart = () => {
 
   return (
     <>
-     <Card className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-sm border p-6 grid md:grid-cols-2 gap-10 bg-white my-4">
-      {/* Left - Image */}
-      <div className="flex justify-center items-center">
-      <img
-        id="product-image"
-        src={product.image || "/placeholder.png"}
-        alt={product.name}
-        className="rounded-lg shadow-md max-h-[400px] object-contain w-full"
-        />
-
-      </div>
-
-      {/* Right */}
-      <CardContent className="flex flex-col space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-green-900">{product.name}</h1>
-
-          {/* ✅ Dynamic Price */}
-          <p className="text-lg font-semibold text-gray-700">
-            ₱{selectedVariant?.price}
-          </p>
-
-          <p className="text-sm text-gray-500 mt-2">{product.description}</p>
+      <Card className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-sm border p-6 grid md:grid-cols-2 gap-10 bg-white my-4">
+        {/* Left - Image */}
+        <div className="flex justify-center items-center">
+          <img
+            id="product-image"
+            src={product.image || "/placeholder.png"}
+            alt={product.name}
+            className="rounded-lg shadow-md max-h-[400px] object-contain w-full"
+          />
         </div>
 
-        {product.variants.length > 0 && (
-        <div className="flex flex-col gap-2">
-            <label className="text-sm text-gray-600 font-medium">Serving Type</label>
+        {/* Right */}
+        <CardContent className="flex flex-col space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-green-900">
+              {product.name}
+            </h1>
 
-            <Select
-            value={selectedVariantId ?? product.variants[0]?.id}
-            onValueChange={(value) => setSelectedVariantId(value)}
-            >
-            <SelectTrigger className="w-full rounded-lg border border-gray-300 shadow-sm">
-                <SelectValue placeholder="Select variant" />
-            </SelectTrigger>
-            <SelectContent>
-                {product.variants.map((variant: any) => (
-                <SelectItem key={variant.id} value={variant.id}>
-                    {variant.servingType} {variant.size ? `- ${variant.size}` : ""} (₱{variant.price})
-                </SelectItem>
-                ))}
-            </SelectContent>
-            </Select>
-        </div>
-        )}
+            {/* ✅ Dynamic Price */}
+            <p className="text-lg font-semibold text-gray-700">
+              ₱{selectedVariant?.price}
+            </p>
 
-        {/* Add-ons */}
-        <div>
-        <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
-        <div className="grid grid-cols-1 gap-2 p-2 border rounded h-48 overflow-y-auto">
-            {addonsState.list.map((addon: Addon) => (
-            <label
-                key={addon.id}
-                className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded"
-            >
-                <Checkbox
-                checked={!!selectedAddons.find((a) => a.addonId === addon.id)}
-                onCheckedChange={() => toggleAddon(addon.id)}
-                />
-                <span>{addon.name} (+₱{addon.price})</span>
-            </label>
-            ))}
-        </div>
-        </div>
-
-
-
-        {/* Quantity + Add to Cart */}
-        <div className="flex items-center gap-6 mt-4">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
-              -
-            </Button>
-            <span className="text-lg font-semibold w-8 text-center">{quantity}</span>
-            <Button variant="outline" size="sm" onClick={() => setQuantity((q) => q + 1)}>
-              +
-            </Button>
+            <p className="text-sm text-gray-500 mt-2">{product.description}</p>
           </div>
 
-          <Button
-            onClick={handleAddToCart}
-            className="rounded-xl bg-green-600 hover:bg-green-700 text-white px-6"
-          >
-            Add to Cart
-          </Button>
-        </div>
-      </CardContent>
+          {product.variants.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-gray-600 font-medium">
+                Serving Type
+              </label>
 
-      {/* Popup */}
-      {/* <Dialog open={showPopup} onOpenChange={setShowPopup}>
+              <Select
+                value={selectedVariantId ?? product.variants[0]?.id}
+                onValueChange={(value) => setSelectedVariantId(value)}
+              >
+                <SelectTrigger className="w-full rounded-lg border border-gray-300 shadow-sm">
+                  <SelectValue placeholder="Select variant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {product.variants.map((variant: any) => (
+                    <SelectItem key={variant.id} value={variant.id}>
+                      {variant.servingType}{" "}
+                      {variant.size ? `- ${variant.size}` : ""} (₱
+                      {variant.price})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Add-ons */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">Add-ons</p>
+            <div className="grid grid-cols-1 gap-2 p-2 border rounded h-48 overflow-y-auto">
+              {addonsState.list.map((addon: Addon) => (
+                <label
+                  key={addon.id}
+                  className="flex items-center gap-2 text-gray-700 bg-gray-50 p-2 rounded"
+                >
+                  <Checkbox
+                    checked={
+                      !!selectedAddons.find((a) => a.addonId === addon.id)
+                    }
+                    onCheckedChange={() => toggleAddon(addon.id)}
+                  />
+                  <span>
+                    {addon.name} (+₱{addon.price})
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Quantity + Add to Cart */}
+          <div className="flex items-center gap-6 mt-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              >
+                -
+              </Button>
+              <span className="text-lg font-semibold w-8 text-center">
+                {quantity}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setQuantity((q) => q + 1)}
+              >
+                +
+              </Button>
+            </div>
+
+            <Button
+              onClick={handleAddToCart}
+              className="rounded-xl bg-green-600 hover:bg-green-700 text-white px-6"
+            >
+              Add to Cart
+            </Button>
+          </div>
+        </CardContent>
+
+        {/* Popup */}
+        {/* <Dialog open={showPopup} onOpenChange={setShowPopup}>
         <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Added to Cart!</DialogTitle>
@@ -257,13 +283,12 @@ const handleAddToCart = () => {
           </div>
         </DialogContent>
       </Dialog> */}
-    </Card>
+      </Card>
 
-    <ProductReviews
+      <ProductReviews
         productId={product.id}
         customerId={session?.user?.customerId ?? undefined} // optional, only needed for submitting
       />
     </>
-
   );
 }

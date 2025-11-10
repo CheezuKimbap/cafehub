@@ -26,7 +26,11 @@ export default function InventoryTable() {
       {loading ? (
         <p className="p-4">Loading products...</p>
       ) : (
-        <DataTable columns={columns} data={items} actions={<AddProductButton />} />
+        <DataTable
+          columns={columns}
+          data={items}
+          actions={<AddProductButton />}
+        />
       )}
     </div>
   );

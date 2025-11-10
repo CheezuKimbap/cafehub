@@ -20,13 +20,16 @@ export function OrderColumn({
       <h2 className="text-lg font-semibold">{title}</h2>
       {orders
         .filter((o) => o.status === status)
-        .sort((a, b) => new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime()) // 👈 ASC
+        .sort(
+          (a, b) =>
+            new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime(),
+        ) // 👈 ASC
         .map((order) => (
-            <OrderCard
+          <OrderCard
             key={order.id}
             order={order}
             onUpdateStatus={onUpdateStatus}
-            />
+          />
         ))}
     </div>
   );

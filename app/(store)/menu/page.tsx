@@ -14,11 +14,15 @@ type SortKey = "name" | "price";
 function ProductPage() {
   const dispatch = useAppDispatch();
   const { items, loading, error } = useAppSelector((state) => state.products);
-  const { categories, loading: catLoading, error: catError } = useAppSelector(
-    (state) => state.categories
-  );
+  const {
+    categories,
+    loading: catLoading,
+    error: catError,
+  } = useAppSelector((state) => state.categories);
 
-  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
+    new Set(),
+  );
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -80,29 +84,30 @@ function ProductPage() {
           {!catLoading && (
             <div className="flex flex-col gap-2">
               {categories.map((cat) => (
-               <label
-  key={cat.id}
-  className="flex items-center gap-2 cursor-pointer"
->
-  <Checkbox
-    checked={selectedCategories.has(cat.id)}
-    className="border-black bg-white checked:bg-blue-500 checked:border-blue-500 h-4 w-4"
-    onCheckedChange={(checked) => {
-      // Convert to boolean (ignore "indeterminate")
-      if (checked) {
-        setSelectedCategories((prev) => new Set(prev).add(cat.id));
-      } else {
-        setSelectedCategories((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(cat.id);
-          return newSet;
-        });
-      }
-    }}
-  />
-  <span className="text-sm">{cat.name}</span>
-</label>
-
+                <label
+                  key={cat.id}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Checkbox
+                    checked={selectedCategories.has(cat.id)}
+                    className="border-black bg-white checked:bg-blue-500 checked:border-blue-500 h-4 w-4"
+                    onCheckedChange={(checked) => {
+                      // Convert to boolean (ignore "indeterminate")
+                      if (checked) {
+                        setSelectedCategories((prev) =>
+                          new Set(prev).add(cat.id),
+                        );
+                      } else {
+                        setSelectedCategories((prev) => {
+                          const newSet = new Set(prev);
+                          newSet.delete(cat.id);
+                          return newSet;
+                        });
+                      }
+                    }}
+                  />
+                  <span className="text-sm">{cat.name}</span>
+                </label>
               ))}
             </div>
           )}

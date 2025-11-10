@@ -33,7 +33,9 @@ export function DynamicBreadcrumb() {
         const isUUID = /^[0-9a-fA-F-]{36}$/.test(part);
         if (isUUID) {
           try {
-            const res = await fetch(`/api/products/${part}`, { cache: "no-store" });
+            const res = await fetch(`/api/products/${part}`, {
+              cache: "no-store",
+            });
             if (res.ok) {
               const data = await res.json();
               result[part] = data?.name ?? "Unknown Product";

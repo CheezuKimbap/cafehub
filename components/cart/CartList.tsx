@@ -8,7 +8,7 @@ interface CartListProps {
   onUpdateQuantity: (
     itemId: string,
     quantity: number,
-    callAPI: boolean
+    callAPI: boolean,
   ) => void;
   onRemove: (cartItemId: string) => void;
 }
@@ -17,17 +17,15 @@ export function CartList({ items, onUpdateQuantity, onRemove }: CartListProps) {
   return (
     <div className="flex-1 flex flex-col gap-4">
       {items.map((item) => (
-     <CartItem
-        key={item.id}
-        id={item.id}
-        variant={item.variant}
-        quantity={item.quantity}
-        addons={item.addons}
-        onUpdateQuantity={onUpdateQuantity}
-        onRemove={onRemove}
+        <CartItem
+          key={item.id}
+          id={item.id}
+          variant={item.variant}
+          quantity={item.quantity}
+          addons={item.addons}
+          onUpdateQuantity={onUpdateQuantity}
+          onRemove={onRemove}
         />
-
-
       ))}
     </div>
   );

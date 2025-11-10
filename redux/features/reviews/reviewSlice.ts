@@ -6,8 +6,8 @@ export interface Review {
   id: string;
   productId: string;
   customerId: string;
-  createdAt: string,
-  updateAt: string,
+  createdAt: string;
+  updateAt: string;
   rating: number;
   comment?: string;
   customer?: {
@@ -89,10 +89,13 @@ const reviewSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchReviews.fulfilled, (state, action: PayloadAction<Review[]>) => {
-        state.loading = false;
-        state.items = action.payload;
-      })
+      .addCase(
+        fetchReviews.fulfilled,
+        (state, action: PayloadAction<Review[]>) => {
+          state.loading = false;
+          state.items = action.payload;
+        },
+      )
       .addCase(fetchReviews.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch reviews";

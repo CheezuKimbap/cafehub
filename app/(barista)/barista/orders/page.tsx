@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, Utensils, Package, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Clock,
+  Utensils,
+  Package,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import {
   fetchOrders,
@@ -12,7 +19,11 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Order, OrderStatus, PaymentStatus } from "@/redux/features/order/order";
+import type {
+  Order,
+  OrderStatus,
+  PaymentStatus,
+} from "@/redux/features/order/order";
 
 export default function BaristaBoard() {
   const dispatch = useAppDispatch();
@@ -25,13 +36,17 @@ export default function BaristaBoard() {
     dispatch(fetchOrders());
   }, [dispatch]);
 
-  const handleUpdateStatus = (id: string, next: OrderStatus, paymentStatus?: PaymentStatus) => {
+  const handleUpdateStatus = (
+    id: string,
+    next: OrderStatus,
+    paymentStatus?: PaymentStatus,
+  ) => {
     dispatch(updateOrderStatus({ id, status: next, paymentStatus }));
   };
 
   const toggleExpand = (id: string) => {
     setExpandedOrders((prev) =>
-      prev.includes(id) ? prev.filter((o) => o !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((o) => o !== id) : [...prev, id],
     );
   };
 
@@ -54,8 +69,10 @@ export default function BaristaBoard() {
     });
   };
 
-  if (status === "loading") return <p className="p-4 text-gray-500">Loading orders...</p>;
-  if (status === "failed") return <p className="p-4 text-red-500">Failed to load orders.</p>;
+  if (status === "loading")
+    return <p className="p-4 text-gray-500">Loading orders...</p>;
+  if (status === "failed")
+    return <p className="p-4 text-red-500">Failed to load orders.</p>;
 
   return (
     <div className="grid grid-cols-4 gap-4">
@@ -67,10 +84,10 @@ export default function BaristaBoard() {
                 col.key === "PENDING"
                   ? "bg-orange-100 text-orange-800 border-orange-300"
                   : col.key === "PREPARING"
-                  ? "bg-orange-200 text-orange-900 border-orange-400"
-                  : col.key === "READYTOPICKUP"
-                  ? "bg-green-100 text-green-800 border-green-300"
-                  : "bg-gray-100 text-gray-800 border-gray-300"
+                    ? "bg-orange-200 text-orange-900 border-orange-400"
+                    : col.key === "READYTOPICKUP"
+                      ? "bg-green-100 text-green-800 border-green-300"
+                      : "bg-gray-100 text-gray-800 border-gray-300"
               }`}
           >
             {col.key === "PENDING" && <Clock className="w-4 h-4" />}
@@ -82,21 +99,29 @@ export default function BaristaBoard() {
 
           {orders
             .filter((o) => o.status === col.key)
-            .sort((a, b) => new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime())
+            .sort(
+              (a, b) =>
+                new Date(a.orderDate).getTime() -
+                new Date(b.orderDate).getTime(),
+            )
             .map((order) => {
               const isExpanded = expandedOrders.includes(order.id);
-              const showAllItems = col.key === "PENDING" || col.key === "PREPARING";
+              const showAllItems =
+                col.key === "PENDING" || col.key === "PREPARING";
 
               const orderItems = showAllItems
                 ? order.orderItems
                 : isExpanded
-                ? order.orderItems
-                : order.orderItems.slice(0, 2);
+                  ? order.orderItems
+                  : order.orderItems.slice(0, 2);
 
               // Calculate totals
               const orderTotal = order.orderItems.reduce((sum, item) => {
                 const base = item.priceAtPurchase * item.quantity;
-                const addons = item.addons.reduce((aSum, a) => aSum + a.addon.price * a.quantity, 0);
+                const addons = item.addons.reduce(
+                  (aSum, a) => aSum + a.addon.price * a.quantity,
+                  0,
+                );
                 return sum + base + addons;
               }, 0);
 
@@ -112,7 +137,9 @@ export default function BaristaBoard() {
                             : "bg-green-100 text-green-700"
                         }
                       >
-                        {order.paymentStatus === "UNPAID" ? "Unpaid" : order.status}
+                        {order.paymentStatus === "UNPAID"
+                          ? "Unpaid"
+                          : order.status}
                       </Badge>
                     </CardTitle>
                     <p className="text-xs text-gray-500">
@@ -129,7 +156,10 @@ export default function BaristaBoard() {
                       {orderItems.map((item) => {
                         const itemTotal =
                           item.priceAtPurchase * item.quantity +
-                          item.addons.reduce((sum, a) => sum + a.addon.price * a.quantity, 0);
+                          item.addons.reduce(
+                            (sum, a) => sum + a.addon.price * a.quantity,
+                            0,
+                          );
                         return (
                           <li
                             key={item.id}
@@ -139,7 +169,11 @@ export default function BaristaBoard() {
                           >
                             <div className="flex justify-between items-center">
                               <span>
-                                {item.quantity}× {item.variant?.product?.name ?? "Unknown Product"}  (₱{item.priceAtPurchase.toFixed(2)}) - {item.variant?.servingType ?? ""}
+                                {item.quantity}×{" "}
+                                {item.variant?.product?.name ??
+                                  "Unknown Product"}{" "}
+                                (₱{item.priceAtPurchase.toFixed(2)}) -{" "}
+                                {item.variant?.servingType ?? ""}
                               </span>
                               <span>₱{itemTotal.toFixed(2)}</span>
                             </div>
@@ -181,13 +215,17 @@ export default function BaristaBoard() {
                       )}
                     </ul>
 
-                    <p className="font-medium text-gray-700 mt-2">Total: ₱{orderTotal.toFixed(2)}</p>
+                    <p className="font-medium text-gray-700 mt-2">
+                      Total: ₱{orderTotal.toFixed(2)}
+                    </p>
 
                     {/* Actions */}
                     <div className="pt-2 space-y-2">
                       {order.paymentStatus === "UNPAID" && (
                         <Button
-                          onClick={() => handleUpdateStatus(order.id, order.status, "PAID")}
+                          onClick={() =>
+                            handleUpdateStatus(order.id, order.status, "PAID")
+                          }
                           className="w-full bg-orange-500 hover:bg-orange-600 text-white"
                         >
                           Mark as Paid
@@ -196,7 +234,9 @@ export default function BaristaBoard() {
 
                       {order.status === "PENDING" && (
                         <Button
-                          onClick={() => handleUpdateStatus(order.id, "PREPARING")}
+                          onClick={() =>
+                            handleUpdateStatus(order.id, "PREPARING")
+                          }
                           className="w-full bg-orange-400 hover:bg-orange-500 text-white"
                         >
                           Start Preparing
@@ -205,7 +245,9 @@ export default function BaristaBoard() {
 
                       {order.status === "PREPARING" && (
                         <Button
-                          onClick={() => handleUpdateStatus(order.id, "READYTOPICKUP")}
+                          onClick={() =>
+                            handleUpdateStatus(order.id, "READYTOPICKUP")
+                          }
                           className="w-full bg-green-500 hover:bg-green-600 text-white"
                         >
                           Mark Ready
@@ -214,7 +256,9 @@ export default function BaristaBoard() {
 
                       {order.status === "READYTOPICKUP" && (
                         <Button
-                          onClick={() => handleUpdateStatus(order.id, "COMPLETED")}
+                          onClick={() =>
+                            handleUpdateStatus(order.id, "COMPLETED")
+                          }
                           className="w-full border border-gray-300 text-white hover:bg-gray-100"
                         >
                           Mark Picked Up

@@ -18,8 +18,18 @@ export function TotalOrder({
   loading,
   error,
 }: TotalOrderProps) {
-  if (loading) return <Card><CardContent>Loading...</CardContent></Card>;
-  if (error) return <Card><CardContent className="text-red-500">Error: {error}</CardContent></Card>;
+  if (loading)
+    return (
+      <Card>
+        <CardContent>Loading...</CardContent>
+      </Card>
+    );
+  if (error)
+    return (
+      <Card>
+        <CardContent className="text-red-500">Error: {error}</CardContent>
+      </Card>
+    );
 
   return (
     <Card>

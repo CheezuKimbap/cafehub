@@ -22,7 +22,9 @@ export async function GET() {
 
     // Initialize 12 months
     const monthlyData = Array.from({ length: 12 }, (_, i) => ({
-      month: new Date(now.getFullYear(), i, 1).toLocaleString("en-US", { month: "short" }),
+      month: new Date(now.getFullYear(), i, 1).toLocaleString("en-US", {
+        month: "short",
+      }),
       profit: 0,
       loss: 0,
     }));
@@ -40,6 +42,9 @@ export async function GET() {
     return NextResponse.json({ monthlyData });
   } catch (error) {
     console.error("Monthly Revenue API Error:", error);
-    return NextResponse.json({ error: "Failed to fetch monthly revenue" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch monthly revenue" },
+      { status: 500 },
+    );
   }
 }

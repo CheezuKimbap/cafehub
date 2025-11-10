@@ -28,12 +28,15 @@ export async function GET() {
           name: variant?.product.name ?? "Unknown",
           value: item._sum.quantity ?? 0,
         };
-      })
+      }),
     );
 
     return NextResponse.json(result);
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to fetch most sold items" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch most sold items" },
+      { status: 500 },
+    );
   }
 }

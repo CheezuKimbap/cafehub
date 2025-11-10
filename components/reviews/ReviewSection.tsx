@@ -24,7 +24,13 @@ const getInitials = (firstName?: string | null, lastName?: string | null) => {
   return (f + l).toUpperCase() || "A"; // fallback "A" if both missing
 };
 
-const RatingStars = ({ rating, onSelect }: { rating: number; onSelect?: (v:number)=>void }) => (
+const RatingStars = ({
+  rating,
+  onSelect,
+}: {
+  rating: number;
+  onSelect?: (v: number) => void;
+}) => (
   <div className="flex gap-1 my-2">
     {[1, 2, 3, 4, 5].map((i) => (
       <Star
@@ -75,19 +81,22 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
             }));
           })
           .catch(() =>
-            setUserNames((prev) => ({ ...prev, [r.customerId]: "Anonymous" }))
+            setUserNames((prev) => ({ ...prev, [r.customerId]: "Anonymous" })),
           );
       }
     });
   }, [reviews, userNames]);
 
   const summary = useMemo(() => {
-    if (reviews.length === 0) return { avg: 0, total: 0, counts: {} as Record<number, number>};
+    if (reviews.length === 0)
+      return { avg: 0, total: 0, counts: {} as Record<number, number> };
 
-    const counts: Record<number, number> = { 1:0, 2:0, 3:0, 4:0, 5:0 };
-    reviews.forEach(r => counts[r.rating]++);
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach((r) => counts[r.rating]++);
     const total = reviews.length;
-    const avg = Number((reviews.reduce((a, b) => a + b.rating, 0) / total).toFixed(1));
+    const avg = Number(
+      (reviews.reduce((a, b) => a + b.rating, 0) / total).toFixed(1),
+    );
     return { avg, total, counts };
   }, [reviews]);
 
@@ -120,14 +129,19 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
         </div>
 
         <div className="flex-1 space-y-1">
-          {[5,4,3,2,1].map(star => {
-            const percentage = summary.total ? Math.round((summary.counts[star] / summary.total) * 100) : 0;
+          {[5, 4, 3, 2, 1].map((star) => {
+            const percentage = summary.total
+              ? Math.round((summary.counts[star] / summary.total) * 100)
+              : 0;
             return (
               <div key={star} className="flex items-center gap-2 text-sm">
                 <span className="w-2">{star}</span>
                 <Star size={14} />
                 <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div style={{width:`${percentage}%`}} className="h-full bg-yellow-400" />
+                  <div
+                    style={{ width: `${percentage}%` }}
+                    className="h-full bg-yellow-400"
+                  />
                 </div>
                 <span className="w-8 text-right">{percentage}%</span>
               </div>
@@ -140,24 +154,32 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
       {customerId && showForm && (
         <div className="mb-5 p-4 border rounded-lg bg-gray-50">
           <RatingStars rating={rating} onSelect={setRating} />
-          <Textarea value={comment} onChange={(e)=>setComment(e.target.value)} className="my-3" />
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="my-3"
+          />
           <div className="flex gap-2">
             <Button onClick={handleSubmit}>Submit</Button>
-            <Button variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setShowForm(false)}>
+              Cancel
+            </Button>
           </div>
         </div>
       )}
 
       {/* Review List */}
       {loading && <p className="text-center text-gray-500">Loading...</p>}
-      {!loading && reviews.length === 0 && <p className="text-center text-gray-500">No reviews yet.</p>}
+      {!loading && reviews.length === 0 && (
+        <p className="text-center text-gray-500">No reviews yet.</p>
+      )}
 
       <div className="space-y-5">
         {reviews.map((r) => {
           const name =
             r.customer?.firstName || r.customer?.lastName
               ? `${r.customer?.firstName ?? ""} ${r.customer?.lastName ?? ""}`.trim()
-              : userNames[r.customerId] ?? "Anonymous";
+              : (userNames[r.customerId] ?? "Anonymous");
 
           const initials =
             r.customer?.firstName || r.customer?.lastName
@@ -173,7 +195,9 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
                   </div>
                   {name}
                 </span>
-                <span className="text-xs text-gray-500">{formatDate(r.createdAt)}</span>
+                <span className="text-xs text-gray-500">
+                  {formatDate(r.createdAt)}
+                </span>
               </div>
               <RatingStars rating={r.rating} />
               <p className="text-gray-700 mt-2">{r.comment}</p>

@@ -47,7 +47,9 @@ export function BaristaCart() {
         >
           <div className="flex justify-between items-center">
             <div>
-              <p className="font-semibold">{item.variant.product?.name ?? "Unknown"}</p>
+              <p className="font-semibold">
+                {item.variant.product?.name ?? "Unknown"}
+              </p>
               <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
             </div>
             <div className="flex gap-2 items-center">

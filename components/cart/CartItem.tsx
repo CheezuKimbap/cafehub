@@ -51,7 +51,7 @@ export function CartItem({
   const baseTotal = variant.price * localQty;
   const addonsTotal = addons.reduce(
     (sum, a) => sum + a.addon.price * localQty,
-    0
+    0,
   );
   const finalTotal = baseTotal + addonsTotal;
 
@@ -61,9 +61,9 @@ export function CartItem({
         <div className="flex gap-3">
           {variant.product?.image && (
             <img
-            src={variant.product?.image ?? "/placeholder.png"}
-            alt={variant.product?.name ?? "Product"}
-            className="w-20 h-20 object-cover rounded-md border"
+              src={variant.product?.image ?? "/placeholder.png"}
+              alt={variant.product?.name ?? "Product"}
+              className="w-20 h-20 object-cover rounded-md border"
             />
           )}
 

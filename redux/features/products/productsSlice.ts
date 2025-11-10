@@ -71,7 +71,10 @@ export const submitProduct = createAsyncThunk<
       const uploadForm = new FormData();
       uploadForm.append("file", imageFile);
 
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: uploadForm,
+      });
       if (!uploadRes.ok) throw new Error("Image upload failed");
       const uploadData = await uploadRes.json();
       imageUrl = uploadData.url;
@@ -119,11 +122,7 @@ export const updateProductById = createAsyncThunk<
     let imageUrl: string | undefined;
 
     // ✅ Upload ONLY if actual real file is selected
-    if (
-      imageFile &&
-      imageFile instanceof File &&
-      imageFile.size > 0
-    ) {
+    if (imageFile && imageFile instanceof File && imageFile.size > 0) {
       const uploadForm = new FormData();
       uploadForm.append("file", imageFile);
 
@@ -185,7 +184,6 @@ export const updateProductById = createAsyncThunk<
     return rejectWithValue(error.message);
   }
 });
-
 
 // --------------------
 // Slice State

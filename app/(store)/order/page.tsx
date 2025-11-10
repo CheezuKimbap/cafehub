@@ -5,10 +5,19 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { fetchOrdersByCustomerId } from "@/redux/features/order/orderSlice";
 import { useSession } from "next-auth/react";
 import { Coffee, Package, Inbox } from "lucide-react";
-import { Order, OrderItemAddon, OrderStatus } from "@/redux/features/order/order";
+import {
+  Order,
+  OrderItemAddon,
+  OrderStatus,
+} from "@/redux/features/order/order";
 
 // Timeline stages (no CANCELLED)
-const STATUS_ORDER: OrderStatus[] = ["PENDING", "PREPARING", "READYTOPICKUP", "COMPLETED"] as const;
+const STATUS_ORDER: OrderStatus[] = [
+  "PENDING",
+  "PREPARING",
+  "READYTOPICKUP",
+  "COMPLETED",
+] as const;
 
 // Icons for stages
 const STATUS_ICONS: Record<OrderStatus, React.ReactNode> = {
@@ -19,17 +28,34 @@ const STATUS_ICONS: Record<OrderStatus, React.ReactNode> = {
   CANCELLED: <Package className="w-5 h-5" />, // not used in timeline
 };
 
-const statusMessages: Record<OrderStatus, { title: string; description: string }> = {
-  PENDING: { title: "Order received", description: "We have received your order. Preparing soon." },
-  PREPARING: { title: "Being prepared", description: "Our barista is carefully crafting your coffee." },
-  READYTOPICKUP: { title: "Ready for pickup", description: "Your order is ready. Please pick it up at the counter." },
-  COMPLETED: { title: "Completed", description: "Thank you! Your order is complete." },
+const statusMessages: Record<
+  OrderStatus,
+  { title: string; description: string }
+> = {
+  PENDING: {
+    title: "Order received",
+    description: "We have received your order. Preparing soon.",
+  },
+  PREPARING: {
+    title: "Being prepared",
+    description: "Our barista is carefully crafting your coffee.",
+  },
+  READYTOPICKUP: {
+    title: "Ready for pickup",
+    description: "Your order is ready. Please pick it up at the counter.",
+  },
+  COMPLETED: {
+    title: "Completed",
+    description: "Thank you! Your order is complete.",
+  },
   CANCELLED: { title: "Cancelled", description: "This order was cancelled." },
 };
 
 // Pesos formatter
 const formatPeso = (amount: number) =>
-  new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(amount);
+  new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(
+    amount,
+  );
 
 export default function OrdersPage() {
   const dispatch = useAppDispatch();
@@ -38,7 +64,9 @@ export default function OrdersPage() {
 
   useEffect(() => {
     if (authStatus === "authenticated" && session?.user?.customerId) {
-      dispatch(fetchOrdersByCustomerId({ customerId: session.user.customerId }));
+      dispatch(
+        fetchOrdersByCustomerId({ customerId: session.user.customerId }),
+      );
     }
   }, [dispatch, session, authStatus]);
 
@@ -77,16 +105,17 @@ export default function OrdersPage() {
 
           const itemsTotal = order.orderItems.reduce(
             (acc, item) => acc + item.priceAtPurchase * item.quantity,
-            0
+            0,
           );
           const addonsTotal = order.orderItems.reduce(
             (acc, item) =>
               acc +
               item.addons.reduce(
-                (a, addon) => a + addon.addon.price * addon.quantity * item.quantity,
-                0
+                (a, addon) =>
+                  a + addon.addon.price * addon.quantity * item.quantity,
+                0,
               ),
-            0
+            0,
           );
           const discount = order.discountApplied || 0;
           const subtotal = itemsTotal + addonsTotal;
@@ -101,10 +130,14 @@ export default function OrdersPage() {
               <div className="lg:col-span-2 space-y-4">
                 {/* Header */}
                 <div className="flex justify-between items-center">
-                  <h2 className="font-semibold text-lg">Order #{order.orderNumber}</h2>
+                  <h2 className="font-semibold text-lg">
+                    Order #{order.orderNumber}
+                  </h2>
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      isCancelled ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
+                      isCancelled
+                        ? "bg-red-100 text-red-700"
+                        : "bg-orange-100 text-orange-700"
                     }`}
                   >
                     {isCancelled ? "Cancelled" : "In Progress"}
@@ -114,41 +147,52 @@ export default function OrdersPage() {
                   Placed on {new Date(order.orderDate).toLocaleString()}
                 </p>
 
-               <div className="flex items-center space-x-2">
-                    {STATUS_ORDER.map((status, idx) => {
-                        const activeOrCompleted = idx <= activeIndex; // only active or completed is orange
+                <div className="flex items-center space-x-2">
+                  {STATUS_ORDER.map((status, idx) => {
+                    const activeOrCompleted = idx <= activeIndex; // only active or completed is orange
 
-                        return (
-                        <div key={status} className="flex items-center w-full relative">
-                            <div
-                            className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                                activeOrCompleted
-                                ? "bg-orange-500 border-orange-500 text-white"
-                                : "bg-white border-gray-300 text-gray-400"
-                            }`}
-                            >
-                            {STATUS_ICONS[status]}
-                            </div>
-                            {idx < STATUS_ORDER.length - 1 && (
-                            <div
-                                className={`flex-1 h-1 ${
-                                idx < activeIndex ? "bg-orange-500" : "bg-gray-300"
-                                }`}
-                            ></div>
-                            )}
+                    return (
+                      <div
+                        key={status}
+                        className="flex items-center w-full relative"
+                      >
+                        <div
+                          className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                            activeOrCompleted
+                              ? "bg-orange-500 border-orange-500 text-white"
+                              : "bg-white border-gray-300 text-gray-400"
+                          }`}
+                        >
+                          {STATUS_ICONS[status]}
                         </div>
-                        );
-                    })}
-                    </div>
-
+                        {idx < STATUS_ORDER.length - 1 && (
+                          <div
+                            className={`flex-1 h-1 ${
+                              idx < activeIndex
+                                ? "bg-orange-500"
+                                : "bg-gray-300"
+                            }`}
+                          ></div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
                 {/* Status Description */}
                 {!isCancelled && (
                   <div className="bg-orange-50 p-4 rounded-lg flex items-start space-x-3">
                     <Coffee className="text-orange-500 w-5 h-5 mt-1" />
                     <div>
-                      <p className="text-sm font-medium">{statusMessages[order.status as OrderStatus].title}</p>
-                      <p className="text-xs text-gray-600">{statusMessages[order.status as OrderStatus].description}</p>
+                      <p className="text-sm font-medium">
+                        {statusMessages[order.status as OrderStatus].title}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {
+                          statusMessages[order.status as OrderStatus]
+                            .description
+                        }
+                      </p>
                     </div>
                   </div>
                 )}
@@ -156,15 +200,24 @@ export default function OrdersPage() {
                 {/* Items */}
                 <ul className="border-t pt-2 space-y-2">
                   {order.orderItems.map((item) => (
-                    <li key={item.id} className="flex flex-col space-y-1 border-b py-2">
+                    <li
+                      key={item.id}
+                      className="flex flex-col space-y-1 border-b py-2"
+                    >
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="font-medium">{item.variant?.product.name}</p>
+                          <p className="font-medium">
+                            {item.variant?.product.name}
+                          </p>
                           <p className="text-xs text-gray-500">
-                            {item.variant?.servingType ?? ""} - Qty: {item.quantity} ({formatPeso(item.variant.price)} each)
+                            {item.variant?.servingType ?? ""} - Qty:{" "}
+                            {item.quantity} ({formatPeso(item.variant.price)}{" "}
+                            each)
                           </p>
                         </div>
-                        <span className="font-medium">{formatPeso(item.priceAtPurchase)}</span>
+                        <span className="font-medium">
+                          {formatPeso(item.priceAtPurchase)}
+                        </span>
                       </div>
                       {item.addons.length > 0 && (
                         <ul className="ml-4 space-y-1">
@@ -174,9 +227,17 @@ export default function OrdersPage() {
                               className="flex justify-between text-xs text-gray-500"
                             >
                               <span>
-                                + {addon.addon.name} x {addon.quantity * item.quantity} ({formatPeso(addon.addon.price)} each)
+                                + {addon.addon.name} x{" "}
+                                {addon.quantity * item.quantity} (
+                                {formatPeso(addon.addon.price)} each)
                               </span>
-                              <span>{formatPeso(addon.addon.price * addon.quantity * item.quantity)}</span>
+                              <span>
+                                {formatPeso(
+                                  addon.addon.price *
+                                    addon.quantity *
+                                    item.quantity,
+                                )}
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -190,11 +251,15 @@ export default function OrdersPage() {
               <div className="space-y-4">
                 <div className="border rounded-lg p-4 space-y-2 text-sm">
                   <h3 className="font-semibold">Order For</h3>
-                  <p>{order.customer.firstName} {order.customer.lastName}</p>
+                  <p>
+                    {order.customer.firstName} {order.customer.lastName}
+                  </p>
                   {order.paymentMethod?.type && (
                     <p className="text-xs text-gray-500">
                       Paid with {order.paymentMethod.type}{" "}
-                      {order.paymentMethod.details ? `• ${order.paymentMethod.details}` : ""}
+                      {order.paymentMethod.details
+                        ? `• ${order.paymentMethod.details}`
+                        : ""}
                     </p>
                   )}
                 </div>

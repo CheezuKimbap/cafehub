@@ -21,14 +21,14 @@ export interface Product {
   deletedBy: string | null;
   status: "AVAILABLE" | "NOT_AVAILABLE";
 
-  avgRating: number;       // average rating of the product
-  totalReviews: number;    // number of reviews
+  avgRating: number; // average rating of the product
+  totalReviews: number; // number of reviews
 }
 
 export interface ProductVariant {
   id: string;
   productId: string;
   servingType: "HOT" | "COLD"; // from enum ServingType
-  size?: string | null;        // SMALL, REGULAR, LARGE, or null
+  size?: string | null; // SMALL, REGULAR, LARGE, or null
   price: number;
 }

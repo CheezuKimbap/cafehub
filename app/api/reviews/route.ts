@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     console.error("GET /reviews error:", err);
     return NextResponse.json(
       { error: (err as any)?.message || "Failed to fetch reviews" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -44,12 +44,15 @@ export async function POST(request: Request) {
     if (!productId || !customerId || typeof rating !== "number") {
       return NextResponse.json(
         { error: "productId, customerId, and rating are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (rating < 1 || rating > 5) {
-      return NextResponse.json({ error: "rating must be between 1 and 5" }, { status: 400 });
+      return NextResponse.json(
+        { error: "rating must be between 1 and 5" },
+        { status: 400 },
+      );
     }
 
     const review = await prisma.review.create({
@@ -64,6 +67,9 @@ export async function POST(request: Request) {
     return NextResponse.json(review, { status: 201 });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to create review" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create review" },
+      { status: 500 },
+    );
   }
 }

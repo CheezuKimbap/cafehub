@@ -18,7 +18,7 @@ export const fetchOrders = createAsyncThunk<Order[]>(
 
     if (!res.ok) throw new Error("Failed to fetch orders");
     return res.json();
-  }
+  },
 );
 
 // Fetch orders by customer ID
@@ -86,10 +86,13 @@ export const ordersSlice = createSlice({
       .addCase(fetchOrders.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
-        state.status = "success";
-        state.orders = action.payload;
-      })
+      .addCase(
+        fetchOrders.fulfilled,
+        (state, action: PayloadAction<Order[]>) => {
+          state.status = "success";
+          state.orders = action.payload;
+        },
+      )
       .addCase(fetchOrders.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message ?? "Failed to fetch orders";
@@ -104,7 +107,7 @@ export const ordersSlice = createSlice({
         (state, action: PayloadAction<Order[]>) => {
           state.status = "success";
           state.orders = action.payload;
-        }
+        },
       )
       .addCase(fetchOrdersByCustomerId.rejected, (state, action) => {
         state.status = "failed";
@@ -134,13 +137,13 @@ export const ordersSlice = createSlice({
           };
         }
         state.updatingOrderIds = state.updatingOrderIds.filter(
-          (id) => id !== updated.id
+          (id) => id !== updated.id,
         );
       })
       .addCase(updateOrderStatus.rejected, (state, action) => {
         const { id } = action.meta.arg;
         state.updatingOrderIds = state.updatingOrderIds.filter(
-          (orderId) => orderId !== id
+          (orderId) => orderId !== id,
         );
         state.error = action.error.message ?? "Failed to update order status";
       });

@@ -71,13 +71,13 @@ const categoriesSlice = createSlice({
         state.categories = action.payload;
         state.fetched = true; // mark fetched
         state.loading = false;
-        })
+      })
       .addCase(
         fetchCategories.rejected,
         (state, action: PayloadAction<any>) => {
           state.loading = false;
           state.error = action.payload;
-        }
+        },
       );
   },
 });

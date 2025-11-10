@@ -74,12 +74,12 @@ export async function PUT(req: NextRequest, context: any) {
       // Convert to easier check format
       const existingIds = new Set(existingVariants.map((v) => v.id));
       const incomingIds = new Set(
-        variants.filter((v) => v.id).map((v) => v.id)
+        variants.filter((v) => v.id).map((v) => v.id),
       );
 
       // ✅ Delete variants that were removed
       const variantsToDelete = [...existingIds].filter(
-        (variantId) => !incomingIds.has(variantId)
+        (variantId) => !incomingIds.has(variantId),
       );
 
       await prisma.productVariant.deleteMany({
@@ -123,7 +123,7 @@ export async function PUT(req: NextRequest, context: any) {
     console.error("Failed to update product:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

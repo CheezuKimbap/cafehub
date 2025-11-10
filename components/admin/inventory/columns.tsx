@@ -6,7 +6,9 @@ import { InventoryStatusBadge } from "./InventoryStatusBadge";
 import { ProductEditButton } from "./EditProduct";
 
 // This function generates columns, optionally passing categories for edit
-export const getProductColumns = (categories?: { id: string; name: string }[]): ColumnDef<Product>[] => [
+export const getProductColumns = (
+  categories?: { id: string; name: string }[],
+): ColumnDef<Product>[] => [
   {
     accessorKey: "name",
     header: "Name",
@@ -15,12 +17,16 @@ export const getProductColumns = (categories?: { id: string; name: string }[]): 
   {
     accessorKey: "createdAt",
     header: "Created At",
-    cell: ({ row }) => <span>{new Date(row.original.createdAt).toLocaleDateString()}</span>,
+    cell: ({ row }) => (
+      <span>{new Date(row.original.createdAt).toLocaleDateString()}</span>
+    ),
   },
   {
     accessorKey: "updatedAt",
     header: "Updated At",
-    cell: ({ row }) => <span>{new Date(row.original.updatedAt).toLocaleDateString()}</span>,
+    cell: ({ row }) => (
+      <span>{new Date(row.original.updatedAt).toLocaleDateString()}</span>
+    ),
   },
   {
     accessorKey: "status",

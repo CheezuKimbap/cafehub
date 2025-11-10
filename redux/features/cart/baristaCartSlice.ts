@@ -19,7 +19,7 @@ export const fetchBaristaCart = createAsyncThunk(
     const res = await fetch(`/api/cart?customerId=${customerId}`);
     if (!res.ok) throw new Error("Failed to fetch barista cart");
     return (await res.json()) as { items: CartItem[] };
-  }
+  },
 );
 
 // Add item
@@ -39,7 +39,7 @@ export const addBaristaItem = createAsyncThunk(
     });
     if (!res.ok) throw new Error("Failed to add item");
     return (await res.json()) as CartItem;
-  }
+  },
 );
 
 // Remove item
@@ -49,7 +49,7 @@ export const removeBaristaItem = createAsyncThunk(
     const res = await fetch(`/api/cart/${itemId}`, { method: "DELETE" });
     if (!res.ok) throw new Error("Failed to remove item");
     return itemId;
-  }
+  },
 );
 
 // Slice
@@ -66,41 +66,65 @@ const baristaCartSlice = createSlice({
       .addCase(fetchBaristaCart.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchBaristaCart.fulfilled, (state, action: PayloadAction<{ items: CartItem[] }>) => {
-        state.status = "idle";
-        state.cart = action.payload;
-      })
+      .addCase(
+        fetchBaristaCart.fulfilled,
+        (state, action: PayloadAction<{ items: CartItem[] }>) => {
+          state.status = "idle";
+          state.cart = action.payload;
+        },
+      )
       .addCase(fetchBaristaCart.rejected, (state) => {
         state.status = "failed";
       })
 
-      .addCase(addBaristaItem.fulfilled, (state, action: PayloadAction<CartItem>) => {
-        if (!state.cart) state.cart = { items: [] };
+      .addCase(
+        addBaristaItem.fulfilled,
+        (state, action: PayloadAction<CartItem>) => {
+          if (!state.cart) state.cart = { items: [] };
 
-        const newItem = action.payload;
+          const newItem = action.payload;
 
-        // Merge if same variant + same addons
-        const existing = state.cart.items.find(
-          (item) =>
-            item.variantId === newItem.variantId &&
-            JSON.stringify(item.addons?.map(a => ({ addonId: a.addonId, quantity: a.quantity })) ?? []) ===
-            JSON.stringify(newItem.addons?.map(a => ({ addonId: a.addonId, quantity: a.quantity })) ?? [])
-        );
+          // Merge if same variant + same addons
+          const existing = state.cart.items.find(
+            (item) =>
+              item.variantId === newItem.variantId &&
+              JSON.stringify(
+                item.addons?.map((a) => ({
+                  addonId: a.addonId,
+                  quantity: a.quantity,
+                })) ?? [],
+              ) ===
+                JSON.stringify(
+                  newItem.addons?.map((a) => ({
+                    addonId: a.addonId,
+                    quantity: a.quantity,
+                  })) ?? [],
+                ),
+          );
 
-        if (existing) {
-          existing.quantity += newItem.quantity;
-          existing.price =
-            existing.variant.price * existing.quantity +
-            (existing.addons?.reduce((sum, a) => sum + a.price * a.quantity, 0) ?? 0);
-        } else {
-          state.cart.items.push(newItem);
-        }
-      })
+          if (existing) {
+            existing.quantity += newItem.quantity;
+            existing.price =
+              existing.variant.price * existing.quantity +
+              (existing.addons?.reduce(
+                (sum, a) => sum + a.price * a.quantity,
+                0,
+              ) ?? 0);
+          } else {
+            state.cart.items.push(newItem);
+          }
+        },
+      )
 
-      .addCase(removeBaristaItem.fulfilled, (state, action: PayloadAction<string>) => {
-        if (!state.cart) return;
-        state.cart.items = state.cart.items.filter((item) => item.id !== action.payload);
-      });
+      .addCase(
+        removeBaristaItem.fulfilled,
+        (state, action: PayloadAction<string>) => {
+          if (!state.cart) return;
+          state.cart.items = state.cart.items.filter(
+            (item) => item.id !== action.payload,
+          );
+        },
+      );
   },
 });
 

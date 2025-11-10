@@ -19,7 +19,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowUpDown } from "lucide-react";
 import { ReactNode, useState } from "react";
 
@@ -74,7 +80,7 @@ export function DataTable<TData, TValue>({
 
       {/* Table */}
       <div className="w-full overflow-x-auto rounded-xl border shadow">
-      <Table className="min-w-[600px]">
+        <Table className="min-w-[600px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -107,8 +113,8 @@ export function DataTable<TData, TValue>({
                             sortDir === "asc"
                               ? "rotate-180"
                               : sortDir === "desc"
-                              ? "rotate-0"
-                              : "opacity-40"
+                                ? "rotate-0"
+                                : "opacity-40"
                           }`}
                         />
                       )}
@@ -128,14 +134,20 @@ export function DataTable<TData, TValue>({
                       key={cell.id}
                       className="whitespace-nowrap px-4 py-2"
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>

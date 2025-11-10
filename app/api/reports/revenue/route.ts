@@ -1,6 +1,6 @@
 // /src/app/api/reports/revenue/route.ts
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { OrderStatus, PaymentStatus } from "@/prisma/generated/prisma";
 // /src/app/api/reports/revenue/route.ts
 export async function GET(req: Request) {
@@ -15,15 +15,12 @@ export async function GET(req: Request) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
         return NextResponse.json(
           { error: "Invalid date format. Use YYYY-MM-DD" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       targetDate = new Date(dateParam);
       if (isNaN(targetDate.getTime())) {
-        return NextResponse.json(
-          { error: "Invalid date" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid date" }, { status: 400 });
       }
     } else {
       targetDate = new Date(); // default to today
@@ -49,7 +46,7 @@ export async function GET(req: Request) {
     console.error(err);
     return NextResponse.json(
       { error: "Failed to fetch revenue" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

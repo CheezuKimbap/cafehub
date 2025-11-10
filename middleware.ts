@@ -40,8 +40,7 @@ export default auth((req) => {
   }
 
   // CUSTOMER or unauthenticated users can access `/` or other pages
-  return NextResponse.next()
-
+  return NextResponse.next();
 });
 // // Optional: restrict which routes it applies to
 // export const config = {

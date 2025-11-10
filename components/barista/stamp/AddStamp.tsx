@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CircleCheck } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import { selectCustomers, fetchCustomerById } from "@/redux/features/customer/customerSlice";
+import {
+  selectCustomers,
+  fetchCustomerById,
+} from "@/redux/features/customer/customerSlice";
 import { addStamp } from "@/redux/features/stamp/stampSlice";
 import Stamp from "@/public/store/Stamp.svg";
 import {
@@ -54,7 +57,9 @@ export const StampDialog: React.FC<StampDialogProps> = ({ customerId }) => {
     setStamps(stamps + stampsToAdd);
 
     try {
-      await dispatch(addStamp({ id: customerId, stamps: stampsToAdd })).unwrap();
+      await dispatch(
+        addStamp({ id: customerId, stamps: stampsToAdd }),
+      ).unwrap();
       // Redux state will sync automatically if needed
     } catch (err) {
       console.error(err);

@@ -46,9 +46,14 @@ interface ProductEditButtonProps {
   categories?: { id: string; name: string }[];
 }
 
-export function ProductEditButton({ product, categories: categoriesProp }: ProductEditButtonProps) {
+export function ProductEditButton({
+  product,
+  categories: categoriesProp,
+}: ProductEditButtonProps) {
   const dispatch = useAppDispatch();
-  const { categories: categoriesStore } = useAppSelector((state) => state.categories);
+  const { categories: categoriesStore } = useAppSelector(
+    (state) => state.categories,
+  );
 
   const categories = categoriesProp ?? categoriesStore;
 
@@ -56,15 +61,21 @@ export function ProductEditButton({ product, categories: categoriesProp }: Produ
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [categoryId, setCategoryId] = useState<string>(product.categoryId || "");
-  const [canDiscount, setCanDiscount] = useState<boolean>(product.canDiscount || false);
+  const [categoryId, setCategoryId] = useState<string>(
+    product.categoryId || "",
+  );
+  const [canDiscount, setCanDiscount] = useState<boolean>(
+    product.canDiscount || false,
+  );
 
-  const [status, setStatus] = useState<"AVAILABLE" | "NOT_AVAILABLE">(product.status);
+  const [status, setStatus] = useState<"AVAILABLE" | "NOT_AVAILABLE">(
+    product.status,
+  );
 
   const [variants, setVariants] = useState<Variant[]>(
     product.variants && product.variants.length > 0
       ? product.variants.map((v) => ({ ...v }))
-      : [{ servingType: null, size: "", price: null }]
+      : [{ servingType: null, size: "", price: null }],
   );
 
   useEffect(() => {
@@ -94,7 +105,9 @@ export function ProductEditButton({ product, categories: categoriesProp }: Produ
     setVariants(variants.filter((_, i) => i !== idx));
   };
   const updateVariant = (idx: number, field: string, value: any) =>
-    setVariants(variants.map((v, i) => (i === idx ? { ...v, [field]: value } : v)));
+    setVariants(
+      variants.map((v, i) => (i === idx ? { ...v, [field]: value } : v)),
+    );
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -122,119 +135,182 @@ export function ProductEditButton({ product, categories: categoriesProp }: Produ
     categories.find((cat) => cat.id === categoryId)?.name !== "Snacks";
 
   return (
-   <Dialog>
-  <DialogTrigger asChild>
-    <Button className="bg-black text-white hover:bg-gray-800 rounded-md shadow-md">
-      Edit Product
-    </Button>
-  </DialogTrigger>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="bg-black text-white hover:bg-gray-800 rounded-md shadow-md">
+          Edit Product
+        </Button>
+      </DialogTrigger>
 
-  <DialogContent className="bg-white border shadow-lg rounded-xl p-6 max-w-3xl">
-    <DialogHeader>
-      <DialogTitle className="text-xl font-semibold">Edit Product</DialogTitle>
-    </DialogHeader>
+      <DialogContent className="bg-white border shadow-lg rounded-xl p-6 max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            Edit Product
+          </DialogTitle>
+        </DialogHeader>
 
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Top: Main fields + Image */}
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Left: Main fields */}
-        <div className="flex-1 space-y-3">
-          <Input name="name" defaultValue={product.name} required disabled={loading} />
-          <Textarea name="description" defaultValue={product.description} required disabled={loading} />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Top: Main fields + Image */}
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Left: Main fields */}
+            <div className="flex-1 space-y-3">
+              <Input
+                name="name"
+                defaultValue={product.name}
+                required
+                disabled={loading}
+              />
+              <Textarea
+                name="description"
+                defaultValue={product.description}
+                required
+                disabled={loading}
+              />
 
-          {categories.length > 0 && (
-            <Select value={categoryId} onValueChange={setCategoryId} disabled={loading}>
-              <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+              {categories.length > 0 && (
+                <Select
+                  value={categoryId}
+                  onValueChange={setCategoryId}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
-          <Select value={status} onValueChange={(val) => setStatus(val as any)} disabled={loading}>
-            <SelectTrigger><SelectValue placeholder="Product Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="AVAILABLE">Available</SelectItem>
-              <SelectItem value="NOT_AVAILABLE">Not Available</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center gap-2">
-            <Checkbox checked={canDiscount} onCheckedChange={(c) => setCanDiscount(c === true)} />
-            <span>Can have discount</span>
-          </div>
-        </div>
-
-        {/* Right: Image preview */}
-        <div className="w-full md:w-40">
-          <label className="block w-full h-40 border border-dashed rounded-md flex items-center justify-center cursor-pointer overflow-hidden relative">
-            {preview ? (
-              <img src={preview} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <ImageIcon className="w-10 h-10 text-gray-400" />
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              onChange={handleImageChange}
-            />
-          </label>
-        </div>
-      </div>
-
-      {/* Variants Section (full width below top row) */}
-      <div className="space-y-3">
-        {variants.map((v, idx) => (
-          <div key={idx} className="flex flex-col md:flex-row gap-2 items-center">
-            {showServingType && (
               <Select
-                value={v.servingType ?? "NONE"}
-                onValueChange={(val) => updateVariant(idx, "servingType", val === "NONE" ? null : val)}
+                value={status}
+                onValueChange={(val) => setStatus(val as any)}
+                disabled={loading}
               >
-                <SelectTrigger><SelectValue placeholder="Serving" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Product Status" />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="NONE">None</SelectItem>
-                  <SelectItem value="HOT">HOT</SelectItem>
-                  <SelectItem value="COLD">COLD</SelectItem>
+                  <SelectItem value="AVAILABLE">Available</SelectItem>
+                  <SelectItem value="NOT_AVAILABLE">Not Available</SelectItem>
                 </SelectContent>
               </Select>
-            )}
 
-            <Input
-              value={v.size ?? ""}
-              onChange={(e) => updateVariant(idx, "size", e.target.value)}
-              placeholder="Size"
-            />
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={canDiscount}
+                  onCheckedChange={(c) => setCanDiscount(c === true)}
+                />
+                <span>Can have discount</span>
+              </div>
+            </div>
 
-            <Input
-              type="number"
-              value={v.price ?? ""}
-              onChange={(e) => updateVariant(idx, "price", e.target.value ? Number(e.target.value) : null)}
-              required
-            />
-
-            {idx !== 0 && (
-              <Button type="button" variant="destructive" size="sm" onClick={() => removeVariant(idx)}>
-                Remove
-              </Button>
-            )}
+            {/* Right: Image preview */}
+            <div className="w-full md:w-40">
+              <label className="block w-full h-40 border border-dashed rounded-md flex items-center justify-center cursor-pointer overflow-hidden relative">
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <ImageIcon className="w-10 h-10 text-gray-400" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={handleImageChange}
+                />
+              </label>
+            </div>
           </div>
-        ))}
 
-        <Button type="button" variant="outline" size="sm" onClick={addVariant}>
-          Add Variant
-        </Button>
-      </div>
+          {/* Variants Section (full width below top row) */}
+          <div className="space-y-3">
+            {variants.map((v, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col md:flex-row gap-2 items-center"
+              >
+                {showServingType && (
+                  <Select
+                    value={v.servingType ?? "NONE"}
+                    onValueChange={(val) =>
+                      updateVariant(
+                        idx,
+                        "servingType",
+                        val === "NONE" ? null : val,
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Serving" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NONE">None</SelectItem>
+                      <SelectItem value="HOT">HOT</SelectItem>
+                      <SelectItem value="COLD">COLD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
 
-      <Button type="submit" disabled={loading} className="w-full bg-black text-white">
-        {loading ? "Saving..." : "Update Product"}
-      </Button>
-    </form>
-  </DialogContent>
-</Dialog>
+                <Input
+                  value={v.size ?? ""}
+                  onChange={(e) => updateVariant(idx, "size", e.target.value)}
+                  placeholder="Size"
+                />
 
+                <Input
+                  type="number"
+                  value={v.price ?? ""}
+                  onChange={(e) =>
+                    updateVariant(
+                      idx,
+                      "price",
+                      e.target.value ? Number(e.target.value) : null,
+                    )
+                  }
+                  required
+                />
+
+                {idx !== 0 && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeVariant(idx)}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addVariant}
+            >
+              Add Variant
+            </Button>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black text-white"
+          >
+            {loading ? "Saving..." : "Update Product"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

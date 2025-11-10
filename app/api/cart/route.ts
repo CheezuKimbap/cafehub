@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       include: {
         items: {
           include: {
-           variant: {
+            variant: {
               include: {
                 product: true, // ✅ product is accessed THROUGH variant
               },
@@ -99,13 +99,16 @@ export async function POST(req: NextRequest) {
       include: { addons: true },
     });
 
-    const key = JSON.stringify(addons?.sort((a: any, b: any) => a.addonId.localeCompare(b.addonId)) ?? []);
+    const key = JSON.stringify(
+      addons?.sort((a: any, b: any) => a.addonId.localeCompare(b.addonId)) ??
+        [],
+    );
 
     let existingItem = existingItems.find((item) => {
       const itemKey = JSON.stringify(
         item.addons
           .map((a) => ({ addonId: a.addonId, quantity: a.quantity }))
-          .sort((a, b) => a.addonId.localeCompare(b.addonId))
+          .sort((a, b) => a.addonId.localeCompare(b.addonId)),
       );
       return itemKey === key;
     });
@@ -145,8 +148,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Item added to cart" });
   } catch (error) {
     console.error("Add to cart failed:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
-
-

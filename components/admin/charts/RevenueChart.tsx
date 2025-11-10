@@ -43,7 +43,10 @@ export function RevenueChart({ className }: RevenueChartProps) {
           <div>
             <CardTitle>Total Revenue</CardTitle>
             <p className="text-2xl font-bold">
-              ₱{monthlyData.reduce((sum: any, m: any) => sum + m.profit, 0).toLocaleString()}
+              ₱
+              {monthlyData
+                .reduce((sum: any, m: any) => sum + m.profit, 0)
+                .toLocaleString()}
             </p>
             <p className="text-sm text-green-600">↑ Compared to last month</p>
           </div>

@@ -16,7 +16,7 @@ const initialState: TotalOrderState = {
 // Async thunk to fetch total orders
 export const fetchTotalOrders = createAsyncThunk<
   number, // return type
-  void,   // argument type
+  void, // argument type
   { rejectValue: string }
 >("totalOrder/fetchTotalOrders", async (_, thunkAPI) => {
   try {
@@ -41,10 +41,13 @@ const totalOrderSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchTotalOrders.fulfilled, (state, action: PayloadAction<number>) => {
-        state.loading = false;
-        state.total = action.payload;
-      })
+      .addCase(
+        fetchTotalOrders.fulfilled,
+        (state, action: PayloadAction<number>) => {
+          state.loading = false;
+          state.total = action.payload;
+        },
+      )
       .addCase(fetchTotalOrders.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload ?? "Something went wrong";

@@ -44,9 +44,8 @@ export const addItemToCart = createAsyncThunk(
 
     if (!res.ok) throw new Error("Failed to add item to cart");
     return (await res.json()) as CartItem;
-  }
+  },
 );
-
 
 // Update cart item quantity
 export const updateCartItem = createAsyncThunk(
@@ -91,33 +90,32 @@ const cartSlice = createSlice({
     },
 
     // Update item quantity locally
-   updateItemQuantityLocally: (
-  state,
-  action: PayloadAction<{ itemId: string; quantity: number }>,
-) => {
-  if (!state.cart) return;
+    updateItemQuantityLocally: (
+      state,
+      action: PayloadAction<{ itemId: string; quantity: number }>,
+    ) => {
+      if (!state.cart) return;
 
-  state.cart.items = state.cart.items.map((item) => {
-    if (item.id !== action.payload.itemId) return item;
+      state.cart.items = state.cart.items.map((item) => {
+        if (item.id !== action.payload.itemId) return item;
 
-    const basePrice = item.variant.price; // ✅ variant controls price
+        const basePrice = item.variant.price; // ✅ variant controls price
 
-    // Recalculate total including addons
-    const addonsTotal = item.addons.reduce(
-      (sum, addon) => sum + addon.price * addon.quantity,
-      0
-    );
+        // Recalculate total including addons
+        const addonsTotal = item.addons.reduce(
+          (sum, addon) => sum + addon.price * addon.quantity,
+          0,
+        );
 
-    const newQty = action.payload.quantity;
+        const newQty = action.payload.quantity;
 
-    return {
-      ...item,
-      quantity: newQty,
-      price: basePrice * newQty + addonsTotal, // ✅ correct total pricing logic
-    };
-  });
-},
-
+        return {
+          ...item,
+          quantity: newQty,
+          price: basePrice * newQty + addonsTotal, // ✅ correct total pricing logic
+        };
+      });
+    },
 
     // Clear cart
     clearCart: (state) => {
@@ -194,39 +192,43 @@ const cartSlice = createSlice({
       })
 
       // Add item
-     .addCase(addItemToCart.fulfilled, (state, action: PayloadAction<CartItem>) => {
-  if (!state.cart) {
-    state.cart = {
-      id: "temp",
-      customerId: "",
-      items: [],
-      status: "ACTIVE",
-    };
-  }
+      .addCase(
+        addItemToCart.fulfilled,
+        (state, action: PayloadAction<CartItem>) => {
+          if (!state.cart) {
+            state.cart = {
+              id: "temp",
+              customerId: "",
+              items: [],
+              status: "ACTIVE",
+            };
+          }
 
-  const newItem = action.payload;
+          const newItem = action.payload;
 
-  // Try to find an existing item with the same variantId + addons
-    const existing = state.cart.items.find(
+          // Try to find an existing item with the same variantId + addons
+          const existing = state.cart.items.find(
             (item) =>
-            item.variantId === newItem.variantId &&
-            JSON.stringify(item.addons ?? []) === JSON.stringify(newItem.addons ?? [])
-        );
+              item.variantId === newItem.variantId &&
+              JSON.stringify(item.addons ?? []) ===
+                JSON.stringify(newItem.addons ?? []),
+          );
 
-        if (existing) {
+          if (existing) {
             // Increment quantity & recalc total
             existing.quantity += newItem.quantity;
             existing.price =
-            existing.variant.price * existing.quantity +
-            (existing.addons?.reduce(
+              existing.variant.price * existing.quantity +
+              (existing.addons?.reduce(
                 (sum, addon) => sum + addon.price * addon.quantity,
-                0
-            ) ?? 0);
-        } else {
+                0,
+              ) ?? 0);
+          } else {
             // Add new item if unique
             state.cart.items.push(newItem);
-        }
-        })
+          }
+        },
+      )
 
       .addCase(
         updateCartItem.fulfilled,

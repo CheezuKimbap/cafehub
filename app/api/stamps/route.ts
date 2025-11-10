@@ -7,7 +7,10 @@ export async function PUT(req: NextRequest) {
     const { id, stamps = 1 } = await req.json();
 
     if (!id) {
-      return NextResponse.json({ error: "Customer id is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Customer id is required" },
+        { status: 400 },
+      );
     }
 
     const customer = await prisma.customer.findUnique({
@@ -16,7 +19,10 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!customer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Customer not found" },
+        { status: 404 },
+      );
     }
 
     // Add stamps
@@ -55,11 +61,17 @@ export async function PUT(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: "Stamp updated and rewards applied", currentStamps: newStampCount },
-      { status: 200 }
+      {
+        message: "Stamp updated and rewards applied",
+        currentStamps: newStampCount,
+      },
+      { status: 200 },
     );
   } catch (error) {
     console.error("Failed to add stamp:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

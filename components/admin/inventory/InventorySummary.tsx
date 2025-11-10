@@ -9,7 +9,6 @@ export function InventorySummary() {
 
   const totalProducts = items.length;
 
-
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 mb-6">
       <Card>
@@ -21,7 +20,6 @@ export function InventorySummary() {
           <div className="text-2xl font-bold">{totalProducts}</div>
         </CardContent>
       </Card>
-
 
       {/* <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

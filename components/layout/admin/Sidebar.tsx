@@ -3,7 +3,15 @@
 import { Manrope, Sora } from "next/font/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Home, Package, Settings, User, Menu, Stamp } from "lucide-react";
+import {
+  LogOut,
+  Home,
+  Package,
+  Settings,
+  User,
+  Menu,
+  Stamp,
+} from "lucide-react";
 import { signOut } from "next-auth/react";
 import { resetStore } from "@/redux/store";
 
