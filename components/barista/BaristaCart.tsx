@@ -17,7 +17,7 @@ export function BaristaCart() {
   const total = useMemo(() => {
     if (!cart || !cart.items.length) return 0;
     return cart.items.reduce((acc, item) => {
-      const productPrice = item.product?.price ?? 0;
+      const productPrice = item.variant.product?.price ?? 0;
       const addonsTotal =
         item.addons?.reduce((sum, a) => sum + a.price * a.quantity, 0) ?? 0;
       return acc + productPrice * item.quantity + addonsTotal;
@@ -47,7 +47,7 @@ export function BaristaCart() {
         >
           <div className="flex justify-between items-center">
             <div>
-              <p className="font-semibold">{item.product?.name ?? "Unknown"}</p>
+              <p className="font-semibold">{item.variant.product?.name ?? "Unknown"}</p>
               <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
             </div>
             <div className="flex gap-2 items-center">
