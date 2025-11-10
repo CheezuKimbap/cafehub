@@ -52,6 +52,8 @@ export interface Order {
   paymentStatus: PaymentStatus;
   orderItems: OrderItem[];
   customer: Customer;
+  orderName?: string,
+  pickupTime?: string,
   paymentMethod?: {
     type: string; // e.g., "CASH" | "GCASH"
     provider?: string; // optional provider info

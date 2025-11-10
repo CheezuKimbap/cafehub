@@ -228,6 +228,9 @@ model Order {
   orderItems    OrderItem[]
   paymentStatus PaymentStatus  @default(UNPAID)
   paymentMethod PaymentMethod?
+
+  pickupTime   DateTime?
+  orderName    String?
 }
 
 enum PaymentStatus {

@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
       paymentType,
       paymentProvider,
       paymentDetails,
+      orderName,
+      pickupTime,
     } = await req.json();
 
     if (!customerId) {
@@ -147,6 +149,8 @@ export async function POST(req: NextRequest) {
           orderNumber,
           totalAmount,
           discountApplied,
+          orderName: orderName ?? null,
+          pickupTime: pickupTime ? new Date(pickupTime) : null,
           orderItems: {
             create: cart.items.map((item) => {
               if (!item.variantId || !item.variant)

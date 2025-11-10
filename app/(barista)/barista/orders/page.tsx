@@ -145,6 +145,17 @@ export default function BaristaBoard() {
                     <p className="text-xs text-gray-500">
                       Created: {formatDateTime(order.orderDate)}
                     </p>
+                     <p className="text-xs text-gray-500">
+                      Scheduled Pickup: {(() => {
+                        if (!order.pickupTime) return "—";
+                        const orderDate = new Date(order.orderDate);
+                        const pickupDate = new Date(order.pickupTime);
+                        const diffMinutes = (pickupDate.getTime() - orderDate.getTime()) / 60000;
+
+                        // If pickup within 10 minutes → show ASAP
+                        return diffMinutes <= 10 ? " ASAP" : formatDateTime(order.pickupTime);
+                    })()}
+                    </p>
                   </CardHeader>
 
                   <CardContent className="pt-3 space-y-2">

@@ -44,4 +44,7 @@ export interface Order {
     paidAt?: string;
   };
   orderItems: OrderItem[];
+  orderName?: string,
+  pickupTime?: string,
+
 }

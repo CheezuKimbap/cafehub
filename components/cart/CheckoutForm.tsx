@@ -30,11 +30,20 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
   const customerId = session?.user.customerId;
+  const [pickUpDay, setPickUpDay] = useState<string | null>("0");
+  const [pickUpTime, setPickUpTime] = useState<string | null>("ASAP"); // default ASAP
+
 
   const { cart } = useAppSelector((state) => state.cart);
   const discounts = useAppSelector(selectDiscounts);
   const { loading, error } = useAppSelector((state) => state.checkout);
-
+  const STORE_OPEN = 9;   // 9 AM
+  const STORE_CLOSE = 22; // 10 PM (24h format)
+  const dayOptions = [
+  { label: "Today", offset: 0 },
+  { label: "Tomorrow", offset: 1 },
+  { label: "Day After Tomorrow", offset: 2 },
+ ];
   useEffect(() => {
     if (customerId) {
       dispatch(fetchDiscounts(customerId));
@@ -81,12 +90,33 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
 
   const handleCheckout = async () => {
     if (!customerId) return;
+    let finalPickupTime: string | undefined = undefined;
+   if (pickUpDay !== null) {
+    const now = new Date();
+    const pickupDate = new Date();
+    pickupDate.setDate(now.getDate() + Number(pickUpDay));
 
+    if (pickUpTime === "ASAP") {
+        pickupDate.setHours(now.getHours());
+        pickupDate.setMinutes(now.getMinutes() + 5); // e.g., 5 min from now
+    } else if (pickUpTime) {
+        const [hours, minutes] = pickUpTime.split(":");
+        pickupDate.setHours(Number(hours));
+        pickupDate.setMinutes(Number(minutes));
+    }
+
+    pickupDate.setSeconds(0);
+    pickupDate.setMilliseconds(0);
+
+    finalPickupTime = pickupDate.toISOString(); // ✅ ISO string
+    }
     try {
       await dispatch(
         checkout({
           customerId,
           discountId: selectedVoucher ?? undefined,
+          orderName: undefined,
+          pickupTime: finalPickupTime ?? undefined,
         }),
       ).unwrap();
 
@@ -202,6 +232,85 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
           </SelectContent>
         </Select>
       </div>
+
+      <div className="grid gap-4">
+  {/* Day Select */}
+  <div>
+    <Label>Pickup Day</Label>
+    <Select value={pickUpDay ?? ""} onValueChange={setPickUpDay} required>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Select day" />
+      </SelectTrigger>
+      <SelectContent>
+        {dayOptions.map((d) => (
+          <SelectItem key={d.label} value={String(d.offset)}>
+            {d.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
+
+  {/* Time Select */}
+  <div>
+    <Label>Pickup Time</Label>
+    <Select value={pickUpTime ?? ""} onValueChange={setPickUpTime} required>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder="Select pickup time" />
+      </SelectTrigger>
+      <SelectContent>
+        {(() => {
+          const slots = [];
+          const now = new Date();
+          const selectedDayOffset = Number(pickUpDay ?? 0);
+
+          const baseDate = new Date();
+          baseDate.setDate(baseDate.getDate() + selectedDayOffset);
+          baseDate.setSeconds(0);
+          baseDate.setMilliseconds(0);
+
+          // If today → allow "ASAP"
+          if (selectedDayOffset === 0) {
+            slots.push(<SelectItem value="ASAP">ASAP</SelectItem>);
+          }
+
+          // Start times based on date selected
+          for (let hour = STORE_OPEN; hour < STORE_CLOSE; hour++) {
+            for (let minute of [0, 15, 30, 45]) {
+              const slot = new Date(baseDate);
+              slot.setHours(hour);
+              slot.setMinutes(minute);
+
+              // Skip expired times for "Today"
+              if (selectedDayOffset === 0 && slot <= now) continue;
+
+              // If "Today", skip immediate next slot (ASAP behavior)
+              if (selectedDayOffset === 0) {
+                const nearest = new Date(now);
+                nearest.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
+                if (slot.getTime() === nearest.getTime()) continue;
+              }
+
+              const label = slot.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
+              slots.push(
+                <SelectItem key={label} value={label}>
+                  {label}
+                </SelectItem>
+              );
+            }
+          }
+
+          return slots;
+        })()}
+      </SelectContent>
+    </Select>
+  </div>
+</div>
+
 
       {/* Confirm Buttons */}
       <CheckoutConfirm
