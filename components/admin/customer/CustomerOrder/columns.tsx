@@ -16,7 +16,7 @@ export const latestOrderColumns: ColumnDef<Order>[] = [
     accessorKey: "orderItems",
     header: "Product",
     cell: ({ row }) =>
-      row.original.orderItems.map((item) => item.product.name).join(", "),
+      row.original.orderItems.map((item) => item.variant.product.name).join(", "),
   },
   {
     accessorKey: "id",
