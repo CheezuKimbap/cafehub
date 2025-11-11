@@ -125,160 +125,162 @@ export default function BaristaBoard() {
                 return sum + base + addons;
               }, 0);
 
-              return (
-                <Card key={order.id} className="shadow-md">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>#{order.orderNumber}</span>
-                      <Badge
-                        className={
-                          order.paymentStatus === "UNPAID"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-green-100 text-green-700"
-                        }
-                      >
-                        {order.paymentStatus === "UNPAID"
-                          ? "Unpaid"
-                          : order.status}
-                      </Badge>
-                    </CardTitle>
-                    <p className="text-xs text-gray-500">
-                      Created: {formatDateTime(order.orderDate)}
-                    </p>
-                     <p className="text-xs text-gray-500">
-                      Scheduled Pickup: {(() => {
-                        if (!order.pickupTime) return "—";
-                        const orderDate = new Date(order.orderDate);
-                        const pickupDate = new Date(order.pickupTime);
-                        const diffMinutes = (pickupDate.getTime() - orderDate.getTime()) / 60000;
+            return (
+  <Card key={order.id} className="shadow-md">
+    <CardHeader>
+      <CardTitle className="flex justify-between items-center">
+        <span>#{order.orderNumber}</span>
+        <Badge
+          className={
+            order.paymentStatus === "UNPAID"
+              ? "bg-red-100 text-red-700"
+              : "bg-green-100 text-green-700"
+          }
+        >
+          {order.paymentStatus === "UNPAID" ? "Unpaid" : order.status}
+        </Badge>
+      </CardTitle>
 
-                        // If pickup within 10 minutes → show ASAP
-                        return diffMinutes <= 10 ? " ASAP" : formatDateTime(order.pickupTime);
-                    })()}
-                    </p>
-                  </CardHeader>
+      <p className="text-xs text-gray-500">
+        Created: {formatDateTime(order.orderDate)}
+      </p>
+      <p className="text-xs text-gray-500">
+        Scheduled Pickup: {(() => {
+          if (!order.pickupTime) return "—";
+          const orderDate = new Date(order.orderDate);
+          const pickupDate = new Date(order.pickupTime);
+          const diffMinutes = (pickupDate.getTime() - orderDate.getTime()) / 60000;
+          return diffMinutes <= 10 ? " ASAP" : formatDateTime(order.pickupTime);
+        })()}
+      </p>
+    </CardHeader>
 
-                  <CardContent className="pt-3 space-y-2">
-                    <p className="font-medium text-sm text-gray-800">
-                      {order.customer?.firstName ?? "Guest"}
-                    </p>
+    {/* If COMPLETED and not expanded → show collapse toggle only */}
+    {col.key === "COMPLETED" && !isExpanded ? (
+      <CardContent className="pt-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full flex items-center justify-center gap-1"
+          onClick={() => toggleExpand(order.id)}
+        >
+          Show Details <ChevronDown className="w-3 h-3" />
+        </Button>
+      </CardContent>
+    ) : (
+      <CardContent className="pt-3 space-y-2">
+        <p className="font-medium text-sm text-gray-800">
+          Customer Name: {order.orderName ?? order.customer?.firstName}
+        </p>
 
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      {orderItems.map((item) => {
-                        const itemTotal =
-                          item.priceAtPurchase * item.quantity +
-                          item.addons.reduce(
-                            (sum, a) => sum + a.addon.price * a.quantity,
-                            0,
-                          );
-                        return (
-                          <li
-                            key={item.id}
-                            className={`flex flex-col p-1 rounded-md ${
-                              item.addons.length > 0 ? "bg-yellow-50" : ""
-                            }`}
-                          >
-                            <div className="flex justify-between items-center">
-                              <span>
-                                {item.quantity}×{" "}
-                                {item.variant?.product?.name ??
-                                  "Unknown Product"}{" "}
-                                (₱{item.priceAtPurchase.toFixed(2)}) -{" "}
-                                {item.variant?.servingType ?? ""}
-                              </span>
-                              <span>₱{itemTotal.toFixed(2)}</span>
-                            </div>
+        <ul className="text-xs text-gray-600 space-y-1">
+          {orderItems.map((item) => {
+            const itemTotal =
+              item.priceAtPurchase * item.quantity +
+              item.addons.reduce((sum, a) => sum + a.addon.price * a.quantity, 0);
+            return (
+              <li
+                key={item.id}
+                className={`flex flex-col p-1 rounded-md ${
+                  item.addons.length > 0 ? "bg-yellow-50" : ""
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span>
+                    {item.quantity}×{" "}
+                    {item.variant?.product?.name ?? "Unknown Product"} (₱
+                    {item.priceAtPurchase.toFixed(2)}) -{" "}
+                    {item.variant?.servingType ?? ""}
+                  </span>
+                  <span>₱{itemTotal.toFixed(2)}</span>
+                </div>
 
-                            {item.addons.length > 0 && (
-                              <ul className="pl-4 text-xs text-gray-500 mt-1 space-y-0.5">
-                                {item.addons.map((a) => (
-                                  <li key={a.id}>
-                                    {a.addon.name} × {a.quantity} (₱
-                                    {(a.addon.price * a.quantity).toFixed(2)})
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </li>
-                        );
-                      })}
+                {item.addons.length > 0 && (
+                  <ul className="pl-4 text-xs text-gray-500 mt-1 space-y-0.5">
+                    {item.addons.map((a) => (
+                      <li key={a.id}>
+                        {a.addon.name} × {a.quantity} (₱
+                        {(a.addon.price * a.quantity).toFixed(2)})
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
 
-                      {!showAllItems && order.orderItems.length > 2 && (
-                        <li>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex items-center gap-1 mt-1"
-                            onClick={() => toggleExpand(order.id)}
-                          >
-                            {isExpanded ? (
-                              <>
-                                Collapse <ChevronUp className="w-3 h-3" />
-                              </>
-                            ) : (
-                              <>
-                                Show more ({order.orderItems.length - 2}){" "}
-                                <ChevronDown className="w-3 h-3" />
-                              </>
-                            )}
-                          </Button>
-                        </li>
-                      )}
-                    </ul>
+          {!showAllItems && order.orderItems.length > 2 && (
+            <li>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1 mt-1"
+                onClick={() => toggleExpand(order.id)}
+              >
+                {isExpanded ? (
+                  <>
+                    Collapse <ChevronUp className="w-3 h-3" />
+                  </>
+                ) : (
+                  <>
+                    Show more ({order.orderItems.length - 2}){" "}
+                    <ChevronDown className="w-3 h-3" />
+                  </>
+                )}
+              </Button>
+            </li>
+          )}
+        </ul>
 
-                    <p className="font-medium text-gray-700 mt-2">
-                      Total: ₱{orderTotal.toFixed(2)}
-                    </p>
+        <p className="font-medium text-gray-700 mt-2">
+          Total: ₱{orderTotal.toFixed(2)}
+        </p>
 
-                    {/* Actions */}
-                    <div className="pt-2 space-y-2">
-                      {order.paymentStatus === "UNPAID" && (
-                        <Button
-                          onClick={() =>
-                            handleUpdateStatus(order.id, order.status, "PAID")
-                          }
-                          className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                        >
-                          Mark as Paid
-                        </Button>
-                      )}
+        {/* Actions */}
+        <div className="pt-2 space-y-2">
+          {order.paymentStatus === "UNPAID" && (
+            <Button
+              onClick={() =>
+                handleUpdateStatus(order.id, order.status, "PAID")
+              }
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Mark as Paid
+            </Button>
+          )}
 
-                      {order.status === "PENDING" && (
-                        <Button
-                          onClick={() =>
-                            handleUpdateStatus(order.id, "PREPARING")
-                          }
-                          className="w-full bg-orange-400 hover:bg-orange-500 text-white"
-                        >
-                          Start Preparing
-                        </Button>
-                      )}
+          {order.status === "PENDING" && (
+            <Button
+              onClick={() => handleUpdateStatus(order.id, "PREPARING")}
+              className="w-full bg-orange-400 hover:bg-orange-500 text-white"
+            >
+              Start Preparing
+            </Button>
+          )}
 
-                      {order.status === "PREPARING" && (
-                        <Button
-                          onClick={() =>
-                            handleUpdateStatus(order.id, "READYTOPICKUP")
-                          }
-                          className="w-full bg-green-500 hover:bg-green-600 text-white"
-                        >
-                          Mark Ready
-                        </Button>
-                      )}
+          {order.status === "PREPARING" && (
+            <Button
+              onClick={() => handleUpdateStatus(order.id, "READYTOPICKUP")}
+              className="w-full bg-green-500 hover:bg-green-600 text-white"
+            >
+              Mark Ready
+            </Button>
+          )}
 
-                      {order.status === "READYTOPICKUP" && (
-                        <Button
-                          onClick={() =>
-                            handleUpdateStatus(order.id, "COMPLETED")
-                          }
-                          className="w-full border border-gray-300 text-white hover:bg-gray-100"
-                        >
-                          Mark Picked Up
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
+          {order.status === "READYTOPICKUP" && (
+            <Button
+              onClick={() => handleUpdateStatus(order.id, "COMPLETED")}
+              className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              Mark Picked Up
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    )}
+  </Card>
+);
+
             })}
         </div>
       ))}

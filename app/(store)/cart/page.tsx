@@ -63,23 +63,23 @@ export default function CartPage() {
   const handleRemove = (itemId: string) => {
     dispatch(removeCartItem(itemId));
   };
-  const total = useMemo(() => {
-    if (!cart) return 0;
+const total = useMemo(() => {
+  if (!cart) return 0;
 
-    return cart.items.reduce((acc, item) => {
-      // Base product total
-      const productTotal = item.variant.price * item.quantity;
+  return cart.items.reduce((acc, item) => {
+    const variantPrice = item.variant?.price ?? 0; // prevent undefined
+    const productTotal = variantPrice * item.quantity;
 
-      // Addons total (addon price * addon quantity * cart item quantity)
-      const addonsTotal =
-        item.addons?.reduce(
-          (sum, addon) => sum + addon.addon.price * addon.quantity,
-          0,
-        ) || 0;
+    const addonsTotal =
+      item.addons?.reduce((sum, addon) => {
+        const addonPrice = addon.addon?.price ?? 0; // prevent undefined
+        return sum + addonPrice * addon.quantity;
+      }, 0) ?? 0;
 
-      return acc + productTotal + addonsTotal;
-    }, 0);
-  }, [cart]);
+    return acc + productTotal + addonsTotal;
+  }, 0);
+}, [cart]);
+
 
   if (status === "loading") return <p>Loading cart...</p>;
   if (!cart || cart.items.length === 0)
