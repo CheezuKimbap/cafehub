@@ -101,7 +101,11 @@ export default function OrdersPage() {
       ) : (
         orders.map((order) => {
           const isCancelled = order.status === "CANCELLED";
-          const activeIndex = STATUS_ORDER.indexOf(order.status as OrderStatus);
+          // Only mark COMPLETED if status COMPLETED and payment PAID
+          const activeIndex =
+            order.status === "COMPLETED" && order.paymentStatus === "PAID"
+              ? STATUS_ORDER.indexOf("COMPLETED")
+              : STATUS_ORDER.indexOf(order.status as OrderStatus);
 
           const itemsTotal = order.orderItems.reduce(
             (acc, item) => acc + item.priceAtPurchase * item.quantity,
@@ -137,25 +141,29 @@ export default function OrdersPage() {
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
                       isCancelled
                         ? "bg-red-100 text-red-700"
+                        : order.status === "COMPLETED" &&
+                          order.paymentStatus === "PAID"
+                        ? "bg-green-100 text-green-700"
                         : "bg-orange-100 text-orange-700"
                     }`}
                   >
-                    {isCancelled ? "Cancelled" : "In Progress"}
+                    {isCancelled
+                      ? "Cancelled"
+                      : order.status === "COMPLETED" && order.paymentStatus === "PAID"
+                      ? "Completed"
+                      : "In Progress"}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500">
                   Placed on {new Date(order.orderDate).toLocaleString()}
                 </p>
 
+                {/* Timeline */}
                 <div className="flex items-center space-x-2">
                   {STATUS_ORDER.map((status, idx) => {
-                    const activeOrCompleted = idx <= activeIndex; // only active or completed is orange
-
+                    const activeOrCompleted = idx <= activeIndex; // only active or completed is colored
                     return (
-                      <div
-                        key={status}
-                        className="flex items-center w-full relative"
-                      >
+                      <div key={status} className="flex items-center w-full relative">
                         <div
                           className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                             activeOrCompleted
@@ -168,9 +176,7 @@ export default function OrdersPage() {
                         {idx < STATUS_ORDER.length - 1 && (
                           <div
                             className={`flex-1 h-1 ${
-                              idx < activeIndex
-                                ? "bg-orange-500"
-                                : "bg-gray-300"
+                              idx < activeIndex ? "bg-orange-500" : "bg-gray-300"
                             }`}
                           ></div>
                         )}
@@ -185,12 +191,13 @@ export default function OrdersPage() {
                     <Coffee className="text-orange-500 w-5 h-5 mt-1" />
                     <div>
                       <p className="text-sm font-medium">
-                        {statusMessages[order.status as OrderStatus].title}
+                        {
+                          statusMessages[order.status as OrderStatus].title
+                        }
                       </p>
                       <p className="text-xs text-gray-600">
                         {
-                          statusMessages[order.status as OrderStatus]
-                            .description
+                          statusMessages[order.status as OrderStatus].description
                         }
                       </p>
                     </div>
@@ -211,8 +218,7 @@ export default function OrdersPage() {
                           </p>
                           <p className="text-xs text-gray-500">
                             {item.variant?.servingType ?? ""} - Qty:{" "}
-                            {item.quantity} ({formatPeso(item.variant.price)}{" "}
-                            each)
+                            {item.quantity} ({formatPeso(item.variant.price)} each)
                           </p>
                         </div>
                         <span className="font-medium">
@@ -233,9 +239,7 @@ export default function OrdersPage() {
                               </span>
                               <span>
                                 {formatPeso(
-                                  addon.addon.price *
-                                    addon.quantity *
-                                    item.quantity,
+                                  addon.addon.price * addon.quantity * item.quantity,
                                 )}
                               </span>
                             </li>
@@ -253,6 +257,7 @@ export default function OrdersPage() {
                   <h3 className="font-semibold">Order For</h3>
                   <p>
                     {order.customer.firstName} {order.customer.lastName}
+
                   </p>
                   {order.paymentMethod?.type && (
                     <p className="text-xs text-gray-500">
@@ -263,6 +268,28 @@ export default function OrdersPage() {
                     </p>
                   )}
                 </div>
+
+                <div className="border rounded-lg p-4 space-y-2 text-sm">
+                  <h3 className="font-semibold">Pickup Time</h3>
+                  <p>
+                    Scheduled Pickup:{" "}
+                    {(() => {
+                        const orderDate = new Date(order.orderDate);
+                        const pickupDate = new Date(order.pickupTime!);
+                        const diffMinutes = (pickupDate.getTime() - orderDate.getTime()) / 60000;
+                        return diffMinutes <= 10 ? "ASAP" : pickupDate.toLocaleString([], {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        });
+                    })()}
+                  </p>
+
+
+                </div>
+
 
                 <div className="border rounded-lg p-4 space-y-2 text-sm">
                   <h3 className="font-semibold">Order Summary</h3>

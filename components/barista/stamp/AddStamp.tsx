@@ -77,7 +77,7 @@ export const StampDialog: React.FC<StampDialogProps> = ({ customerId }) => {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Customer Stamps</DialogTitle>
           <p className="text-sm text-muted-foreground mt-1">
@@ -86,16 +86,16 @@ export const StampDialog: React.FC<StampDialogProps> = ({ customerId }) => {
         </DialogHeader>
 
         {/* Stamps grid */}
-        <section className="grid grid-cols-6 gap-4 my-4">
+        <section className="grid grid-cols-6 gap-6 my-4">
           {stampSlots.map((slot) => (
             <div
               key={slot}
               onClick={() => handleStampClick(slot)}
-              className={`relative flex items-center justify-center w-16 h-16 border rounded-xl cursor-pointer transition-colors ${
+              className={`relative flex gap-4 items-center justify-center w-16 h-16 border rounded-xl cursor-pointer transition-colors ${
                 slot <= stamps ? "bg-green-50" : "bg-gray-50 hover:bg-gray-100"
               }`}
             >
-              <Image src={Stamp} alt="Stamp Slot" width={40} height={40} />
+              <Image src={Stamp} alt="Stamp Slot" width={40} height={40} className="" />
               {slot <= stamps && (
                 <CircleCheck
                   className="absolute w-10 h-10 text-[#57C262]"

@@ -32,7 +32,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Input } from "@/components/ui/input";
 
 // Store hours & day options
-const STORE_OPEN = 9;   // 9 AM
+const STORE_OPEN = 9; // 9 AM
 const STORE_CLOSE = 22; // 10 PM
 const dayOptions = [
   { label: "Today", offset: 0 },
@@ -58,7 +58,6 @@ export default function BaristaPOS() {
   const [pickUpTime, setPickUpTime] = useState<string | null>("ASAP");
   const [orderName, setOrderName] = useState<string | null>(null);
 
-  // Fetch essentials
   useEffect(() => {
     if (!customerId) return;
     dispatch(fetchProducts());
@@ -66,23 +65,15 @@ export default function BaristaPOS() {
     dispatch(fetchAddons());
   }, [dispatch, customerId]);
 
-  // Refresh cart on order complete
   useEffect(() => {
-    if (order && customerId) {
-      dispatch(fetchBaristaCart(customerId));
-    }
+    if (order && customerId) dispatch(fetchBaristaCart(customerId));
   }, [order, customerId, dispatch]);
 
-  // Auto-select ASAP for today
   useEffect(() => {
-    if (Number(pickUpDay ?? 0) === 0) {
-      setPickUpTime("ASAP");
-    } else {
-      setPickUpTime(null);
-    }
+    if (Number(pickUpDay ?? 0) === 0) setPickUpTime("ASAP");
+    else setPickUpTime(null);
   }, [pickUpDay]);
 
-  // Toggle addons
   const toggleAddon = (addon: { id: string; name: string; price: number }) => {
     setSelectedAddons((prev) => {
       const exists = prev.find((a) => a.addonId === addon.id);
@@ -99,10 +90,8 @@ export default function BaristaPOS() {
     });
   };
 
-  // Add to cart
   const handleAddToCart = (p: any) => {
     if (!customerId || !selectedVariant) return;
-
     const addonsPayload = selectedAddons.map((a) => ({
       addonId: a.addonId,
       quantity: a.quantity,
@@ -118,9 +107,7 @@ export default function BaristaPOS() {
         quantity,
         addons: addonsPayload,
       })
-    ).then(() => {
-      dispatch(fetchBaristaCart(customerId));
-    });
+    ).then(() => dispatch(fetchBaristaCart(customerId)));
 
     setSelectedProduct(null);
     setSelectedAddons([]);
@@ -128,54 +115,60 @@ export default function BaristaPOS() {
     setSelectedVariant(null);
   };
 
-  // Remove from cart
   const handleRemoveFromCart = (itemId: string) => {
     if (!customerId) return;
-    dispatch(removeBaristaItem(itemId)).then(() => {
-      dispatch(fetchBaristaCart(customerId));
-    });
+    dispatch(removeBaristaItem(itemId)).then(() => dispatch(fetchBaristaCart(customerId)));
   };
 
-  // Checkout
-  const handleCheckout = () => {
-    if (!customerId) return;
+ const handleCheckout = () => {
+  if (!customerId) return;
 
-    let finalPickupTime: string | undefined = undefined;
-    const now = new Date();
-    const pickupDate = new Date();
-    pickupDate.setDate(now.getDate() + Number(pickUpDay ?? 0));
+  const now = new Date();
+  const pickupDate = new Date();
+  pickupDate.setDate(now.getDate() + Number(pickUpDay ?? 0));
+  pickupDate.setSeconds(0);
+  pickupDate.setMilliseconds(0);
 
-    if (pickUpTime === "ASAP") {
-      const nearest = new Date(now);
-      nearest.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
-      nearest.setSeconds(0);
-      nearest.setMilliseconds(0);
-      pickupDate.setHours(nearest.getHours());
-      pickupDate.setMinutes(nearest.getMinutes());
-    } else if (pickUpTime) {
-      const [hours, minutes] = pickUpTime.split(":");
-      pickupDate.setHours(Number(hours));
-      pickupDate.setMinutes(Number(minutes));
+  if (pickUpTime === "ASAP") {
+    // nearest 15 min slot
+    const nearest = new Date(now);
+    nearest.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
+    pickupDate.setHours(nearest.getHours(), nearest.getMinutes(), 0, 0);
+  } else if (pickUpTime) {
+    // parse "HH:MM" or "HH:MM AM/PM"
+    const match = pickUpTime.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+    if (match) {
+      let hours = Number(match[1]);
+      const minutes = Number(match[2]);
+      const meridiem = match[3]?.toUpperCase();
+
+      if (meridiem === "PM" && hours < 12) hours += 12;
+      if (meridiem === "AM" && hours === 12) hours = 0;
+
+      pickupDate.setHours(hours, minutes, 0, 0);
+    } else {
+      // fallback to store open time
+      pickupDate.setHours(STORE_OPEN, 0, 0, 0);
     }
+  } else {
+    // fallback if no time selected
+    pickupDate.setHours(STORE_OPEN, 0, 0, 0);
+  }
 
-    pickupDate.setSeconds(0);
-    pickupDate.setMilliseconds(0);
-    finalPickupTime = pickupDate.toISOString();
+  dispatch(
+    checkout({
+      customerId,
+      discountId: undefined,
+      orderName: orderName ?? undefined,
+      pickupTime: pickupDate.toISOString(),
+    })
+  )
+    .unwrap()
+    .then(() => {dispatch(fetchBaristaCart(customerId)),setOrderName(null);})
+    .catch(console.error);
+};
 
-    dispatch(
-      checkout({
-        customerId,
-        discountId: undefined,
-        orderName: orderName ?? undefined,
-        pickupTime: finalPickupTime,
-      })
-    )
-      .unwrap()
-      .then(() => dispatch(fetchBaristaCart(customerId)))
-      .catch(console.error);
-  };
 
-  // Compute total
   const total = useMemo(() => {
     if (!cart?.items?.length) return 0;
     return cart.items.reduce((acc: any, item: any) => {
@@ -190,235 +183,183 @@ export default function BaristaPOS() {
   if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
-    <div className="grid grid-cols-3 gap-6 p-6">
-      {/* Left: Menu */}
-      <div className="col-span-2">
-        <h2 className="text-xl font-semibold mb-4">Menu</h2>
-        <ScrollArea className="h-[80vh] pr-2">
+    <div className="flex gap-6 p-6 h-[90vh]">
+      {/* Menu */}
+      <div className="flex-1 flex flex-col">
+        <h2 className="text-2xl font-bold mb-4">Menu</h2>
+        <ScrollArea className="flex-1">
           <div className="grid grid-cols-3 gap-4">
-            {products
-              .filter((p) => p.status === "AVAILABLE")
-              .map((p) => (
-                <Dialog
-                  key={p.id}
-                  open={selectedProduct === p.id}
-                  onOpenChange={(open) => setSelectedProduct(open ? p.id : null)}
-                >
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-lg transition transform hover:-translate-y-1 bg-white rounded-lg border border-gray-200">
-                      <CardHeader>
-                        <CardTitle>{p.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
+            {products.filter((p) => p.status === "AVAILABLE").map((p) => (
+              <Dialog
+                key={p.id}
+                open={selectedProduct === p.id}
+                onOpenChange={(open) => setSelectedProduct(open ? p.id : null)}
+              >
+                <DialogTrigger asChild>
+                  <Card className="cursor-pointer hover:shadow-xl transition transform hover:-translate-y-1 bg-white rounded-xl border border-gray-200">
+                    <CardHeader>
+                      <CardTitle className="truncate">{p.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {p.variants?.map((v: any) => (
+                        <div key={v.id} className="flex justify-between text-sm">
+                          <span>{v.servingType}</span>
+                          <span>₱{v.price}</span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </DialogTrigger>
+
+                <DialogContent className="sm:max-w-3xl w-full p-0 overflow-hidden">
+                  <div className="flex flex-col sm:flex-row">
+                    <div className="sm:w-1/3 bg-muted flex items-center justify-center">
+                      <img src={p.image || "/placeholder.png"} alt={p.name} className="object-cover w-full h-48 sm:h-full rounded-l-xl" />
+                    </div>
+                    <div className="sm:w-2/3 p-6 flex flex-col gap-4">
+                      <DialogHeader>
+                        <DialogTitle>{p.name}</DialogTitle>
+                      </DialogHeader>
+
+                      <RadioGroup value={selectedVariant ?? ""} onValueChange={setSelectedVariant} className="flex flex-col gap-2">
                         {p.variants?.map((v: any) => (
-                          <div key={v.id} className="flex justify-between text-sm">
-                            <span>{v.servingType}</span>
-                            <span>₱{v.price}</span>
+                          <div key={v.id} className="flex items-center space-x-2">
+                            <RadioGroupItem value={v.id} id={`v-${v.id}`} />
+                            <Label htmlFor={`v-${v.id}`}>
+                              {v.servingType} - ₱{v.price}
+                            </Label>
                           </div>
                         ))}
-                      </CardContent>
-                    </Card>
-                  </DialogTrigger>
+                      </RadioGroup>
 
-                  {/* Dialog */}
-                  <DialogContent className="sm:max-w-3xl w-full p-0 overflow-hidden">
-                    <div className="flex">
-                      {/* Image */}
-                      <div className="w-1/3 bg-muted flex items-center justify-center">
-                        <img
-                          src={p.image || "/placeholder.png"}
-                          alt={p.name}
-                          className="object-cover w-full h-48"
-                        />
+                      <div className="flex items-center gap-3 mt-2">
+                        <Button variant="outline" onClick={() => setQuantity((q) => Math.max(1, q - 1))}>-</Button>
+                        <span className="font-semibold text-lg">{quantity}</span>
+                        <Button variant="outline" onClick={() => setQuantity((q) => q + 1)}>+</Button>
                       </div>
 
-                      {/* Details */}
-                      <div className="w-2/3 p-6 flex flex-col gap-4">
-                        <DialogHeader>
-                          <DialogTitle>{p.name}</DialogTitle>
-                        </DialogHeader>
+                      {p.categoryId !== "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" && (
+                        <ScrollArea className="h-40 border p-3 rounded-md mt-2">
+                          {addonsLoading ? <p>Loading addons...</p> :
+                            addons.map((a: Addon) => (
+                              <div key={a.id} className="flex items-center space-x-2">
+                                <Checkbox checked={!!selectedAddons.find((s) => s.addonId === a.id)} onCheckedChange={() => toggleAddon(a)} />
+                                <Label>{a.name} (+₱{a.price})</Label>
+                              </div>
+                            ))
+                          }
+                        </ScrollArea>
+                      )}
 
-                        {/* Variants */}
-                        <RadioGroup value={selectedVariant ?? ""} onValueChange={setSelectedVariant}>
-                          {p.variants?.map((v: any) => (
-                            <div key={v.id} className="flex items-center space-x-2">
-                              <RadioGroupItem value={v.id} id={`v-${v.id}`} />
-                              <Label htmlFor={`v-${v.id}`}>
-                                {v.servingType} - ₱{v.price}
-                              </Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-
-                        {/* Quantity */}
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
-                            -
-                          </Button>
-                          <span>{quantity}</span>
-                          <Button variant="outline" onClick={() => setQuantity((q) => q + 1)}>
-                            +
-                          </Button>
-                        </div>
-
-                        {/* Addons */}
-                        {p.categoryId !== "bfa1cc11-dbe0-4efb-aee9-a05b0629ef4d" && (
-                          <ScrollArea className="h-40 border p-2 rounded-md">
-                            {addonsLoading ? (
-                              <p>Loading addons...</p>
-                            ) : (
-                              addons.map((a: Addon) => (
-                                <div key={a.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    checked={!!selectedAddons.find((s) => s.addonId === a.id)}
-                                    onCheckedChange={() => toggleAddon(a)}
-                                  />
-                                  <Label>
-                                    {a.name} (+₱{a.price})
-                                  </Label>
-                                </div>
-                              ))
-                            )}
-                          </ScrollArea>
-                        )}
-
-                        {/* Add to cart */}
-                        <Button className="mt-4" disabled={!selectedVariant} onClick={() => handleAddToCart(p)}>
-                          Add to Cart
-                        </Button>
-                      </div>
+                      <Button className="mt-4 w-full" disabled={!selectedVariant} onClick={() => handleAddToCart(p)}>
+                        Add to Cart
+                      </Button>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ))}
           </div>
         </ScrollArea>
       </div>
 
-      {/* Right: Cart */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Cart</h2>
-        <ScrollArea className="h-[70vh] pr-2">
+      {/* Cart */}
+      <div className="w-96 flex flex-col bg-white rounded-xl border border-gray-200 p-4 shadow-lg">
+        <h2 className="text-2xl font-bold mb-4">Cart</h2>
+        <ScrollArea className="flex-1">
           {cart?.items?.length ? (
             <div className="flex flex-col gap-3">
               {cart.items.map((item: any) => (
-                <Card key={item.id} className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                <Card key={item.id} className="rounded-lg border border-gray-100 shadow-sm">
                   <CardContent className="p-3 flex flex-col gap-1">
-                    <p className="font-medium">{item.variant?.product?.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {item.variant?.servingType} | Qty: {item.quantity}
-                    </p>
-                    <p className="text-sm">₱{item.variant?.price}</p>
-
+                    <p className="font-semibold">{item.variant?.product?.name}</p>
+                    <p className="text-sm text-muted-foreground">{item.variant?.servingType} | Qty: {item.quantity}</p>
+                    <p className="text-sm font-medium">₱{item.variant?.price}</p>
                     {item.addons?.length > 0 && (
                       <ul className="pl-4 text-sm text-muted-foreground">
                         {item.addons.map((a: any) => (
-                          <li key={`${item.id}-${a.addonId}`}>
-                            {a.addon?.name} - ₱{(a.price || a.addon.price) * a.quantity}
-                          </li>
+                          <li key={`${item.id}-${a.addonId}`}>{a.addon?.name} - ₱{(a.price || a.addon.price) * a.quantity}</li>
                         ))}
                       </ul>
                     )}
-
-                    <Button variant="destructive" size="sm" className="mt-1 self-end" onClick={() => handleRemoveFromCart(item.id)}>
-                      Remove
-                    </Button>
+                    <Button variant="destructive" size="sm" className="mt-1 self-end" onClick={() => handleRemoveFromCart(item.id)}>Remove</Button>
                   </CardContent>
                 </Card>
               ))}
 
-              <div className="mt-3 font-semibold text-right">Total: ₱{total.toFixed(2)}</div>
+              <div className="mt-3 font-bold text-lg text-right">Total: ₱{total.toFixed(2)}</div>
 
               {/* Nickname input */}
               <div className="mt-3">
-                <Label>Nickname (for Cup / Order Name)</Label>
-                <Input
-                  placeholder="ex. Juan, Boss, Sir Blue"
-                  value={orderName ?? ""}
-                  onChange={(e) => setOrderName(e.target.value)}
-                />
+                <Label>Nickname (for cup/order)</Label>
+                <Input placeholder="ex. Juan, Boss, Sir Blue" value={orderName ?? ""} onChange={(e) => setOrderName(e.target.value)} />
               </div>
 
-              {/* Pickup day */}
-              <div className="mt-3">
-                <Label>Pickup Day</Label>
-                <Select value={pickUpDay ?? ""} onValueChange={setPickUpDay} required>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select day" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dayOptions.map((d) => (
-                      <SelectItem key={d.label} value={String(d.offset)}>
-                        {d.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Pickup Day & Time */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Pickup Day</Label>
+                  <Select value={pickUpDay ?? ""} onValueChange={setPickUpDay}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dayOptions.map((d) => (
+                        <SelectItem key={d.label} value={String(d.offset)}>{d.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Pickup Time</Label>
+                  <Select value={pickUpTime ?? ""} onValueChange={setPickUpTime}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(() => {
+                        const slots = [];
+                        const now = new Date();
+                        const selectedDayOffset = Number(pickUpDay ?? 0);
+                        const baseDate = new Date();
+                        baseDate.setDate(baseDate.getDate() + selectedDayOffset);
+                        baseDate.setSeconds(0);
+                        baseDate.setMilliseconds(0);
 
-              {/* Pickup time */}
-              <div className="mt-3">
-                <Label>Pickup Time</Label>
-                <Select value={pickUpTime ?? ""} onValueChange={setPickUpTime} required>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select pickup time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(() => {
-                      const slots = [];
-                      const now = new Date();
-                      const selectedDayOffset = Number(pickUpDay ?? 0);
+                        if (selectedDayOffset === 0) slots.push(<SelectItem value="ASAP" key="ASAP">ASAP</SelectItem>);
 
-                      const baseDate = new Date();
-                      baseDate.setDate(baseDate.getDate() + selectedDayOffset);
-                      baseDate.setSeconds(0);
-                      baseDate.setMilliseconds(0);
-
-                      // Today → show ASAP
-                      if (selectedDayOffset === 0) {
-                        slots.push(<SelectItem value="ASAP" key="ASAP">ASAP</SelectItem>);
-                      }
-
-                      for (let hour = STORE_OPEN; hour < STORE_CLOSE; hour++) {
-                        for (let minute of [0, 15, 30, 45]) {
-                          const slot = new Date(baseDate);
-                          slot.setHours(hour);
-                          slot.setMinutes(minute);
-
-                          // Skip expired times for today
-                          if (selectedDayOffset === 0 && slot <= now) continue;
-
-                          // Skip nearest slot if ASAP exists
-                          if (selectedDayOffset === 0) {
-                            const nearest = new Date(now);
-                            nearest.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
-                            nearest.setSeconds(0);
-                            nearest.setMilliseconds(0);
-                            if (slot.getTime() === nearest.getTime()) continue;
+                        for (let hour = STORE_OPEN; hour < STORE_CLOSE; hour++) {
+                          for (let minute of [0, 15, 30, 45]) {
+                            const slot = new Date(baseDate);
+                            slot.setHours(hour);
+                            slot.setMinutes(minute);
+                            if (selectedDayOffset === 0 && slot <= now) continue;
+                            if (selectedDayOffset === 0) {
+                              const nearest = new Date(now);
+                              nearest.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
+                              nearest.setSeconds(0);
+                              nearest.setMilliseconds(0);
+                              if (slot.getTime() === nearest.getTime()) continue;
+                            }
+                            const label = slot.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                            slots.push(<SelectItem value={label} key={label}>{label}</SelectItem>);
                           }
-
-                          const label = slot.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                          slots.push(<SelectItem value={label} key={label}>{label}</SelectItem>);
                         }
-                      }
 
-                      return slots;
-                    })()}
-                  </SelectContent>
-                </Select>
+                        return slots;
+                      })()}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Checkout */}
-              <Button className="mt-2 w-full" onClick={handleCheckout} disabled={checkoutLoading || !cart?.items?.length}>
+              <Button className="mt-4 w-full" onClick={handleCheckout} disabled={checkoutLoading || !cart?.items?.length}>
                 {checkoutLoading ? "Processing..." : "Checkout"}
               </Button>
 
-              {checkoutError && <p className="text-red-500">{checkoutError}</p>}
-              {order && (
-                <p className="text-green-600 text-sm mt-2">
-                  ✅ Order placed! ID: {order.id}
-                </p>
-              )}
+              {checkoutError && <p className="text-red-500 mt-2">{checkoutError}</p>}
+
             </div>
           ) : (
             <p className="text-gray-500">Cart is empty</p>
