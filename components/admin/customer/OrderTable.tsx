@@ -32,7 +32,7 @@ export function LatestOrdersCard({ orders }: LatestOrdersCardProps) {
         <Table className="text-sm">
           <TableHeader>
             <TableRow>
-              <TableHead>Order ID</TableHead>
+              <TableHead>Order Number</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Status</TableHead>
@@ -46,7 +46,7 @@ export function LatestOrdersCard({ orders }: LatestOrdersCardProps) {
                 <TableRow key={order.id}>
                   {/* Show first product (or join names if multiple) */}
 
-                  <TableCell className="font-medium">{order.id}</TableCell>
+                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
 
                   <TableCell>
                     {format(new Date(order.orderDate), "MMM dd, yyyy")}

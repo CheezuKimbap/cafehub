@@ -59,7 +59,7 @@ export function TodayRevenue({
         <div className="flex justify-between gap-2 items-center">
           <div>
             <p className="text-xl font-bold">
-              P{displayValue.toLocaleString()} {/* Display the revenue */}
+              ₱{displayValue.toLocaleString()} {/* Display the revenue */}
             </p>
             <p className="text-gray-500 text-sm">Available to payout</p>
           </div>

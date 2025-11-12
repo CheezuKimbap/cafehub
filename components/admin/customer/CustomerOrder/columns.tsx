@@ -21,9 +21,9 @@ export const latestOrderColumns: ColumnDef<Order>[] = [
         .join(", "),
   },
   {
-    accessorKey: "id",
-    header: "Order ID",
-    cell: ({ row }) => <span className="font-medium">{row.original.id}</span>,
+    accessorKey: "orderNumber",
+    header: "Order Number",
+    cell: ({ row }) => <span className="font-medium">{row.original.orderNumber}</span>,
   },
   {
     accessorKey: "orderDate",

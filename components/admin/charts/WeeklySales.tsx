@@ -42,7 +42,7 @@ export function WeekSales({
         {/* Totals */}
         <div className="flex flex-col">
           <p className="text-2xl font-semibold text-gray-900">
-            P{totalRevenue.toLocaleString()}
+            ₱{totalRevenue.toLocaleString()}
           </p>
           <p className="text-sm text-gray-500">
             {loading ? "Loading..." : `We have sold ${totalItemsSold} items`}

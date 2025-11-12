@@ -52,7 +52,7 @@ const CustomerOrders: React.FC<CustomerOrdersProps> = ({ customerId }) => {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Customer Orders</CardTitle>
+        <CardTitle>Customer Number</CardTitle>
       </CardHeader>
       <CardContent>
         <ScrollArea className="w-full">
@@ -69,7 +69,7 @@ const CustomerOrders: React.FC<CustomerOrdersProps> = ({ customerId }) => {
             <TableBody>
               {orders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell>{order.id}</TableCell>
+                  <TableCell>{order.orderNumber}</TableCell>
                   <TableCell>
                     {new Date(order.orderDate).toLocaleDateString()}
                   </TableCell>
