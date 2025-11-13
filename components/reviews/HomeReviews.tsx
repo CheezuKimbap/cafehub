@@ -19,11 +19,10 @@ interface UserNameResponse {
   name: string;
 }
 
-// helper to get initials from first & last name
 const getInitials = (firstName?: string | null, lastName?: string | null) => {
   const f = firstName?.[0] ?? "";
   const l = lastName?.[0] ?? "";
-  return (f + l).toUpperCase() || "A"; // fallback "A" if both missing
+  return (f + l).toUpperCase() || "A";
 };
 
 export function HomeReviews() {
@@ -31,7 +30,6 @@ export function HomeReviews() {
   const [index, setIndex] = useState(0);
   const [userNames, setUserNames] = useState<Record<string, string>>({});
 
-  // fetch reviews
   useEffect(() => {
     fetch("/api/reviews?latest=true&limit=5")
       .then((res) => res.json())
@@ -39,39 +37,45 @@ export function HomeReviews() {
       .catch(console.error);
   }, []);
 
-  // fetch user names for reviews where customer name is missing
   useEffect(() => {
-    reviews.forEach((r) => {
-      const hasName = r.customer?.firstName || r.customer?.lastName;
-      if (!hasName && r.customerId && !userNames[r.customerId]) {
-        fetch(`/api/user/getName?customerId=${r.customerId}`)
-          .then((res) => res.json())
-          .then((data: UserNameResponse) => {
-            setUserNames((prev) => ({
-              ...prev,
-              [r.customerId]: data.name || "Anonymous",
-            }));
-          })
-          .catch(() =>
-            setUserNames((prev) => ({ ...prev, [r.customerId]: "Anonymous" })),
-          );
+  fetch("/api/reviews?latest=true&limit=5")
+    .then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
       }
+      return res.json();
+    })
+    .then((data) => {
+      if (Array.isArray(data)) {
+        setReviews(data);
+      } else {
+        console.error("Unexpected response format:", data);
+        setReviews([]);
+      }
+    })
+    .catch((err) => {
+      console.error("Failed to fetch reviews:", err);
+      setReviews([]);
     });
-  }, [reviews, userNames]);
+}, []);
 
-  const prev = () => setIndex((i) => (i > 0 ? i - 1 : reviews.length - 1));
-  const next = () => setIndex((i) => (i < reviews.length - 1 ? i + 1 : 0));
+
+  const prev = () =>
+    setIndex((i) => (reviews.length > 0 ? (i > 0 ? i - 1 : reviews.length - 1) : 0));
+  const next = () =>
+    setIndex((i) => (reviews.length > 0 ? (i < reviews.length - 1 ? i + 1 : 0) : 0));
 
   if (reviews.length === 0)
     return <p className="text-white text-center">No reviews yet</p>;
 
   const r = reviews[index];
+  if (!r) return null; // 🧱 safety check
 
-  // determine name
   const name =
     r.customer?.firstName || r.customer?.lastName
       ? `${r.customer?.firstName ?? ""} ${r.customer?.lastName ?? ""}`.trim()
-      : (userNames[r.customerId] ?? "Anonymous");
+      : userNames[r.customerId] ?? "Anonymous";
 
   const initials =
     r.customer?.firstName || r.customer?.lastName
