@@ -30,35 +30,28 @@ export function HomeReviews() {
   const [index, setIndex] = useState(0);
   const [userNames, setUserNames] = useState<Record<string, string>>({});
 
-  useEffect(() => {
+    useEffect(() => {
     fetch("/api/reviews?latest=true&limit=5")
-      .then((res) => res.json())
-      .then((data) => setReviews(data))
-      .catch(console.error);
-  }, []);
-
-  useEffect(() => {
-  fetch("/api/reviews?latest=true&limit=5")
-    .then(async (res) => {
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${res.status}`);
-      }
-      return res.json();
-    })
-    .then((data) => {
-      if (Array.isArray(data)) {
-        setReviews(data);
-      } else {
-        console.error("Unexpected response format:", data);
+        .then(async (res) => {
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+        }
+        return res.json();
+        })
+        .then((data) => {
+        if (Array.isArray(data)) {
+            setReviews(data);
+        } else {
+            console.error("Unexpected response format:", data);
+            setReviews([]);
+        }
+        })
+        .catch((err) => {
+        console.error("Failed to fetch reviews:", err);
         setReviews([]);
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to fetch reviews:", err);
-      setReviews([]);
-    });
-}, []);
+        });
+    }, []);
+
 
 
   const prev = () =>
@@ -70,8 +63,7 @@ export function HomeReviews() {
     return <p className="text-white text-center">No reviews yet</p>;
 
   const r = reviews[index];
-  if (!r) return null; // 🧱 safety check
-
+  if (!r) return null; //
   const name =
     r.customer?.firstName || r.customer?.lastName
       ? `${r.customer?.firstName ?? ""} ${r.customer?.lastName ?? ""}`.trim()
