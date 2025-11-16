@@ -19,18 +19,19 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type {
-  Order,
-  OrderStatus,
-  PaymentStatus,
-} from "@/redux/features/order/order";
+import type { Order, OrderStatus, PaymentStatus } from "@/redux/features/order/order";
 
 export default function BaristaBoard() {
   const dispatch = useAppDispatch();
   const orders = useAppSelector(selectOrders);
   const status = useAppSelector(selectOrderStatus);
 
-  const [expandedOrders, setExpandedOrders] = useState<string[]>([]);
+  // Track card expanded/collapsed
+  const [expandedCards, setExpandedCards] = useState<string[]>(() =>
+    orders.filter((o) => o.status !== "COMPLETED").map((o) => o.id)
+  );
+  // Track details expanded/collapsed
+  const [expandedDetails, setExpandedDetails] = useState<string[]>([]);
 
   useEffect(() => {
     dispatch(fetchOrders());
@@ -39,14 +40,20 @@ export default function BaristaBoard() {
   const handleUpdateStatus = (
     id: string,
     next: OrderStatus,
-    paymentStatus?: PaymentStatus,
+    paymentStatus?: PaymentStatus
   ) => {
     dispatch(updateOrderStatus({ id, status: next, paymentStatus }));
   };
 
-  const toggleExpand = (id: string) => {
-    setExpandedOrders((prev) =>
-      prev.includes(id) ? prev.filter((o) => o !== id) : [...prev, id],
+  const toggleCard = (id: string) => {
+    setExpandedCards((prev) =>
+      prev.includes(id) ? prev.filter((o) => o !== id) : [...prev, id]
+    );
+  };
+
+  const toggleDetails = (id: string) => {
+    setExpandedDetails((prev) =>
+      prev.includes(id) ? prev.filter((o) => o !== id) : [...prev, id]
     );
   };
 
@@ -84,10 +91,10 @@ export default function BaristaBoard() {
                 col.key === "PENDING"
                   ? "bg-orange-100 text-orange-800 border-orange-300"
                   : col.key === "PREPARING"
-                    ? "bg-orange-200 text-orange-900 border-orange-400"
-                    : col.key === "READYTOPICKUP"
-                      ? "bg-green-100 text-green-800 border-green-300"
-                      : "bg-gray-100 text-gray-800 border-gray-300"
+                  ? "bg-orange-200 text-orange-900 border-orange-400"
+                  : col.key === "READYTOPICKUP"
+                  ? "bg-green-100 text-green-800 border-green-300"
+                  : "bg-gray-100 text-gray-800 border-gray-300"
               }`}
           >
             {col.key === "PENDING" && <Clock className="w-4 h-4" />}
@@ -102,7 +109,6 @@ export default function BaristaBoard() {
               if (col.key === "COMPLETED") {
                 const orderDate = new Date(o.orderDate);
                 const now = new Date();
-                // Only show COMPLETED orders that are PAID and created today
                 return (
                   o.status === "COMPLETED" &&
                   o.paymentStatus === "PAID" &&
@@ -116,24 +122,24 @@ export default function BaristaBoard() {
             .sort(
               (a, b) =>
                 new Date(a.orderDate).getTime() -
-                new Date(b.orderDate).getTime(),
+                new Date(b.orderDate).getTime()
             )
             .map((order) => {
-              const isExpanded = expandedOrders.includes(order.id);
-              const showAllItems =
-                col.key === "PENDING" || col.key === "PREPARING";
+              const cardExpanded = expandedCards.includes(order.id);
+              const detailsExpanded = expandedDetails.includes(order.id);
 
+              const showAllItems = col.key === "PENDING" || col.key === "PREPARING";
               const orderItems = showAllItems
                 ? order.orderItems
-                : isExpanded
-                  ? order.orderItems
-                  : order.orderItems.slice(0, 2);
+                : detailsExpanded
+                ? order.orderItems
+                : order.orderItems.slice(0, 2);
 
               const orderTotal = order.orderItems.reduce((sum, item) => {
                 const base = item.priceAtPurchase * item.quantity;
                 const addons = item.addons.reduce(
                   (aSum, a) => aSum + a.addon.price * a.quantity,
-                  0,
+                  0
                 );
                 return sum + base + addons;
               }, 0);
@@ -174,18 +180,7 @@ export default function BaristaBoard() {
                     </p>
                   </CardHeader>
 
-                  {col.key === "COMPLETED" && !isExpanded ? (
-                    <CardContent className="pt-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full flex items-center justify-center gap-1"
-                        onClick={() => toggleExpand(order.id)}
-                      >
-                        Show Details <ChevronDown className="w-3 h-3" />
-                      </Button>
-                    </CardContent>
-                  ) : (
+                  {cardExpanded ? (
                     <CardContent className="pt-3 space-y-2">
                       <p className="font-medium text-sm text-gray-800">
                         Customer Name: {order.orderName ?? order.customer?.firstName}
@@ -195,7 +190,10 @@ export default function BaristaBoard() {
                         {orderItems.map((item) => {
                           const itemTotal =
                             item.priceAtPurchase * item.quantity +
-                            item.addons.reduce((sum, a) => sum + a.addon.price * a.quantity, 0);
+                            item.addons.reduce(
+                              (sum, a) => sum + a.addon.price * a.quantity,
+                              0
+                            );
                           return (
                             <li
                               key={item.id}
@@ -224,35 +222,31 @@ export default function BaristaBoard() {
                             </li>
                           );
                         })}
-
-                        {!showAllItems && order.orderItems.length > 2 && (
-                          <li>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex items-center gap-1 mt-1"
-                              onClick={() => toggleExpand(order.id)}
-                            >
-                              {isExpanded ? (
-                                <>
-                                  Collapse <ChevronUp className="w-3 h-3" />
-                                </>
-                              ) : (
-                                <>
-                                  Show more ({order.orderItems.length - 2}){" "}
-                                  <ChevronDown className="w-3 h-3" />
-                                </>
-                              )}
-                            </Button>
-                          </li>
-                        )}
                       </ul>
+
+                      {order.orderItems.length > 2 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex items-center gap-1 mt-1"
+                          onClick={() => toggleDetails(order.id)}
+                        >
+                          {detailsExpanded ? (
+                            <>
+                              Collapse Details <ChevronUp className="w-3 h-3" />
+                            </>
+                          ) : (
+                            <>
+                              Show Details <ChevronDown className="w-3 h-3" />
+                            </>
+                          )}
+                        </Button>
+                      )}
 
                       <p className="font-medium text-gray-700 mt-2">
                         Total: ₱{orderTotal.toFixed(2)}
                       </p>
 
-                      {/* Actions */}
                       <div className="pt-2 space-y-2">
                         {order.paymentStatus === "UNPAID" && (
                           <Button
@@ -303,11 +297,33 @@ export default function BaristaBoard() {
                           <Button
                             onClick={() => handleUpdateStatus(order.id, "COMPLETED")}
                             className="w-full border border-gray-300 text-white hover:bg-gray-50"
+                            disabled={order.paymentStatus === "UNPAID"}
+                            title={order.paymentStatus === "UNPAID" ? "Cannot pick up unpaid orders" : ""}
                           >
                             Mark Picked Up
                           </Button>
                         )}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-1"
+                          onClick={() => toggleCard(order.id)}
+                        >
+                          {cardExpanded ? "Collapse Card" : "Expand Card"}
+                        </Button>
                       </div>
+                    </CardContent>
+                  ) : (
+                    <CardContent className="pt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full flex items-center justify-center gap-1"
+                        onClick={() => toggleCard(order.id)}
+                      >
+                        Expand Card <ChevronDown className="w-3 h-3" />
+                      </Button>
                     </CardContent>
                   )}
                 </Card>
