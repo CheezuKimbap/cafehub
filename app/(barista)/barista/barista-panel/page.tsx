@@ -190,11 +190,11 @@ export default function BaristaPOS() {
         <ScrollArea className="flex-1">
           <div className="grid grid-cols-3 gap-4">
             {products.filter((p) => p.status === "AVAILABLE").map((p) => (
-              <Dialog
-                key={p.id}
-                open={selectedProduct === p.id}
-                onOpenChange={(open) => setSelectedProduct(open ? p.id : null)}
-              >
+                <Dialog
+                    key={p.id}
+                    open={selectedProduct === p.id}
+                    onOpenChange={(open) => setSelectedProduct(open ? p.id : null)}
+                >
                 <DialogTrigger asChild>
                   <Card className="cursor-pointer hover:shadow-xl transition transform hover:-translate-y-1 bg-white rounded-xl border border-gray-200">
                     <CardHeader>
@@ -342,7 +342,8 @@ export default function BaristaPOS() {
                               if (slot.getTime() === nearest.getTime()) continue;
                             }
                             const label = slot.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                            slots.push(<SelectItem value={label} key={label}>{label}</SelectItem>);
+                            slots.push(<SelectItem value={label} key={`${selectedDayOffset}-${label}`}>{label}</SelectItem>);
+
                           }
                         }
 
