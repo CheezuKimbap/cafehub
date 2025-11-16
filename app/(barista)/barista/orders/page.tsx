@@ -26,16 +26,20 @@ export default function BaristaBoard() {
   const orders = useAppSelector(selectOrders);
   const status = useAppSelector(selectOrderStatus);
 
-  // Track card expanded/collapsed
-  const [expandedCards, setExpandedCards] = useState<string[]>(() =>
-    orders.filter((o) => o.status !== "COMPLETED").map((o) => o.id)
-  );
-  // Track details expanded/collapsed
+  const [expandedCards, setExpandedCards] = useState<string[]>([]);
   const [expandedDetails, setExpandedDetails] = useState<string[]>([]);
 
   useEffect(() => {
     dispatch(fetchOrders());
   }, [dispatch]);
+
+  useEffect(() => {
+    // Expand PENDING, PREPARING, READYTOPICKUP by default, COMPLETED collapsed
+    const defaultExpanded = orders
+      .filter((o) => o.status !== "COMPLETED")
+      .map((o) => o.id);
+    setExpandedCards(defaultExpanded);
+  }, [orders]);
 
   const handleUpdateStatus = (
     id: string,
@@ -104,26 +108,30 @@ export default function BaristaBoard() {
             {col.title}
           </h2>
 
-          {orders
+         {orders
             .filter((o) => {
-              if (col.key === "COMPLETED") {
+                if (col.key === "COMPLETED") {
                 const orderDate = new Date(o.orderDate);
                 const now = new Date();
                 return (
-                  o.status === "COMPLETED" &&
-                  o.paymentStatus === "PAID" &&
-                  orderDate.getFullYear() === now.getFullYear() &&
-                  orderDate.getMonth() === now.getMonth() &&
-                  orderDate.getDate() === now.getDate()
+                    o.status === "COMPLETED" &&
+                    o.paymentStatus === "PAID" &&
+                    orderDate.getFullYear() === now.getFullYear() &&
+                    orderDate.getMonth() === now.getMonth() &&
+                    orderDate.getDate() === now.getDate()
                 );
-              }
-              return o.status === col.key;
+                }
+                return o.status === col.key;
             })
-            .sort(
-              (a, b) =>
-                new Date(a.orderDate).getTime() -
-                new Date(b.orderDate).getTime()
-            )
+            .sort((a, b) => {
+                if (col.key === "READYTOPICKUP") {
+                const pickupA = a.pickupTime ? new Date(a.pickupTime).getTime() : 0;
+                const pickupB = b.pickupTime ? new Date(b.pickupTime).getTime() : 0;
+                return pickupB - pickupA; // newest pickup first
+                } else {
+                return new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime(); // newest order first
+                }
+            })
             .map((order) => {
               const cardExpanded = expandedCards.includes(order.id);
               const detailsExpanded = expandedDetails.includes(order.id);
@@ -167,15 +175,7 @@ export default function BaristaBoard() {
                     </p>
                     <p className="text-xs text-gray-500">
                       Scheduled Pickup: {order.pickupTime
-                        ? (() => {
-                            const orderDate = new Date(order.orderDate);
-                            const pickupDate = new Date(order.pickupTime);
-                            const diffMinutes =
-                              (pickupDate.getTime() - orderDate.getTime()) / 60000;
-                            return diffMinutes <= 10
-                              ? " ASAP"
-                              : formatDateTime(order.pickupTime);
-                          })()
+                        ? formatDateTime(order.pickupTime)
                         : "—"}
                     </p>
                   </CardHeader>
