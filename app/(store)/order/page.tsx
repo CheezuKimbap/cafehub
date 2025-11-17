@@ -127,7 +127,7 @@ export default function OrdersPage() {
 
           return (
             <div
-              key={order.orderNumber}
+              key={order.id}
               className="border rounded-lg p-6 shadow-sm grid grid-cols-1 lg:grid-cols-3 gap-6 bg-white"
             >
               {/* Left Column */}

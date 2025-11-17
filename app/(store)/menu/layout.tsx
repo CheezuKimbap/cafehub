@@ -5,6 +5,7 @@ import MobileNav from "@/components/layout/store/mobile-nav";
 import Link from "next/link";
 import React from "react";
 import { DynamicBreadcrumb } from "@/components/common/DynamicBreadcrumb";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function MenuLayout({
   children,
@@ -13,6 +14,7 @@ export default function MenuLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
+        <Toaster position="top-center" richColors />
       {/* Mobile logo only */}
       <nav className="block md:hidden">
         <Link
