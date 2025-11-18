@@ -113,6 +113,8 @@ model Customer {
   deletedBy     String?
 }
 
+
+
 // -------------------------
 // Profile Table (1:1)
 // -------------------------
@@ -153,7 +155,7 @@ model Discount {
   isRedeemed     Boolean   @default(false)
   createdAt      DateTime  @default(now())
   usedAt         DateTime?
-}
+ }
 
 enum DiscountType {
   PERCENTAGE_OFF // e.g., 50% off one item
@@ -391,4 +393,33 @@ model CartItemAddon {
   addon    Addon    @relation(fields: [addonId], references: [id])
 
   @@unique([cartItemId, addonId]) // prevent duplicate addons on the same cart item
+}
+
+
+model LoyaltyProgram {
+  id               String              @id @default(uuid()) @map("_id")
+  name             String              @unique @default("Coffeessential Stamp")
+
+  // Link to all the specific stamp milestones (e.g., 5th stamp, 12th stamp)
+  rewardTiers      LoyaltyRewardTier[]
+
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+}
+
+model LoyaltyRewardTier {
+  id              String         @id @default(uuid()) @map("_id")
+  programId       String
+  program         LoyaltyProgram @relation(fields: [programId], references: [id])
+
+  // Admin sets this: The specific stamp count where the reward is earned (e.g., 5 or 12)
+  stampNumber     Int            @default(1)
+
+  // Reward details, used to populate the Discount model when earned
+  rewardType      DiscountType   @default(FREE_ITEM)
+  rewardDescription String?      // e.g., "10% off next pastry"
+
+  discountAmount  Int?           // e.g., 10 for 10% off
+
+  createdAt       DateTime       @default(now())
 }

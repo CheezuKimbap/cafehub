@@ -19,6 +19,8 @@ import stampReducer from "./features/stamp/stampSlice";
 import reviewReducer from "./features/reviews/reviewSlice";
 import buyoutReducer from "./features/buyout/buyoutSlice";
 
+import  loyaltyProgramsReducer  from "./features/loyaltyPrograms/loyaltyProgramsSlice";
+import  loyaltyTiersReducer  from "./features/loyaltyTiers/loyaltyTiersSlice";
 const appReducer = combineReducers({
   products: productReducer,
   cart: cartReducer,
@@ -41,6 +43,9 @@ const appReducer = combineReducers({
   stamp: stampReducer,
   reviews: reviewReducer,
   buyout: buyoutReducer,
+
+  loyaltyPrograms: loyaltyProgramsReducer,
+  loyaltyTiers: loyaltyTiersReducer,
 });
 
 const rootReducer = (state: any, action: any) => {
