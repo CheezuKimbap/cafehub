@@ -76,7 +76,7 @@ export function RevenueChart({ className }: RevenueChartProps) {
                 <Tooltip />
                 <Legend />
                 <Bar dataKey="profit" fill="#f97316" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="loss" fill="#cbd5e1" radius={[4, 4, 0, 0]} />
+
               </BarChart>
             </ResponsiveContainer>
           )}

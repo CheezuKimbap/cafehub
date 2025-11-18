@@ -26,7 +26,6 @@ export async function GET() {
         month: "short",
       }),
       profit: 0,
-      loss: 0,
     }));
 
     // Fill in data
@@ -36,7 +35,7 @@ export async function GET() {
       const discount = order._sum.discountApplied ?? 0;
 
       monthlyData[monthIndex].profit += revenue;
-      monthlyData[monthIndex].loss += discount; // assume discount = "loss"
+
     });
 
     return NextResponse.json({ monthlyData });
