@@ -46,14 +46,14 @@ export async function PUT(req: NextRequest, context: any) {
     if (!status && !paymentStatus) {
       return NextResponse.json(
         { error: "status or paymentStatus is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     if (status && !Object.values(OrderStatus).includes(status)) {
       return NextResponse.json(
         { error: `Invalid status: ${status}` },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -63,10 +63,11 @@ export async function PUT(req: NextRequest, context: any) {
     ) {
       return NextResponse.json(
         { error: `Invalid paymentStatus: ${paymentStatus}` },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
+    // Update the order
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: {
@@ -86,85 +87,91 @@ export async function PUT(req: NextRequest, context: any) {
       },
     });
 
-    // Rewards logic
+    // ---- Rewards Logic ----
     if (
       updatedOrder.status === OrderStatus.COMPLETED &&
       updatedOrder.paymentStatus === PaymentStatus.PAID
     ) {
+      // Calculate stamps earned from all order items
       const stampsEarned = updatedOrder.orderItems.reduce(
         (sum, item) => sum + item.quantity,
-        0,
+        0
       );
 
-      const currentCustomer = await prisma.customer.findUnique({
+      // Atomic increment (prevents race condition)
+      await prisma.customer.update({
+        where: { id: updatedOrder.customerId },
+        data: {
+          currentStamps: {
+            increment: stampsEarned,
+          },
+        },
+      });
+
+      // Fetch updated customer stamps AFTER increment
+      const updatedCustomer = await prisma.customer.findUnique({
         where: { id: updatedOrder.customerId },
         select: { currentStamps: true },
       });
 
-      if (currentCustomer) {
-        let newStampCount = (currentCustomer.currentStamps || 0) + stampsEarned;
+      const newStampCount = updatedCustomer?.currentStamps ?? 0;
 
-        await prisma.customer.update({
-          where: { id: updatedOrder.customerId },
-          data: { currentStamps: newStampCount },
-        });
+      // ---- Loyalty Program Lookup ----
+      const program = await prisma.loyaltyProgram.findFirst({
+        where: { name: "Coffeessential Stamp" },
+        include: { rewardTiers: true },
+      });
 
-        // Rewards
-        // -------- Loyalty Program Logic --------
+      if (program) {
+        // Check if new stamp total matches a tier
+        const matchedTier = program.rewardTiers.find(
+          (tier) => tier.stampNumber === newStampCount
+        );
 
-        // Fetch your program + reward tiers
-        const program = await prisma.loyaltyProgram.findFirst({
-          where: { name: "Coffeessential Stamp" },
-          include: { rewardTiers: true },
-        });
+        if (matchedTier) {
+          // Issue the reward
+          await prisma.discount.create({
+            data: {
+              customerId: updatedOrder.customerId,
+              type: matchedTier.rewardType,
+              description: matchedTier.rewardDescription || "Reward Earned",
+              discountAmount: matchedTier.discountAmount ?? null,
+              productId: null,
+            },
+          });
 
-        if (program) {
-          // Check if newStampCount exactly matches a tier
-          const matchedTier = program.rewardTiers.find(
-            (tier) => tier.stampNumber === newStampCount
-          );
+          // Determine the highest tier safely
+          const highestTier =
+            program.rewardTiers.length > 0
+              ? Math.max(
+                  ...program.rewardTiers.map((t) => t.stampNumber)
+                )
+              : 0;
 
-          if (matchedTier) {
-            // Create reward (Discount)
-            await prisma.discount.create({
-              data: {
-                customerId: updatedOrder.customerId,
-                type: matchedTier.rewardType,
-                description: matchedTier.rewardDescription || "Reward Earned",
-                discountAmount: matchedTier.discountAmount ?? null,
-                productId: null,
-              },
+          // Reset stamps if customer hit max tier
+          if (matchedTier.stampNumber === highestTier) {
+            await prisma.customer.update({
+              where: { id: updatedOrder.customerId },
+              data: { currentStamps: 0 },
             });
-
-            // Reset stamps only if this is the last tier
-            const highestTier = Math.max(
-              ...program.rewardTiers.map((t) => t.stampNumber)
-            );
-
-            if (matchedTier.stampNumber === highestTier) {
-              await prisma.customer.update({
-                where: { id: updatedOrder.customerId },
-                data: { currentStamps: 0 },
-              });
-            }
-
+          }
         }
-      }
       }
     }
 
     return NextResponse.json(
       { message: "Order updated", order: updatedOrder },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Failed to update order:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
+
 
 // DELETE (soft delete) order
 export async function DELETE(req: NextRequest, context: any) {

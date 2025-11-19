@@ -10,12 +10,8 @@ export default function AdminLayout({
     { label: "Dashboard", href: "/admin/dashboard", icon: "home" },
     { label: "Inventory", href: "/admin/inventory", icon: "package" },
     { label: "Customer", href: "/admin/customer", icon: "user" },
-    {
-      label: "Settings",
-      href: "/admin/settings",
-      icon: "settings",
-      position: "bottom",
-    },
+    { label: "Stamp", href: "/admin/stamp", icon: "stamp" },
+
   ];
 
   return (
