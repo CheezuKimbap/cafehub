@@ -110,30 +110,46 @@ export async function PUT(req: NextRequest, context: any) {
         });
 
         // Rewards
-        if (newStampCount >= 12) {
-          await prisma.customer.update({
-            where: { id: updatedOrder.customerId },
-            data: { currentStamps: 0 },
-          });
+        // -------- Loyalty Program Logic --------
 
-          await prisma.discount.create({
-            data: {
-              customerId: updatedOrder.customerId,
-              type: "FREE_ITEM",
-              description: "Free Drink Reward",
-              productId: null,
-            },
-          });
-        } else if (newStampCount >= 6) {
-          await prisma.discount.create({
-            data: {
-              customerId: updatedOrder.customerId,
-              type: "PERCENTAGE_OFF",
-              description: "50% Off Reward",
-              discountAmount: 50,
-            },
-          });
+        // Fetch your program + reward tiers
+        const program = await prisma.loyaltyProgram.findFirst({
+          where: { name: "Coffeessential Stamp" },
+          include: { rewardTiers: true },
+        });
+
+        if (program) {
+          // Check if newStampCount exactly matches a tier
+          const matchedTier = program.rewardTiers.find(
+            (tier) => tier.stampNumber === newStampCount
+          );
+
+          if (matchedTier) {
+            // Create reward (Discount)
+            await prisma.discount.create({
+              data: {
+                customerId: updatedOrder.customerId,
+                type: matchedTier.rewardType,
+                description: matchedTier.rewardDescription || "Reward Earned",
+                discountAmount: matchedTier.discountAmount ?? null,
+                productId: null,
+              },
+            });
+
+            // Reset stamps only if this is the last tier
+            const highestTier = Math.max(
+              ...program.rewardTiers.map((t) => t.stampNumber)
+            );
+
+            if (matchedTier.stampNumber === highestTier) {
+              await prisma.customer.update({
+                where: { id: updatedOrder.customerId },
+                data: { currentStamps: 0 },
+              });
+            }
+
         }
+      }
       }
     }
 
