@@ -23,7 +23,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { submitProduct } from "@/redux/features/products/productsSlice";
 import { fetchCategories } from "@/redux/features/categories/categoriesSlice";
 import { Checkbox } from "@/components/ui/checkbox";
-
+import { toast } from "sonner";
 export function AddProductButton() {
   const dispatch = useAppDispatch();
   const { categories, loading: catLoading } = useAppSelector(
@@ -81,7 +81,8 @@ export function AddProductButton() {
       (v) => v.price === null || v.price === undefined || isNaN(v.price),
     );
     if (invalidVariant) {
-      alert("Please enter a price for all variants.");
+       toast.error(`Please enter a price for all variants.`);
+
       return;
     }
 
@@ -95,10 +96,12 @@ export function AddProductButton() {
         form.reset();
         setPreview(null);
         // Reset variants to one empty variant
-        setVariants([{ servingType: null, size: "", price: null }]);
+        setVariants([{ servingType: null, size: "", price: null }])
+        toast.success("Product added successfully!");
       })
       .catch((err: string) => {
-        console.error("❌ Failed to add product:", err);
+
+        toast.error(`Failed to add product: ${err}`);
       })
       .finally(() => setLoading(false));
   };

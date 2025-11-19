@@ -23,7 +23,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { updateProductById } from "@/redux/features/products/productsSlice";
 import { fetchCategories } from "@/redux/features/categories/categoriesSlice";
 import { Checkbox } from "@/components/ui/checkbox";
-
+import {toast} from "sonner";
 interface Variant {
   servingType: string | null;
   size?: string | null;
@@ -127,6 +127,12 @@ export function ProductEditButton({
 
     dispatch(updateProductById({ id: product.id, formData }))
       .unwrap()
+      .then(() => {
+        toast.success("Product updated successfully!");
+      })
+      .catch((err: string) => {
+        toast.error(`Failed to update product: ${err}`);
+      })
       .finally(() => setLoading(false));
   };
 
