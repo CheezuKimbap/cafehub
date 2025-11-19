@@ -162,7 +162,7 @@ export function ProductDetails() {
   };
 
   const handleBuyNow = async () => {
-    if (!customerId || !selectedVariant) return;
+    if (!customerId || !selectedVariant) return toast.warning("Please log in to place an order.");
 
     // Calculate total for discount application
     let totalPrice = (selectedVariant?.price ?? 0) * quantity;

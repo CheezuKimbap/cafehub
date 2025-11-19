@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
-
+import {toast} from 'sonner';
 interface LoginFormData {
   email: string;
   password: string;
@@ -38,6 +38,13 @@ export function LoginForm() {
     }
 
     if (result?.ok && result.url) {
+       toast.success("Login successful!", {
+        duration: 1500,
+        });
+
+        // wait for the toast to finish
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       window.location.href = result.url; // manual redirect
     }
   };

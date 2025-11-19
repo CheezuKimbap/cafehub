@@ -14,7 +14,7 @@ export default function MenuLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-        <Toaster position="top-center" richColors />
+
       {/* Mobile logo only */}
       <nav className="block md:hidden">
         <Link

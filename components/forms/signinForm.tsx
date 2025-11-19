@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 type SignupSchema = z.infer<typeof signInSchema>;
 
@@ -36,8 +37,16 @@ export function SignInForm() {
     });
 
     if (result?.error) {
+
       console.log("Invalid email or password");
     } else {
+       toast.success("Account created successfully! Please log in.", {
+        duration: 1500,
+        });
+
+        // wait for the toast to finish
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
       window.location.href = "/"; // ✅ redirect manually
     }
   };

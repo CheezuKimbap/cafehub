@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { Sora } from "next/font/google";
 import Navigation from "@/components/layout/client/navigation";
 import { ReduxProvider } from "@/components/layout/shared/redux/provider";
+import { Toaster } from "@/components/ui/sonner";
 const sora = Sora({ subsets: ["latin"], weight: ["400", "700"] });
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <SessionProvider>
+            <Toaster position="top-center" richColors />
             {/* <Navigation></Navigation> */}
             {children}
           </SessionProvider>

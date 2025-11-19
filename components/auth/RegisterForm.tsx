@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-
+import {toast} from 'sonner';
 import {
   registerCustomer,
   selectCustomerStatus,
@@ -48,16 +48,17 @@ export function RegisterForm() {
     try {
       await dispatch(registerCustomer(data)).unwrap();
 
-    //   // Auto login after signup
-    //   await signIn("credentials", {
-    //     redirect: false,
-    //     email: data.email,
-    //     password: data.password,
-    //   });
+
+        toast.success("Account created successfully! Please log in.", {
+        duration: 1500,
+        });
+
+        // wait for the toast to finish
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
       router.push("/login");
     } catch (err) {
-      console.error(err);
+      toast.error("Please try again. Something went wrong.")
     }
   };
 
