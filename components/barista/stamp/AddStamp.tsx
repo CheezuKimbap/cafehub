@@ -4,11 +4,9 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { CircleCheck } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import {
-  selectCustomers,
-  fetchCustomerById,
-} from "@/redux/features/customer/customerSlice";
+import { selectCustomers, fetchCustomerById } from "@/redux/features/customer/customerSlice";
 import { addStamp } from "@/redux/features/stamp/stampSlice";
+import { fetchAllTiers, LoyaltyRewardTier } from "@/redux/features/loyaltyTiers/loyaltyTiersSlice";
 import Stamp from "@/public/store/Stamp.svg";
 import {
   Dialog,
@@ -26,55 +24,57 @@ interface StampDialogProps {
 }
 
 export const StampDialog: React.FC<StampDialogProps> = ({ customerId }) => {
-  const MAX_STAMPS = 12;
   const dispatch = useAppDispatch();
   const customers = useAppSelector(selectCustomers);
   const customer = customers.find((c) => c.id === customerId);
 
-  // Local state for stamps (optimistic updates)
+  // Loyalty reward tiers
+  const rewardTiers: LoyaltyRewardTier[] = useAppSelector((state) => state.loyaltyTiers.list);
+
+  // Determine max stamps dynamically from tiers
+  const MAX_STAMPS = rewardTiers.length > 0
+    ? Math.max(...rewardTiers.map((t) => t.stampNumber))
+    : 12;
+
   const [stamps, setStamps] = useState(customer?.currentStamps ?? 0);
 
-  // Sync with Redux if backend changes
+  // Sync local state when Redux updates
   useEffect(() => {
     if (customer) setStamps(customer.currentStamps ?? 0);
   }, [customer?.currentStamps]);
 
-  // Fetch customer when dialog opens
+  // Fetch customer and tiers on mount
   useEffect(() => {
     if (customerId) dispatch(fetchCustomerById(customerId));
+    dispatch(fetchAllTiers());
   }, [customerId, dispatch]);
 
   if (!customer) return null;
 
-  const stampSlots = Array.from({ length: MAX_STAMPS }).map((_, i) => i + 1);
+  const stampSlots = Array.from({ length: MAX_STAMPS }, (_, i) => i + 1);
 
   const handleStampClick = async (slot: number) => {
-    if (slot <= stamps) return; // already filled
+    setStamps((prev) => {
+      if (slot <= prev) return prev; // already filled
+      return prev + (slot - prev);
+    });
 
     const stampsToAdd = slot - stamps;
 
-    // Optimistically update local stamps immediately
-    setStamps(stamps + stampsToAdd);
-
     try {
-      await dispatch(
-        addStamp({ id: customerId, stamps: stampsToAdd }),
-      ).unwrap();
-      // Redux state will sync automatically if needed
+      await dispatch(addStamp({ id: customerId, stamps: stampsToAdd })).unwrap();
     } catch (err) {
       console.error(err);
       alert("Failed to add stamp");
-      // Rollback if API fails
-      setStamps(stamps);
+      // rollback safely using functional update
+      setStamps((prev) => prev - stampsToAdd);
     }
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          View / Add Stamps
-        </Button>
+        <Button size="sm" variant="outline">View / Add Stamps</Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[600px]">
@@ -86,25 +86,43 @@ export const StampDialog: React.FC<StampDialogProps> = ({ customerId }) => {
         </DialogHeader>
 
         {/* Stamps grid */}
-        <section className="grid grid-cols-6 gap-6 my-4">
+        <section className="grid grid-cols-3 sm:grid-cols-6 gap-4 my-4">
           {stampSlots.map((slot) => (
             <div
               key={slot}
               onClick={() => handleStampClick(slot)}
-              className={`relative flex gap-4 items-center justify-center w-16 h-16 border rounded-xl cursor-pointer transition-colors ${
+              className={`relative flex items-center justify-center w-12 sm:w-16 h-12 sm:h-16 border rounded-xl cursor-pointer transition-colors ${
                 slot <= stamps ? "bg-green-50" : "bg-gray-50 hover:bg-gray-100"
               }`}
             >
-              <Image src={Stamp} alt="Stamp Slot" width={40} height={40} className="" />
+              <Image src={Stamp} alt="Stamp Slot" width={32} height={32} />
               {slot <= stamps && (
                 <CircleCheck
-                  className="absolute w-10 h-10 text-[#57C262]"
+                  className="absolute w-8 sm:w-10 h-8 sm:h-10 text-[#57C262]"
                   strokeWidth={2.5}
                 />
               )}
             </div>
           ))}
         </section>
+
+        {/* Optional: show reward milestones */}
+        {rewardTiers.length > 0 && (
+          <section className="flex flex-wrap gap-2 md:gap-4">
+            {[...rewardTiers].sort((a, b) => a.stampNumber - b.stampNumber).map((tier) => (
+              <div
+                key={tier.id}
+                className={`px-3 py-1 rounded-lg border text-sm ${
+                  stamps >= tier.stampNumber
+                    ? "bg-green-50 border-green-300 text-green-700"
+                    : "bg-gray-100 border-gray-300 text-gray-600"
+                }`}
+              >
+                {tier.stampNumber} → {tier.rewardDescription || tier.rewardType}
+              </div>
+            ))}
+          </section>
+        )}
 
         <DialogFooter>
           <DialogClose asChild>
