@@ -30,7 +30,7 @@ export default function HomePage() {
     const { items: products, loading } = useAppSelector((state) => state.products);
 
     useEffect(() => {
-        dispatch(fetchProducts());
+       dispatch(fetchProducts({ featured: true }));
     }, [dispatch]);
 
     const infoData = {

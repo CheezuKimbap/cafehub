@@ -10,7 +10,8 @@ interface UpdateProductPayload {
 // --------------------
 export const fetchProducts = createAsyncThunk(
   "products/fetch",
-  async (_, { getState }) => {
+  async (arg: { featured?: boolean } = {}, { getState }) => {
+    const { featured } = arg; // destructure featured, defaults to undefined
     const state = getState() as { products: ProductsState };
 
     // ✅ Cache valid for 1 minute
@@ -22,7 +23,13 @@ export const fetchProducts = createAsyncThunk(
       return state.products.items; // use cache
     }
 
-    const res = await fetch("/api/products", {
+    // Build URL with optional query param
+    const url = new URL("/api/products", window.location.origin);
+    if (featured) {
+      url.searchParams.append("featured", "true");
+    }
+
+    const res = await fetch(url.toString(), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -32,7 +39,7 @@ export const fetchProducts = createAsyncThunk(
 
     if (!res.ok) throw new Error("Failed to fetch products");
     return (await res.json()) as Product[];
-  },
+  }
 );
 
 export const fetchProductById = createAsyncThunk<Product, string>(
