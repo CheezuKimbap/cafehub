@@ -27,7 +27,7 @@ function ProductPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
-    dispatch(fetchProducts());
+    dispatch(fetchProducts({featured: false}));
     dispatch(fetchCategories());
   }, [dispatch]);
 
