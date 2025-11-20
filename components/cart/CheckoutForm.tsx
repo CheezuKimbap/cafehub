@@ -97,28 +97,27 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
             if (pickUpDay) pickupDate.setDate(pickupDate.getDate() + Number(pickUpDay));
 
             if (pickUpTime === "ASAP") {
-                const now = new Date();
-                pickupDate.setHours(now.getHours(), now.getMinutes() + 5, 0, 0);
+                const nearest = new Date();
+                nearest.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
+                pickupDate.setHours(nearest.getHours(), nearest.getMinutes(), 0, 0);
             } else if (pickUpTime) {
-                // Parse "HH:MM" or "HH:MM AM/PM"
                 const match = pickUpTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
                 if (match) {
                     let hours = Number(match[1]);
                     const minutes = Number(match[2]);
                     const meridiem = match[3]?.toUpperCase();
-
                     if (meridiem) {
                         if (meridiem === "PM" && hours < 12) hours += 12;
                         if (meridiem === "AM" && hours === 12) hours = 0;
                     }
-
                     pickupDate.setHours(hours, minutes, 0, 0);
                 }
             }
 
-            // Now send a valid ISO string to Prisma
-            const finalPickupTime = pickupDate.toISOString();
+            // ✅ assign to outer variable
+            finalPickupTime = pickupDate.toISOString();
         }
+
         try {
             await dispatch(
                 checkout({
@@ -295,7 +294,7 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
 
                                 // If today → allow "ASAP"
                                 if (selectedDayOffset === 0) {
-                                    slots.push(<SelectItem key={"asap"}  value="ASAP">ASAP</SelectItem>);
+                                    slots.push(<SelectItem key={"asap"} value="ASAP">ASAP</SelectItem>);
                                 }
 
                                 // Start times based on date selected
