@@ -99,7 +99,9 @@ export default function OrdersPage() {
       {orders.length === 0 ? (
         <p className="text-gray-500">You have no orders yet.</p>
       ) : (
-        orders.map((order) => {
+        [...orders]
+        .sort((a, b) => new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime())
+        .map((order) => {
           const isCancelled = order.status === "CANCELLED";
           // Only mark COMPLETED if status COMPLETED and payment PAID
           const activeIndex =
