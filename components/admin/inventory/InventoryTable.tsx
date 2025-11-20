@@ -14,7 +14,7 @@ export default function InventoryTable() {
   const { categories } = useAppSelector((state) => state.categories);
 
   useEffect(() => {
-    dispatch(fetchProducts());
+    dispatch(fetchProducts({featured: false}));
     if (!categories.length) dispatch(fetchCategories());
   }, [dispatch, categories.length]);
 
