@@ -47,8 +47,8 @@ function ReviewCard({ review, customerName, initials, }: ReviewCardProps) {
                     <Star
                         key={i}
                         className={`w-6 h-6 ${i < filledStars
-                                ? "fill-[#FFB800] text-[#FFB800]"
-                                : "fill-gray-300 text-gray-300"
+                            ? "fill-[#FFB800] text-[#FFB800]"
+                            : "fill-gray-300 text-gray-300"
                             }`}
                     />
                 ))}
@@ -82,7 +82,7 @@ export function HomeReviews() {
 
     useEffect(() => {
         // Fetch up to 3 reviews
-        fetch("/api/reviews?latest=true&limit=3")
+        fetch("/api/reviews?latest=true&limit=3&filter=high")
             .then(async (res) => {
                 if (!res.ok) {
                     const err = await res.json().catch(() => ({}));

@@ -9,17 +9,25 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const productId = url.searchParams.get("productId");
-    const latest = url.searchParams.get("latest") === "true"; // true/false
+    const latest = url.searchParams.get("latest") === "true";
     const limit = Number(url.searchParams.get("limit")) || undefined;
+    const filter = url.searchParams.get("filter"); // e.g., "high"
+
+    // Build the where clause dynamically
+    const where: any = {};
+    if (productId) where.productId = productId;
+    if (filter === "high") {
+      where.rating = { in: [4, 5] }; // only 4 or 5 star ratings
+    }
 
     const reviews = await prisma.review.findMany({
-      where: productId ? { productId } : {}, // optional filter
+      where,
       include: {
         customer: { select: { firstName: true, lastName: true, id: true } },
         product: { select: { name: true, id: true } },
       },
-      orderBy: latest ? { createdAt: "desc" } : undefined, // sort by latest if requested
-      take: limit, // limit if provided
+      orderBy: latest ? { createdAt: "desc" } : undefined,
+      take: limit,
     });
 
     return NextResponse.json(reviews);
@@ -31,6 +39,7 @@ export async function GET(request: Request) {
     );
   }
 }
+
 
 // ------------------
 // POST Review

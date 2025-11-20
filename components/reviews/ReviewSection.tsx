@@ -6,7 +6,6 @@ import {
   fetchReviews,
   addReview,
   selectReviews,
-  Review,
 } from "@/redux/features/reviews/reviewSlice";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,14 +13,14 @@ import { Star } from "lucide-react";
 
 interface ProductReviewsProps {
   productId: string;
-  customerId?: string; // optional: only needed for submitting
+  customerId?: string;
 }
 
 // helper to get initials from first & last name
 const getInitials = (firstName?: string | null, lastName?: string | null) => {
   const f = firstName?.[0] ?? "";
   const l = lastName?.[0] ?? "";
-  return (f + l).toUpperCase() || "A"; // fallback "A" if both missing
+  return (f + l).toUpperCase() || "A";
 };
 
 const RatingStars = ({
@@ -62,6 +61,7 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
   const [comment, setComment] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [userNames, setUserNames] = useState<Record<string, string>>({});
+  const [canReview, setCanReview] = useState(false); // ✅ New state
 
   useEffect(() => {
     dispatch(fetchReviews(productId));
@@ -87,6 +87,17 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
     });
   }, [reviews, userNames]);
 
+  // ✅ Check if customer can review
+  useEffect(() => {
+    if (!customerId) return;
+    fetch(
+      `/api/reviews/canReview?customerId=${customerId}&productId=${productId}`
+    )
+      .then((res) => res.json())
+      .then((data: { canReview: boolean }) => setCanReview(data.canReview))
+      .catch(() => setCanReview(false));
+  }, [customerId, productId]);
+
   const summary = useMemo(() => {
     if (reviews.length === 0)
       return { avg: 0, total: 0, counts: {} as Record<number, number> };
@@ -95,7 +106,7 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
     reviews.forEach((r) => counts[r.rating]++);
     const total = reviews.length;
     const avg = Number(
-      (reviews.reduce((a, b) => a + b.rating, 0) / total).toFixed(1),
+      (reviews.reduce((a, b) => a + b.rating, 0) / total).toFixed(1)
     );
     return { avg, total, counts };
   }, [reviews]);
@@ -115,7 +126,9 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-sm border">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Customer Reviews</h2>
-        {customerId && (
+
+        {/* ✅ Only show write button if logged in AND can review */}
+        {customerId && canReview && (
           <Button onClick={() => setShowForm(true)}>Write a Review</Button>
         )}
       </div>
@@ -151,7 +164,7 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
       </div>
 
       {/* Form */}
-      {customerId && showForm && (
+      {customerId && canReview && showForm && (
         <div className="mb-5 p-4 border rounded-lg bg-gray-50">
           <RatingStars rating={rating} onSelect={setRating} />
           <Textarea
@@ -168,6 +181,13 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
         </div>
       )}
 
+      {/* Message if cannot review */}
+      {customerId && !canReview && (
+        <p className="text-sm text-gray-500 my-4">
+          You can only review this product after purchasing it.
+        </p>
+      )}
+
       {/* Review List */}
       {loading && <p className="text-center text-gray-500">Loading...</p>}
       {!loading && reviews.length === 0 && (
@@ -179,7 +199,7 @@ export function ProductReviews({ productId, customerId }: ProductReviewsProps) {
           const name =
             r.customer?.firstName || r.customer?.lastName
               ? `${r.customer?.firstName ?? ""} ${r.customer?.lastName ?? ""}`.trim()
-              : (userNames[r.customerId] ?? "Anonymous");
+              : userNames[r.customerId] ?? "Anonymous";
 
           const initials =
             r.customer?.firstName || r.customer?.lastName
