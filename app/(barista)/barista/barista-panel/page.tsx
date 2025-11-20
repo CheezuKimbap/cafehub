@@ -60,7 +60,7 @@ export default function BaristaPOS() {
 
   useEffect(() => {
     if (!customerId) return;
-    dispatch(fetchProducts());
+    dispatch(fetchProducts({featured: false}));
     dispatch(fetchBaristaCart(customerId));
     dispatch(fetchAddons());
   }, [dispatch, customerId]);
