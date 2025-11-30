@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
             },
           },
         },
+        paymentMethod: true,
       },
       orderBy: { orderDate: "desc" },
     });
