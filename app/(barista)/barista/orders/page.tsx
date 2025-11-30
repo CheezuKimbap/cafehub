@@ -20,6 +20,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Order, OrderStatus, PaymentStatus } from "@/redux/features/order/order";
+import { toast } from "sonner";
 
 export default function BaristaBoard() {
     const dispatch = useAppDispatch();
@@ -46,6 +47,16 @@ export default function BaristaBoard() {
         paymentStatus?: PaymentStatus
     ) => {
         dispatch(updateOrderStatus({ id, status: next, paymentStatus }));
+    };
+
+    const toastAndUpdate = (
+        id: string,
+        status: OrderStatus,
+        message: string,
+        paymentStatus?: PaymentStatus
+    ) => {
+        toast.info(message);
+        handleUpdateStatus(id, status, paymentStatus);
     };
 
     const toggleCard = (id: string) => {
@@ -247,7 +258,37 @@ export default function BaristaBoard() {
                                                 </Button>
                                             )}
 
+                                            {/* === PAYMENT METHOD === */}
+                                            {order.paymentMethod && (
+                                                <div className="pt-2 text-xs text-gray-700 space-y-1 border-b pb-2">
+                                                    <p className="font-semibold text-gray-800">Payment Method</p>
 
+                                                    <p>Type: {order.paymentMethod.type}</p>
+
+                                                    {order.paymentMethod.provider && (
+                                                        <p>Provider: {order.paymentMethod.provider}</p>
+                                                    )}
+
+                                                    {order.paymentMethod.details && (
+                                                        <p>Details: {order.paymentMethod.details}</p>
+                                                    )}
+
+                                                    <p>Status: {order.paymentMethod.status}</p>
+
+                                                    {order.paymentMethod.paidAt && (
+                                                        <p>
+                                                            Paid At:{" "}
+                                                            {new Date(order.paymentMethod.paidAt).toLocaleString([], {
+                                                                year: "numeric",
+                                                                month: "short",
+                                                                day: "numeric",
+                                                                hour: "2-digit",
+                                                                minute: "2-digit",
+                                                            })}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
 
                                             {/* === PRICE DISPLAY === */}
                                             <div className="pt-2 text-sm">
@@ -270,7 +311,7 @@ export default function BaristaBoard() {
                                                 {order.paymentStatus === "UNPAID" && (
                                                     <Button
                                                         onClick={() =>
-                                                            handleUpdateStatus(order.id, order.status, "PAID")
+                                                            toastAndUpdate(order.id, order.status, "Marking as paid...", "PAID")
                                                         }
                                                         className="w-full bg-orange-500 hover:bg-orange-600 text-white"
                                                     >
@@ -281,13 +322,17 @@ export default function BaristaBoard() {
                                                 {order.status === "PENDING" && (
                                                     <>
                                                         <Button
-                                                            onClick={() => handleUpdateStatus(order.id, "PREPARING")}
+                                                            onClick={() =>
+                                                                toastAndUpdate(order.id, "PREPARING", "Starting preparation...")
+                                                            }
                                                             className="w-full bg-orange-400 hover:bg-orange-500 text-white"
                                                         >
                                                             Start Preparing
                                                         </Button>
                                                         <Button
-                                                            onClick={() => handleUpdateStatus(order.id, "CANCELLED")}
+                                                            onClick={() =>
+                                                                toastAndUpdate(order.id, "CANCELLED", "Cancelling order...")
+                                                            }
                                                             className="w-full bg-red-500 hover:bg-red-600 text-white"
                                                         >
                                                             Cancel Order
@@ -298,13 +343,17 @@ export default function BaristaBoard() {
                                                 {order.status === "PREPARING" && (
                                                     <>
                                                         <Button
-                                                            onClick={() => handleUpdateStatus(order.id, "READYTOPICKUP")}
+                                                            onClick={() =>
+                                                                toastAndUpdate(order.id, "READYTOPICKUP", "Marking ready...")
+                                                            }
                                                             className="w-full bg-green-500 hover:bg-green-600 text-white"
                                                         >
                                                             Mark Ready
                                                         </Button>
                                                         <Button
-                                                            onClick={() => handleUpdateStatus(order.id, "CANCELLED")}
+                                                            onClick={() =>
+                                                                toastAndUpdate(order.id, "CANCELLED", "Cancelling order...")
+                                                            }
                                                             className="w-full bg-red-500 hover:bg-red-600 text-white"
                                                         >
                                                             Cancel Order
@@ -314,10 +363,11 @@ export default function BaristaBoard() {
 
                                                 {order.status === "READYTOPICKUP" && (
                                                     <Button
-                                                        onClick={() => handleUpdateStatus(order.id, "COMPLETED")}
+                                                        onClick={() =>
+                                                            toastAndUpdate(order.id, "COMPLETED", "Completing order...")
+                                                        }
                                                         className="w-full border border-gray-300 text-white hover:bg-gray-50"
                                                         disabled={order.paymentStatus === "UNPAID"}
-                                                        title={order.paymentStatus === "UNPAID" ? "Cannot pick up unpaid orders" : ""}
                                                     >
                                                         Mark Picked Up
                                                     </Button>
