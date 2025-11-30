@@ -6,9 +6,10 @@ import { TodayRevenue } from "@/components/admin/charts/TodayRevenue";
 import { TotalOrder } from "@/components/admin/charts/TotalOrders";
 import { WeekSales } from "@/components/admin/charts/WeeklySales";
 import { LatestOrdersCard } from "@/components/admin/customer/OrderTable";
+
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { fetchOrders } from "@/redux/features/order/orderSlice";
 import { fetchMostSold } from "@/redux/features/reports/mostSoldSlice";
@@ -20,7 +21,7 @@ import {
   fetchWeeklySales,
   selectWeeklySales,
 } from "@/redux/features/reports/weeklySaleSlice";
-import { fetchTotalOrders } from "@/redux/features/reports/totalOrderSlice"; // new slice
+import { fetchTotalOrders } from "@/redux/features/reports/totalOrderSlice";
 import {
   fetchMonthlyRevenue,
   selectMonthlyRevenue,
@@ -29,6 +30,33 @@ import {
 export default function Dashboard() {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
+
+  // --- Local Split Revenue ---
+  const [splitRevenue, setSplitRevenue] = useState({
+    total: 0,
+    gcash: 0,
+    cash: 0,
+  });
+
+  // Fetch GCASH + CASH + TOTAL from your new API
+  useEffect(() => {
+    async function loadSplitRevenue() {
+      try {
+        const res = await fetch("/api/reports/revenue");
+        const data = await res.json();
+
+        setSplitRevenue({
+          total: data.amount ?? 0, // <-- FIXED (was data.total)
+          gcash: data.gcash ?? 0,
+          cash: data.cash ?? 0,
+        });
+      } catch (err) {
+        console.error("Failed to load split revenue:", err);
+      }
+    }
+
+    loadSplitRevenue();
+  }, []);
 
   // Orders
   const {
@@ -39,7 +67,7 @@ export default function Dashboard() {
 
   // Most sold
   const { items: mostSoldItems, loading: mostSoldLoading } = useAppSelector(
-    (state) => state.mostSold,
+    (state) => state.mostSold
   );
 
   // Revenue
@@ -83,7 +111,7 @@ export default function Dashboard() {
     }
   }, [dispatch, mostSoldItems.length, mostSoldLoading]);
 
-  // Fetch revenue
+  // Fetch revenue (for chart)
   useEffect(() => {
     if (amount === null && !revenueLoading) {
       dispatch(fetchRevenue());
@@ -114,27 +142,38 @@ export default function Dashboard() {
   return (
     <div className="flex w-full h-full">
       <div className="flex-1 p-6 bg-gray-100 space-y-6">
+
+        {/* --- TOP CARDS --- */}
         <div className="grid grid-cols-3 gap-4">
+
+          {/* Weekly Summary */}
           <WeekSales
             items={weeklyItems}
             totalRevenue={totalRevenue}
             totalItemsSold={totalItemsSold}
             loading={weeklyLoading}
           />
+
+          {/* Today's Revenue (local API split) */}
           <TodayRevenue
-            amount={amount}
+            amount={splitRevenue.total}
+            gcash={splitRevenue.gcash}
+            cash={splitRevenue.cash}
             loading={revenueLoading}
             error={revenueError}
           />
+
+          {/* Total Orders */}
           <TotalOrder
             amount={totalOrders ?? 0}
-            chartData={weeklyItems} // or any array like [{ value: 10 }, ...]
+            chartData={weeklyItems}
             loading={totalLoading}
             error={totalError}
             label="Total Completed & Paid Orders"
           />
         </div>
 
+        {/* --- CHARTS --- */}
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2 flex">
             <RevenueChart className="flex-1" />
@@ -144,6 +183,7 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* --- LATEST ORDERS --- */}
         {status === "success" && orders.length > 0 ? (
           <LatestOrdersCard orders={orders} />
         ) : status === "loading" ? (

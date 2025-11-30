@@ -18,6 +18,7 @@ import monthlyRevenueReducer from "./features/reports/monthlyRevenueSlice";
 import stampReducer from "./features/stamp/stampSlice";
 import reviewReducer from "./features/reviews/reviewSlice";
 import buyoutReducer from "./features/buyout/buyoutSlice";
+import stockReducer from "./features/stock/stocksSlice";
 
 import  loyaltyProgramsReducer  from "./features/loyaltyPrograms/loyaltyProgramsSlice";
 import  loyaltyTiersReducer  from "./features/loyaltyTiers/loyaltyTiersSlice";
@@ -46,6 +47,8 @@ const appReducer = combineReducers({
 
   loyaltyPrograms: loyaltyProgramsReducer,
   loyaltyTiers: loyaltyTiersReducer,
+
+  stock: stockReducer,
 });
 
 const rootReducer = (state: any, action: any) => {

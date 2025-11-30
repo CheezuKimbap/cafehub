@@ -1,52 +1,60 @@
-// /src/app/api/reports/revenue/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus, PaymentStatus } from "@/prisma/generated/prisma";
-// /src/app/api/reports/revenue/route.ts
+
 export async function GET(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const dateParam: string | undefined = body.date; // format: YYYY-MM-DD
+    const PH_OFFSET = 8;
 
-    let targetDate: Date;
+    const nowUTC = new Date();
+    const nowPH = new Date(nowUTC.getTime() + PH_OFFSET * 60 * 60 * 1000);
 
-    if (dateParam) {
-      // Validate format YYYY-MM-DD
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
-        return NextResponse.json(
-          { error: "Invalid date format. Use YYYY-MM-DD" },
-          { status: 400 },
-        );
-      }
-      targetDate = new Date(dateParam);
-      if (isNaN(targetDate.getTime())) {
-        return NextResponse.json({ error: "Invalid date" }, { status: 400 });
-      }
-    } else {
-      targetDate = new Date(); // default to today
-    }
+    const phStart = new Date(nowPH);
+    phStart.setHours(0, 0, 0, 0);
 
-    const startOfDay = new Date(targetDate);
-    startOfDay.setHours(0, 0, 0, 0);
+    const phEnd = new Date(nowPH);
+    phEnd.setHours(23, 59, 59, 999);
 
-    const endOfDay = new Date(targetDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    const startUTC = new Date(phStart.getTime() - PH_OFFSET * 60 * 60 * 1000);
+    const endUTC = new Date(phEnd.getTime() - PH_OFFSET * 60 * 60 * 1000);
 
-    const revenue = await prisma.order.aggregate({
-      _sum: { totalAmount: true },
+    const orders = await prisma.order.findMany({
       where: {
-        orderDate: { gte: startOfDay, lte: endOfDay },
+        orderDate: { gte: startUTC, lte: endUTC },
         status: OrderStatus.COMPLETED,
         paymentStatus: PaymentStatus.PAID,
       },
+      include: {
+        paymentMethod: true,
+      },
     });
 
-    return NextResponse.json({ revenue: revenue._sum.totalAmount ?? 0 });
+    let gcash = 0;
+    let cash = 0;
+
+    orders.forEach((order) => {
+      const pm = order.paymentMethod;
+      if (!pm) return;
+
+      const method = pm.type.toUpperCase();
+
+      if (method.includes("GCASH")) gcash += order.totalAmount;
+      if (method.includes("CASH")) cash += order.totalAmount;
+    });
+
+    const amount = gcash + cash;
+
+    return NextResponse.json({
+      amount,  // 👈 FIXED
+      gcash,
+      cash,
+
+    });
   } catch (err) {
-    console.error(err);
+    console.error("Revenue API Error:", err);
     return NextResponse.json(
       { error: "Failed to fetch revenue" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

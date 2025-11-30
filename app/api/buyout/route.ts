@@ -140,12 +140,12 @@ export async function POST(req: NextRequest) {
 
     // Insert Payment
     let paymentMethod = null;
-    if (paymentType && paymentProvider) {
+    if (paymentType) {
       paymentMethod = await prisma.paymentMethod.create({
         data: {
           orderId: order.id,
           type: paymentType,
-          provider: paymentProvider,
+          provider: null,
           details: paymentDetails,
           status: "PENDING",
         },

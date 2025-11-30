@@ -21,16 +21,30 @@ const initialState: CheckoutState = {
 // --- Thunk ---
 export const checkout = createAsyncThunk<
   Order,
-  { customerId: string; discountId?: string, orderName?: string, pickupTime?: string },
+  {
+    customerId: string;
+    discountId?: string;
+    orderName?: string;
+    pickupTime?: string;
+    paymentType: string;        // <-- ADDED
+    paymentDetails?: string;    // <-- ADDED
+  },
   { dispatch: AppDispatch }
->("checkout/submit", async ({ customerId, discountId , orderName, pickupTime}, { dispatch }) => {
+>("checkout/submit", async ({ customerId, discountId, orderName, pickupTime, paymentType, paymentDetails }, { dispatch }) => {
   const res = await fetch("/api/checkout", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "x-api-key": process.env.NEXT_PUBLIC_API_KEY!,
     },
-    body: JSON.stringify({ customerId, discountId, orderName, pickupTime}),
+    body: JSON.stringify({
+      customerId,
+      discountId,
+      orderName,
+      pickupTime,
+      paymentType,       // <-- INCLUDED
+      paymentDetails,    // <-- INCLUDED
+    }),
   });
 
   if (!res.ok) {
@@ -40,11 +54,9 @@ export const checkout = createAsyncThunk<
 
   const data = await res.json();
 
-  // Clear cart after successful checkout
   dispatch(clearCart());
 
-  // Return order object (with proper type)
-  return data.order as Order;
+  return data as Order;
 });
 
 // --- Slice ---
@@ -78,8 +90,7 @@ const checkoutSlice = createSlice({
 
 // --- Selectors ---
 export const selectCheckoutOrder = (state: RootState) => state.checkout.order;
-export const selectCheckoutLoading = (state: RootState) =>
-  state.checkout.loading;
+export const selectCheckoutLoading = (state: RootState) => state.checkout.loading;
 export const selectCheckoutError = (state: RootState) => state.checkout.error;
 
 export const { resetCheckout } = checkoutSlice.actions;

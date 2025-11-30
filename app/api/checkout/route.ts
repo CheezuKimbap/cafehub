@@ -183,14 +183,16 @@ export async function POST(req: NextRequest) {
       prisma.cartItem.deleteMany({ where: { cartId: cart.id } }),
     ]);
 
+
+
     // 5. Optionally create PaymentMethod
     let paymentMethod = null;
-    if (paymentType && paymentProvider) {
+    if (paymentType) {
       paymentMethod = await prisma.paymentMethod.create({
         data: {
           orderId: order.id,
           type: paymentType,
-          provider: paymentProvider,
+          provider: null,
           details: paymentDetails,
           status: "PENDING",
         },

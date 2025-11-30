@@ -91,52 +91,57 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
     const finalTotal = Math.max(subtotal - discountAmount, 0);
 
     const handleCheckout = async () => {
-        if (!customerId) return;
-        let finalPickupTime: string | undefined = undefined;
-        if (pickUpDay !== null) {
-            const now = new Date();
-            let pickupDate = new Date();
-            if (pickUpDay) pickupDate.setDate(pickupDate.getDate() + Number(pickUpDay));
+  if (!customerId) return;
 
-            if (pickUpTime === "ASAP") {
-                const nearest = new Date();
-                nearest.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
-                pickupDate.setHours(nearest.getHours(), nearest.getMinutes(), 0, 0);
-            } else if (pickUpTime) {
-                const match = pickUpTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
-                if (match) {
-                    let hours = Number(match[1]);
-                    const minutes = Number(match[2]);
-                    const meridiem = match[3]?.toUpperCase();
-                    if (meridiem) {
-                        if (meridiem === "PM" && hours < 12) hours += 12;
-                        if (meridiem === "AM" && hours === 12) hours = 0;
-                    }
-                    pickupDate.setHours(hours, minutes, 0, 0);
-                }
-            }
+  let finalPickupTime: string | undefined = undefined;
 
-            // ✅ assign to outer variable
-            finalPickupTime = pickupDate.toISOString();
+  if (pickUpDay !== null) {
+    const now = new Date();
+    let pickupDate = new Date();
+    pickupDate.setDate(pickupDate.getDate() + Number(pickUpDay));
+
+    if (pickUpTime === "ASAP") {
+      const nearest = new Date();
+      nearest.setMinutes(Math.ceil(now.getMinutes() / 15) * 15);
+      pickupDate.setHours(nearest.getHours(), nearest.getMinutes(), 0, 0);
+    } else if (pickUpTime) {
+      const match = pickUpTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+      if (match) {
+        let hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        const meridiem = match[3]?.toUpperCase();
+        if (meridiem) {
+          if (meridiem === "PM" && hours < 12) hours += 12;
+          if (meridiem === "AM" && hours === 12) hours = 0;
         }
+        pickupDate.setHours(hours, minutes, 0, 0);
+      }
+    }
 
-        try {
-            await dispatch(
-                checkout({
-                    customerId,
-                    discountId: selectedVoucher ?? undefined,
-                    orderName: undefined,
-                    pickupTime: finalPickupTime ?? undefined,
-                }),
-            ).unwrap();
+    finalPickupTime = pickupDate.toISOString();
+  }
 
-            onCancel();
+  try {
+    await dispatch(
+      checkout({
+        customerId,
+        discountId: selectedVoucher ?? undefined,
+        orderName: undefined,
+        pickupTime: finalPickupTime ?? undefined,
 
-            router.push("/order");
-        } catch (err) {
-            console.error("Checkout failed:", err);
-        }
-    };
+        // ✅ FIXED — send payment type to backend
+        paymentType: paymentMethod,
+        paymentDetails:  undefined,
+      })
+    ).unwrap();
+
+    onCancel();
+    router.push("/order");
+  } catch (err) {
+    console.error("Checkout failed:", err);
+  }
+};
+
     useEffect(() => {
         const dayOffset = Number(pickUpDay ?? 0);
         const now = new Date();

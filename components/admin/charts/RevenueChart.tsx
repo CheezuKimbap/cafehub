@@ -27,7 +27,7 @@ export function RevenueChart({ className }: RevenueChartProps) {
     if (!monthlyData.length) return;
 
     const header = Object.keys(monthlyData[0]).join(",");
-    const rows = monthlyData.map((d) => Object.values(d).join(",")).join("\n");
+    const rows = monthlyData.map((d: any) => Object.values(d).join(",")).join("\n");
     const csv = `${header}\n${rows}`;
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");

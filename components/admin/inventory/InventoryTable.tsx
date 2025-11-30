@@ -7,6 +7,7 @@ import { fetchCategories } from "@/redux/features/categories/categoriesSlice";
 import { DataTable } from "../../ui/data-table";
 import { AddProductButton } from "./AddProduct";
 import { getProductColumns } from "./columns";
+import { EditCupsButton } from "./EditProductCups";
 
 export default function InventoryTable() {
   const dispatch = useAppDispatch();
@@ -29,7 +30,11 @@ export default function InventoryTable() {
         <DataTable
           columns={columns}
           data={items}
-          actions={<AddProductButton />}
+          actions={ <>
+      <AddProductButton />
+      <EditCupsButton />
+    </>
+          }
         />
       )}
     </div>

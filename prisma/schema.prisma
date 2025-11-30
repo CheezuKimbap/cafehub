@@ -423,3 +423,9 @@ model LoyaltyRewardTier {
 
   createdAt       DateTime       @default(now())
 }
+
+model Stock{
+    id         String   @id @default(uuid()) @map("_id")
+    paperCupCount Int @default(0)
+    plasticCupCount Int @default(0)
+}

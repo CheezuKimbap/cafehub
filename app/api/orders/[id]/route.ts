@@ -92,6 +92,11 @@ export async function PUT(req: NextRequest, context: any) {
       updatedOrder.status === OrderStatus.COMPLETED &&
       updatedOrder.paymentStatus === PaymentStatus.PAID
     ) {
+
+      await prisma.paymentMethod.updateMany({
+        where: { orderId: updatedOrder.id },
+        data: { status: "SUCCESS", paidAt: new Date() },
+        });
       // Calculate stamps earned from all order items
       const stampsEarned = updatedOrder.orderItems.reduce(
         (sum, item) => sum + item.quantity,
@@ -157,7 +162,47 @@ export async function PUT(req: NextRequest, context: any) {
           }
         }
       }
+
+      // ---- Cup Stock Deduction ----
+        const stock = await prisma.stock.findFirst();
+
+        if (stock) {
+        let paperNeeded = 0;
+        let plasticNeeded = 0;
+
+        // Count how many HOT and COLD cups are needed
+        for (const item of updatedOrder.orderItems) {
+            if (item.variant?.servingType === "HOT") {
+            paperNeeded += item.quantity;
+            } else if (item.variant?.servingType === "COLD") {
+            plasticNeeded += item.quantity;
+            }
+        }
+
+        const updateData: any = {};
+
+        // Deduct paper cups ONLY if stock > 0
+        if (stock.paperCupCount > 0) {
+            updateData.paperCupCount = {
+            decrement: Math.min(stock.paperCupCount, paperNeeded),
+            };
+        }
+
+        // Deduct plastic cups ONLY if stock > 0
+        if (stock.plasticCupCount > 0) {
+            updateData.plasticCupCount = {
+            decrement: Math.min(stock.plasticCupCount, plasticNeeded),
+            };
+        }
+
+        // Update stock only if any change is required
+        if (Object.keys(updateData).length > 0) {
+            await prisma.stock.updateMany({ data: updateData });
+        }
+        }
+
     }
+
 
     return NextResponse.json(
       { message: "Order updated", order: updatedOrder },

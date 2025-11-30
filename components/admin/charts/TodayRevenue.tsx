@@ -2,24 +2,25 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// REMOVE unused LineChart imports if not using them
-
-// 1. UPDATE INTERFACE to match Redux state
 interface TodayRevenueProps {
-  amount: number | null; // The revenue amount
+  amount: number | null;   // total revenue
+  gcash: number;           // gcash revenue
+  cash: number;            // cash revenue
   loading: boolean;
   error: string | null;
   title?: string;
 }
 
-// 2. UPDATE FUNCTION SIGNATURE and handle state
 export function TodayRevenue({
   amount,
+  gcash,
+  cash,
   loading,
   error,
   title = "Today's Revenue",
 }: TodayRevenueProps) {
-  // Handle Loading State
+
+  // Loading
   if (loading) {
     return (
       <Card>
@@ -33,7 +34,7 @@ export function TodayRevenue({
     );
   }
 
-  // Handle Error State
+  // Error
   if (error) {
     return (
       <Card>
@@ -47,23 +48,38 @@ export function TodayRevenue({
     );
   }
 
-  // Use the amount directly when successful (defaulting to 0 if null)
-  const displayValue = amount ?? 0;
+  const totalValue = amount ?? 0;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex justify-between gap-2 items-center">
-          <div>
-            <p className="text-xl font-bold">
-              ₱{displayValue.toLocaleString()} {/* Display the revenue */}
-            </p>
-            <p className="text-gray-500 text-sm">Available to payout</p>
-          </div>
+
+      <CardContent className="space-y-4">
+
+        {/* TOTAL */}
+        <div>
+          <p className="text-xl font-bold">
+            ₱{totalValue.toLocaleString()}
+          </p>
+          <p className="text-gray-500 text-sm">Total Revenue</p>
         </div>
+
+        <hr />
+
+        {/* GCASH */}
+        <div className="flex justify-between">
+          <span className="text-gray-600 text-sm">GCASH</span>
+          <span className="font-semibold">₱{gcash.toLocaleString()}</span>
+        </div>
+
+        {/* CASH */}
+        <div className="flex justify-between">
+          <span className="text-gray-600 text-sm">CASH</span>
+          <span className="font-semibold">₱{cash.toLocaleString()}</span>
+        </div>
+
       </CardContent>
     </Card>
   );
