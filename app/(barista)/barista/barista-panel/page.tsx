@@ -11,7 +11,7 @@ import {
 } from "@/redux/features/cart/baristaCartSlice";
 import { fetchAddons } from "@/redux/features/addons/addonsSlice";
 import { checkout } from "@/redux/features/checkout/checkoutSlice";
-import { fetchStock } from "@/redux/features/stock/stocksSlice"; // ✅ NEW
+import { fetchStock } from "@/redux/features/stock/stocksSlice";
 
 import type { RootState, AppDispatch } from "@/redux/store";
 import type { CartItemAddon } from "@/redux/features/cart/cart";
@@ -39,9 +39,9 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
-// Store hours & day options
 const STORE_OPEN = 9;
 const STORE_CLOSE = 22;
+
 const dayOptions = [
   { label: "Today", offset: 0 },
   { label: "Tomorrow", offset: 1 },
@@ -64,7 +64,6 @@ export default function BaristaPOS() {
     (s: RootState) => s.checkout
   );
 
-  // ✅ Cup counts from Redux
   const paperCups =
     useSelector((s: RootState) => s.stock.stock?.paperCupCount) ?? 0;
   const plasticCups =
@@ -78,25 +77,27 @@ export default function BaristaPOS() {
   const [pickUpTime, setPickUpTime] = useState<string | null>("ASAP");
   const [orderName, setOrderName] = useState<string | null>(null);
 
-  // ------------- LOAD PRODUCT + CART + ADDONS + STOCK -------------
+  // ⬅️ NEW
+  const [paymentType, setPaymentType] = useState("CASH");
+
+  // Load product/cart/addons/stock
   useEffect(() => {
     if (!customerId) return;
 
     dispatch(fetchProducts({ featured: false }));
     dispatch(fetchBaristaCart(customerId));
     dispatch(fetchAddons());
-    dispatch(fetchStock()); // ✅ NEW: load cups
+    dispatch(fetchStock());
   }, [dispatch, customerId]);
 
-  // ------------- REFRESH CART + STOCK AFTER CHECKOUT -------------
+  // refresh after checkout
   useEffect(() => {
     if (order && customerId) {
       dispatch(fetchBaristaCart(customerId));
-      dispatch(fetchStock()); // ✅ NEW: refresh cups after server deducts
+      dispatch(fetchStock());
     }
   }, [order, customerId, dispatch]);
 
-  // ------------- RESET TIME PICKER WHEN DAY = TODAY -------------
   useEffect(() => {
     if (Number(pickUpDay ?? 0) === 0) setPickUpTime("ASAP");
     else setPickUpTime(null);
@@ -183,15 +184,16 @@ export default function BaristaPOS() {
     dispatch(
       checkout({
         customerId,
-        discountId: undefined,
+        discountId: undefined, // DO NOT USE DISCOUNT
         orderName: orderName ?? undefined,
         pickupTime: pickupDate.toISOString(),
-      })
+        paymentType: paymentType, // <-- CASH or GCASH
+      }) as any
     )
       .unwrap()
       .then(() => {
         dispatch(fetchBaristaCart(customerId));
-        dispatch(fetchStock()); // ✅ NEW
+        dispatch(fetchStock());
         setOrderName(null);
       })
       .catch(console.error);
@@ -216,23 +218,19 @@ export default function BaristaPOS() {
 
   return (
     <div className="flex gap-6 p-6 h-[90vh]">
-
       {/* ---------------- MENU ---------------- */}
       <div className="flex-1 flex flex-col">
         <div className="flex justify-between">
+          <h2 className="text-2xl font-bold mb-4">Menu</h2>
 
-             <h2 className="text-2xl font-bold mb-4">Menu</h2>
-
-            <div>
-                  <div className="flex justify-between items-center mb-4 bg-white px-4 py-2 rounded-lg shadow border z-50">
+          <div className="flex justify-between items-center mb-4 bg-white px-4 py-2 rounded-lg shadow border z-50">
             <div className="text-sm font-semibold">
-            Paper Cups: <span className="text-blue-600">{paperCups}</span>
+              Paper Cups: <span className="text-blue-600">{paperCups}</span>
             </div>
             <div className="text-sm font-semibold ml-4">
-            Plastic Cups: <span className="text-green-600">{plasticCups}</span>
+              Plastic Cups: <span className="text-green-600">{plasticCups}</span>
             </div>
-        </div>
-            </div>
+          </div>
         </div>
 
         <ScrollArea className="flex-1">
@@ -243,9 +241,7 @@ export default function BaristaPOS() {
                 <Dialog
                   key={p.id}
                   open={selectedProduct === p.id}
-                  onOpenChange={(open) =>
-                    setSelectedProduct(open ? p.id : null)
-                  }
+                  onOpenChange={(open) => setSelectedProduct(open ? p.id : null)}
                 >
                   <DialogTrigger asChild>
                     <Card className="cursor-pointer hover:shadow-xl transition transform hover:-translate-y-1 bg-white rounded-xl border border-gray-200">
@@ -254,10 +250,7 @@ export default function BaristaPOS() {
                       </CardHeader>
                       <CardContent>
                         {p.variants?.map((v: any) => (
-                          <div
-                            key={v.id}
-                            className="flex justify-between text-sm"
-                          >
+                          <div key={v.id} className="flex justify-between text-sm">
                             <span>{v.servingType}</span>
                             <span>₱{v.price}</span>
                           </div>
@@ -287,10 +280,7 @@ export default function BaristaPOS() {
                           className="flex flex-col gap-2"
                         >
                           {p.variants?.map((v: any) => (
-                            <div
-                              key={v.id}
-                              className="flex items-center space-x-2"
-                            >
+                            <div key={v.id} className="flex items-center space-x-2">
                               <RadioGroupItem value={v.id} id={`v-${v.id}`} />
                               <Label htmlFor={`v-${v.id}`}>
                                 {v.servingType} - ₱{v.price}
@@ -302,15 +292,11 @@ export default function BaristaPOS() {
                         <div className="flex items-center gap-3 mt-2">
                           <Button
                             variant="outline"
-                            onClick={() =>
-                              setQuantity((q) => Math.max(1, q - 1))
-                            }
+                            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                           >
                             -
                           </Button>
-                          <span className="font-semibold text-lg">
-                            {quantity}
-                          </span>
+                          <span className="font-semibold text-lg">{quantity}</span>
                           <Button
                             variant="outline"
                             onClick={() => setQuantity((q) => q + 1)}
@@ -326,19 +312,12 @@ export default function BaristaPOS() {
                               <p>Loading addons...</p>
                             ) : (
                               addons.map((a: Addon) => (
-                                <div
-                                  key={a.id}
-                                  className="flex items-center space-x-2"
-                                >
+                                <div key={a.id} className="flex items-center space-x-2">
                                   <Checkbox
                                     checked={
-                                      !!selectedAddons.find(
-                                        (s) => s.addonId === a.id
-                                      )
+                                      !!selectedAddons.find((s) => s.addonId === a.id)
                                     }
-                                    onCheckedChange={() =>
-                                      toggleAddon(a)
-                                    }
+                                    onCheckedChange={() => toggleAddon(a)}
                                   />
                                   <Label>
                                     {a.name} (+₱{a.price})
@@ -425,23 +404,31 @@ export default function BaristaPOS() {
                 />
               </div>
 
+              {/* Payment Method */}
+              <div className="mt-3">
+                <Label>Payment Method</Label>
+                <Select value={paymentType} onValueChange={setPaymentType}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select payment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CASH">Cash</SelectItem>
+                    <SelectItem value="GCASH">GCash</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Pickup Day / Time */}
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div>
                   <Label>Pickup Day</Label>
-                  <Select
-                    value={pickUpDay ?? ""}
-                    onValueChange={setPickUpDay}
-                  >
+                  <Select value={pickUpDay ?? ""} onValueChange={setPickUpDay}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select day" />
                     </SelectTrigger>
                     <SelectContent>
                       {dayOptions.map((d) => (
-                        <SelectItem
-                          key={d.label}
-                          value={String(d.offset)}
-                        >
+                        <SelectItem key={d.label} value={String(d.offset)}>
                           {d.label}
                         </SelectItem>
                       ))}
@@ -451,10 +438,7 @@ export default function BaristaPOS() {
 
                 <div>
                   <Label>Pickup Time</Label>
-                  <Select
-                    value={pickUpTime ?? ""}
-                    onValueChange={setPickUpTime}
-                  >
+                  <Select value={pickUpTime ?? ""} onValueChange={setPickUpTime}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select time" />
                     </SelectTrigger>
@@ -462,51 +446,40 @@ export default function BaristaPOS() {
                       {(() => {
                         const slots = [];
                         const now = new Date();
-                        const selectedDayOffset =
-                          Number(pickUpDay ?? 0);
+                        const selectedDayOffset = Number(pickUpDay ?? 0);
+
                         const baseDate = new Date();
-                        baseDate.setDate(
-                          baseDate.getDate() + selectedDayOffset
-                        );
+                        baseDate.setDate(baseDate.getDate() + selectedDayOffset);
                         baseDate.setSeconds(0);
                         baseDate.setMilliseconds(0);
 
                         if (selectedDayOffset === 0)
                           slots.push(
-                            <SelectItem value="ASAP" key="ASAP">
+                            <SelectItem value="ASAP" key={"ASAP"}>
                               ASAP
                             </SelectItem>
                           );
 
-                        for (
-                          let hour = STORE_OPEN;
-                          hour < STORE_CLOSE;
-                          hour++
-                        ) {
+                        for (let hour = STORE_OPEN; hour < STORE_CLOSE; hour++) {
                           for (let minute of [0, 15, 30, 45]) {
                             const slot = new Date(baseDate);
                             slot.setHours(hour);
                             slot.setMinutes(minute);
 
+                            if (selectedDayOffset === 0 && slot <= now) continue;
+
+                            const nearest = new Date(now);
+                            nearest.setMinutes(
+                              Math.ceil(now.getMinutes() / 15) * 15
+                            );
+                            nearest.setSeconds(0);
+                            nearest.setMilliseconds(0);
+
                             if (
                               selectedDayOffset === 0 &&
-                              slot <= now
+                              slot.getTime() === nearest.getTime()
                             )
                               continue;
-
-                            if (selectedDayOffset === 0) {
-                              const nearest = new Date(now);
-                              nearest.setMinutes(
-                                Math.ceil(now.getMinutes() / 15) * 15
-                              );
-                              nearest.setSeconds(0);
-                              nearest.setMilliseconds(0);
-
-                              if (
-                                slot.getTime() === nearest.getTime()
-                              )
-                                continue;
-                            }
 
                             const label = slot.toLocaleTimeString([], {
                               hour: "2-digit",
@@ -531,7 +504,7 @@ export default function BaristaPOS() {
                 </div>
               </div>
 
-              {/* Checkout Button */}
+              {/* Checkout */}
               <Button
                 className="mt-4 w-full"
                 onClick={handleCheckout}
