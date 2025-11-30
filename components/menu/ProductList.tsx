@@ -38,6 +38,10 @@ export function ProductList({
           description={p.description}
           variants={p.variants}
           imageUrl={p.image ?? undefined}
+           hasRating={true}
+                                    hasPrice={false}
+                                    hasCompactPrice={true}
+                                    hasDescription={false}
         />
       ))}
     </div>
