@@ -34,7 +34,6 @@ export default function BaristaBoard() {
     }, [dispatch]);
 
     useEffect(() => {
-        // Expand PENDING, PREPARING, READYTOPICKUP by default, COMPLETED collapsed
         const defaultExpanded = orders
             .filter((o) => o.status !== "COMPLETED")
             .map((o) => o.id);
@@ -126,11 +125,11 @@ export default function BaristaBoard() {
                             if (col.key === "READYTOPICKUP") {
                                 const pickupA = a.pickupTime ? new Date(a.pickupTime).getTime() : 0;
                                 const pickupB = b.pickupTime ? new Date(b.pickupTime).getTime() : 0;
-                                return pickupA - pickupB; // oldest pickup first (FIFO)
+                                return pickupA - pickupB;
                             } else if (col.key === "PENDING" || col.key === "PREPARING") {
-                                return new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime(); // oldest order first (FIFO)
+                                return new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime();
                             } else {
-                                return new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime(); // newest order first (COMPLETED)
+                                return new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime();
                             }
                         })
 
@@ -145,7 +144,8 @@ export default function BaristaBoard() {
                                     ? order.orderItems
                                     : order.orderItems.slice(0, 2);
 
-                            const orderTotal = order.orderItems.reduce((sum, item) => {
+                            // === PRICE CALCULATION ===
+                            const subtotal = order.orderItems.reduce((sum, item) => {
                                 const base = item.priceAtPurchase * item.quantity;
                                 const addons = item.addons.reduce(
                                     (aSum, a) => aSum + a.addon.price * a.quantity,
@@ -153,6 +153,9 @@ export default function BaristaBoard() {
                                 );
                                 return sum + base + addons;
                             }, 0);
+
+                            const discount = order.discountApplied ?? 0;
+                            const finalTotal = subtotal - discount;
 
                             return (
                                 <Card key={order.id} className="shadow-md">
@@ -244,9 +247,24 @@ export default function BaristaBoard() {
                                                 </Button>
                                             )}
 
-                                            <p className="font-medium text-gray-700 mt-2">
-                                                Total: ₱{orderTotal.toFixed(2)}
-                                            </p>
+
+
+                                            {/* === PRICE DISPLAY === */}
+                                            <div className="pt-2 text-sm">
+                                                <p className="text-gray-700">
+                                                    Subtotal: <span className="font-semibold">₱{subtotal.toFixed(2)}</span>
+                                                </p>
+
+                                                {discount > 0 && (
+                                                    <p className="text-green-700">
+                                                        Discount: <span className="font-semibold">-₱{discount.toFixed(2)}</span>
+                                                    </p>
+                                                )}
+
+                                                <p className="font-semibold text-gray-900 mt-1">
+                                                    Total: ₱{finalTotal.toFixed(2)}
+                                                </p>
+                                            </div>
 
                                             <div className="pt-2 space-y-2">
                                                 {order.paymentStatus === "UNPAID" && (

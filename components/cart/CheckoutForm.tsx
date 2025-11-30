@@ -18,13 +18,15 @@ import {
 } from "@/components/ui/select";
 import { CheckoutConfirm } from "./CheckoutConfirm";
 import { useSession } from "next-auth/react";
-
+import { useRouter } from "next/navigation";
 interface CheckoutFormProps {
     total: number;
     onCancel: () => void;
 }
 
 export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
+    const router = useRouter();
+
     const [selectedVoucher, setSelectedVoucher] = useState<string | null>(null);
     const [paymentMethod, setPaymentMethod] = useState("CASH");
     const dispatch = useAppDispatch();
@@ -129,6 +131,8 @@ export function CheckoutForm({ total, onCancel }: CheckoutFormProps) {
             ).unwrap();
 
             onCancel();
+
+            router.push("/order");
         } catch (err) {
             console.error("Checkout failed:", err);
         }
