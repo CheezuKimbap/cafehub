@@ -80,7 +80,7 @@ export async function PUT(req: NextRequest, context: any) {
         customer: true,
         orderItems: {
           include: {
-            variant: { include: { product: true } },
+            variant: { include: { product: { include: { category: true } } } },
             addons: { include: { addon: true } },
           },
         },
@@ -98,10 +98,17 @@ export async function PUT(req: NextRequest, context: any) {
         data: { status: "SUCCESS", paidAt: new Date() },
         });
       // Calculate stamps earned from all order items
-      const stampsEarned = updatedOrder.orderItems.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      );
+      const stampsEarned = updatedOrder.orderItems.reduce((sum, item) => {
+        const categoryName =
+            item.variant?.product?.category?.name;
+
+        if (categoryName === "Coffee Based Drinks") {
+            return sum + item.quantity;
+        }
+
+        return sum;
+        }, 0);
+
 
       // Atomic increment (prevents race condition)
       await prisma.customer.update({
