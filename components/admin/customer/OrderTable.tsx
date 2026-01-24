@@ -41,8 +41,10 @@ export function LatestOrdersCard({ orders }: LatestOrdersCardProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.length > 0 ? (
-              orders.map((order) => (
+           {orders.length > 0 ? (
+            orders
+                .slice(0, 10)
+                .map((order) => (
                 <TableRow key={order.id}>
                   {/* Show first product (or join names if multiple) */}
 

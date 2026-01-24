@@ -31,14 +31,13 @@ export default function Dashboard() {
   const dispatch = useAppDispatch();
   const { data: session } = useSession();
 
-  // --- Local Split Revenue ---
+  /* ---------------- SPLIT REVENUE (LOCAL API) ---------------- */
   const [splitRevenue, setSplitRevenue] = useState({
     total: 0,
     gcash: 0,
     cash: 0,
   });
 
-  // Fetch GCASH + CASH + TOTAL from your new API
   useEffect(() => {
     async function loadSplitRevenue() {
       try {
@@ -46,7 +45,7 @@ export default function Dashboard() {
         const data = await res.json();
 
         setSplitRevenue({
-          total: data.amount ?? 0, // <-- FIXED (was data.total)
+          total: data.amount ?? 0,
           gcash: data.gcash ?? 0,
           cash: data.cash ?? 0,
         });
@@ -58,26 +57,44 @@ export default function Dashboard() {
     loadSplitRevenue();
   }, []);
 
-  // Orders
-  const {
-    orders,
-    status,
-    error: orderError,
-  } = useAppSelector((state) => state.order);
+  /* ---------------- FREE DRINKS METRIC (LOCAL API) ---------------- */
+  const [freeDrinksRedeemed, setFreeDrinksRedeemed] = useState(0);
+  const [freeDrinksLoading, setFreeDrinksLoading] = useState(false);
+  const [freeDrinksError, setFreeDrinksError] = useState<string | null>(null);
 
-  // Most sold
-  const { items: mostSoldItems, loading: mostSoldLoading } = useAppSelector(
-    (state) => state.mostSold
-  );
+  useEffect(() => {
+    async function loadFreeDrinksRedeemed() {
+      try {
+        setFreeDrinksLoading(true);
 
-  // Revenue
+        const res = await fetch("/api/metrics/orders-and-redeems");
+        if (!res.ok) throw new Error("Failed to fetch free drinks");
+
+        const data = await res.json();
+        setFreeDrinksRedeemed(data.freeDrinksRedeemed ?? 0);
+      } catch (err: any) {
+        console.error("Free drinks metric error:", err);
+        setFreeDrinksError(err.message ?? "Unknown error");
+      } finally {
+        setFreeDrinksLoading(false);
+      }
+    }
+
+    loadFreeDrinksRedeemed();
+  }, []);
+
+  /* ---------------- REDUX STATE ---------------- */
+  const { orders, status } = useAppSelector((state) => state.order);
+
+  const { items: mostSoldItems, loading: mostSoldLoading } =
+    useAppSelector((state) => state.mostSold);
+
   const {
     amount,
     loading: revenueLoading,
     error: revenueError,
   } = useAppSelector(selectRevenue);
 
-  // Weekly sales
   const {
     items: weeklyItems,
     totalRevenue,
@@ -86,67 +103,60 @@ export default function Dashboard() {
     error: weeklyError,
   } = useAppSelector(selectWeeklySales);
 
-  // Total Orders
   const {
     total: totalOrders,
     loading: totalLoading,
     error: totalError,
   } = useAppSelector((state) => state.totalOrder);
 
-  // Monthly Revenue
   const { monthlyData, loading: monthlyLoading } =
     useAppSelector(selectMonthlyRevenue);
 
-  // Fetch orders
+  /* ---------------- REDUX FETCHES ---------------- */
   useEffect(() => {
-    if (orders.length === 0 && status !== "loading" && status !== "success") {
+    if (orders.length === 0 && status !== "loading") {
       dispatch(fetchOrders());
     }
   }, [dispatch, orders.length, status]);
 
-  // Fetch most sold
   useEffect(() => {
     if (mostSoldItems.length === 0 && !mostSoldLoading) {
       dispatch(fetchMostSold());
     }
   }, [dispatch, mostSoldItems.length, mostSoldLoading]);
 
-  // Fetch revenue (for chart)
   useEffect(() => {
     if (amount === null && !revenueLoading) {
       dispatch(fetchRevenue());
     }
   }, [dispatch, amount, revenueLoading]);
 
-  // Fetch weekly sales
   useEffect(() => {
     if (weeklyItems.length === 0 && !weeklyLoading) {
       dispatch(fetchWeeklySales() as any);
     }
   }, [dispatch, weeklyItems.length, weeklyLoading]);
 
-  // Fetch total orders
   useEffect(() => {
     if (totalOrders === null && !totalLoading) {
       dispatch(fetchTotalOrders());
     }
   }, [dispatch, totalOrders, totalLoading]);
 
-  // Fetch monthly revenue
   useEffect(() => {
     if (monthlyData.length === 0 && !monthlyLoading) {
       dispatch(fetchMonthlyRevenue());
     }
   }, [dispatch, monthlyData.length, monthlyLoading]);
 
+  /* ---------------- RENDER ---------------- */
   return (
     <div className="flex w-full h-full">
       <div className="flex-1 p-6 bg-gray-100 space-y-6">
 
-        {/* --- TOP CARDS --- */}
+        {/* TOP CARDS */}
         <div className="grid grid-cols-3 gap-4">
 
-          {/* Weekly Summary */}
           <WeekSales
             items={weeklyItems}
             totalRevenue={totalRevenue}
@@ -154,7 +164,6 @@ export default function Dashboard() {
             loading={weeklyLoading}
           />
 
-          {/* Today's Revenue (local API split) */}
           <TodayRevenue
             amount={splitRevenue.total}
             gcash={splitRevenue.gcash}
@@ -163,17 +172,17 @@ export default function Dashboard() {
             error={revenueError}
           />
 
-          {/* Total Orders */}
           <TotalOrder
             amount={totalOrders ?? 0}
+            freeDrinksRedeemed={freeDrinksRedeemed}
             chartData={weeklyItems}
-            loading={totalLoading}
-            error={totalError}
+            loading={totalLoading || freeDrinksLoading}
+            error={totalError || freeDrinksError}
             label="Total Completed & Paid Orders"
           />
         </div>
 
-        {/* --- CHARTS --- */}
+        {/* CHARTS */}
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2 flex">
             <RevenueChart className="flex-1" />
@@ -183,7 +192,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* --- LATEST ORDERS --- */}
+        {/* LATEST ORDERS */}
         {status === "success" && orders.length > 0 ? (
           <LatestOrdersCard orders={orders} />
         ) : status === "loading" ? (
@@ -193,7 +202,9 @@ export default function Dashboard() {
         )}
 
         {weeklyError && (
-          <div className="text-red-500">Weekly Sales Error: {weeklyError}</div>
+          <div className="text-red-500">
+            Weekly Sales Error: {weeklyError}
+          </div>
         )}
       </div>
     </div>
