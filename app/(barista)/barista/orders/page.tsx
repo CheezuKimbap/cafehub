@@ -297,6 +297,33 @@ export default function BaristaBoard() {
                                         </CardContent>
                                     ) : (
                                         <CardContent className="pt-2">
+                                            {/* CUSTOMER */}
+<p className="font-medium text-sm text-gray-800">
+  Customer: {order.orderName ?? order.customer?.firstName ?? "—"}
+</p>
+
+{/* ITEMS */}
+<ul className="text-xs text-gray-600 space-y-1">
+  {orderItems.map(item => {
+    const itemTotal =
+      item.priceAtPurchase * item.quantity +
+      item.addons.reduce(
+        (sum, a) => sum + a.addon.price * a.quantity,
+        0
+      );
+
+    return (
+      <li key={item.id} className="flex justify-between">
+        <span>
+          {item.quantity}×{" "}
+          {item.variant?.product?.name ?? "Unknown"}
+        </span>
+        <span>₱{itemTotal}</span>
+      </li>
+    );
+  })}
+</ul>
+
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -305,7 +332,9 @@ export default function BaristaBoard() {
                                             >
                                                 Expand Card
                                             </Button>
+
                                         </CardContent>
+
                                     )}
                                 </Card>
                             );

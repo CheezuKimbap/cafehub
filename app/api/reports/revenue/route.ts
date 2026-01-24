@@ -32,15 +32,22 @@ export async function GET(req: Request) {
     let gcash = 0;
     let cash = 0;
 
-    orders.forEach((order) => {
-      const pm = order.paymentMethod;
-      if (!pm) return;
+  orders.forEach((order) => {
+  const pm = order.paymentMethod;
+  if (!pm) return;
 
-      const method = pm.type.toUpperCase();
+  const type = pm.type?.toUpperCase() ?? "";
 
-      if (method.includes("GCASH")) gcash += order.totalAmount;
-      if (method.includes("CASH")) cash += order.totalAmount;
-    });
+  if (type === "CASH") {
+    cash += order.totalAmount;
+  }
+
+  if (type === "GCASH") {
+    gcash += order.totalAmount;
+  }
+});
+
+
 
     const amount = gcash + cash;
 
