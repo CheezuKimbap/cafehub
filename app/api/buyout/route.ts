@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { notifyNewOrder } from "@/lib/notifyNewOrder";
 
 function getRandomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -137,6 +138,8 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    await notifyNewOrder(order.orderNumber);
 
     // Insert Payment
     let paymentMethod = null;

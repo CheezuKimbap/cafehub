@@ -39,6 +39,25 @@ export default function BaristaBoard() {
             orders.filter(o => o.status !== "COMPLETED").map(o => o.id)
         );
     }, [orders]);
+useEffect(() => {
+  function handleNewOrder() {
+    dispatch(fetchOrders());
+
+    // 👀 Barista has now "seen" the update
+    fetch("/api/barista/notifications/read", {
+      method: "POST",
+    }).catch(() => {});
+  }
+
+  window.addEventListener("new-order-notification", handleNewOrder);
+
+  return () => {
+    window.removeEventListener("new-order-notification", handleNewOrder);
+  };
+}, [dispatch]);
+
+
+
 
     const toastAndUpdate = (
         id: string,
@@ -356,7 +375,7 @@ export default function BaristaBoard() {
                                 .map(order => (
                                     <Card
                                         key={order.id}
-                                        className="bg-red-50 border-red-200 shadow-sm"
+                                        className="bg-red-50 border-red-200 shadow-sm mb-2"
                                     >
                                         <CardHeader className="pb-2">
                                             <CardTitle className="flex justify-between text-sm">

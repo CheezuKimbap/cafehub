@@ -48,7 +48,7 @@ export function TotalOrder({
           <div className="space-y-1">
             <p className="text-2xl font-bold">{amount}</p>
             <p className="text-gray-500 text-sm">{label}</p>
- <hr />
+            <hr />
             {/* 👇 FREE DRINKS */}
             <p className="text-sm text-gray-500  mt-4 font-medium">
                Free Drinks Redeemed:{" "}

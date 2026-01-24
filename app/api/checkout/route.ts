@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { notifyNewOrder } from "@/lib/notifyNewOrder";
 
 // Helper: pick random element from array
 function getRandomItem<T>(arr: T[]): T {
@@ -183,7 +184,9 @@ export async function POST(req: NextRequest) {
       prisma.cartItem.deleteMany({ where: { cartId: cart.id } }),
     ]);
 
+    // Notify baristas of new order
 
+    await notifyNewOrder(order.orderNumber);
 
     // 5. Optionally create PaymentMethod
     let paymentMethod = null;
@@ -198,6 +201,7 @@ export async function POST(req: NextRequest) {
         },
       });
     }
+
 
     return NextResponse.json({
       message: "Checkout complete",
