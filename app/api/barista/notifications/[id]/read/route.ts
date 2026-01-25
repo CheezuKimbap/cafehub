@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function PATCH(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
+// ✅ PATCH mark notification as read
+export async function PATCH(req: NextRequest, context: any) {
+  const { id } = context.params as { id: string };
 
   try {
     const notification = await prisma.notification.update({
@@ -13,11 +11,15 @@ export async function PATCH(
       data: { readAt: new Date() },
     });
 
-    return NextResponse.json(notification);
-  } catch {
     return NextResponse.json(
-      { error: "Failed to mark as read" },
-      { status: 500 }
+      { message: "Notification marked as read", notification },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("Failed to mark notification as read:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
     );
   }
 }
