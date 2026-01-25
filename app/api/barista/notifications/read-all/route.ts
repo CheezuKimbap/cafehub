@@ -1,23 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function POST() {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    await prisma.notification.updateMany({
-      where: {
-        customerId: null, // barista notifications
-        readAt: null,     // only unread
-      },
-      data: {
-        readAt: new Date(),
-      },
+    const notification = await prisma.notification.update({
+      where: { id: params.id },
+      data: { readAt: new Date() },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      notification,
+    });
   } catch (error) {
-    console.error("Read-all notifications error:", error);
+    console.error("Failed to mark notification as read:", error);
     return NextResponse.json(
-      { error: "Failed to mark all notifications as read" },
+      { error: "Failed to mark notification as read" },
       { status: 500 }
     );
   }
