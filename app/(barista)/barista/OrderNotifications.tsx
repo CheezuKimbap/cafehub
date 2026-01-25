@@ -45,14 +45,20 @@ export function OrderNotifications() {
       const data: Notification[] = await res.json();
 
       // 🔔 play sound only for NEW notification
-      if (
-        audioUnlocked &&
-        data.length &&
-        data[0].id !== lastIdRef.current
-      ) {
+     if (data.length && data[0].id !== lastIdRef.current) {
         lastIdRef.current = data[0].id;
-        play();
-      }
+
+        // 🔔 Play sound (if allowed)
+        if (audioUnlocked) play();
+
+        // 📡 Notify the rest of the app
+        window.dispatchEvent(
+            new CustomEvent("new-order-notification", {
+            detail: { notificationId: data[0].id },
+            })
+        );
+        }
+
 
       setNotifications(data);
     };
