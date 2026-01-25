@@ -5,8 +5,8 @@ export async function POST() {
   try {
     await prisma.notification.updateMany({
       where: {
-        readAt: null,        // only unread
-        customerId: null,    // barista notifications
+        customerId: null, // barista notifications
+        readAt: null,     // only unread
       },
       data: {
         readAt: new Date(),
