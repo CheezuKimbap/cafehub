@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, context: any) {
+  const { id } = context.params as { id: string };
   try {
     const notification = await prisma.notification.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { readAt: new Date() },
     });
 
