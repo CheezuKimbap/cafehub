@@ -8,8 +8,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   callbacks: {
     ...authConfig.callbacks,
-
-    async jwt({ token, user }) {
+      async jwt({ token, user }) {
       if (user) {
         // Always load the user from DB
         let dbUser = await prisma.user.findUnique({
@@ -37,6 +36,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.id = dbUser?.id ?? user.id;
         token.role = dbUser?.role ?? user.role;
         token.customerId = dbUser?.customerId ?? null;
+        token.emailVerified = dbUser?.emailVerified ?? null;
       }
 
       return token;
@@ -46,6 +46,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.role = token.role as "CUSTOMER" | "ADMIN" | "BARISTA";
         session.user.customerId = token.customerId as string | null;
+            session.user.emailVerified = token.emailVerified as Date | null;
       }
       return session;
     },

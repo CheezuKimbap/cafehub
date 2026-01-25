@@ -8,7 +8,7 @@ const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 // --- Thunks ---
 // Register new customer
 export const registerCustomer = createAsyncThunk<
-  Customer,
+  void,
   { firstName: string; lastName: string; email: string; password: string }
 >("customer/registerCustomer", async (payload) => {
   const res = await fetch("/api/auth/register", {
@@ -25,14 +25,9 @@ export const registerCustomer = createAsyncThunk<
     throw new Error(error.error || "Failed to register customer");
   }
 
-  const data = await res.json();
-  return {
-    id: data.user.id,
-    firstName: data.user.firstName,
-    lastName: data.user.lastName,
-    email: data.user.email,
-  };
+  // ✅ intentionally return nothing
 });
+
 
 // Fetch all customers
 export const fetchCustomers = createAsyncThunk<Customer[], void>(
@@ -102,22 +97,12 @@ const customerSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Register customer
-      .addCase(registerCustomer.pending, (state) => {
+           .addCase(registerCustomer.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(
-        registerCustomer.fulfilled,
-        (state, action: PayloadAction<Customer>) => {
-          state.status = "idle";
-          state.singleCustomer = action.payload;
-
-          // Prevent duplicates in the list
-          state.customers = [
-            ...state.customers.filter((c) => c.id !== action.payload.id),
-            action.payload,
-          ];
-        },
-      )
+      .addCase(registerCustomer.fulfilled, (state) => {
+        state.status = "idle";
+      })
       .addCase(registerCustomer.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;

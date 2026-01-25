@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
-import {toast} from 'sonner';
+
 interface LoginFormData {
   email: string;
   password: string;
@@ -19,35 +19,24 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (data: LoginFormData) => {
-    setLoading(true);
-    setError(null);
+ const onSubmit = async (data: LoginFormData) => {
+  setLoading(true);
+  setError(null);
 
-    const result = await signIn("credentials", {
-      redirect: false, // <- important, prevents auto redirect
+  try {
+    await signIn("credentials", {
       email: data.email,
       password: data.password,
-      callbackUrl: "/", // still useful when success
+      callbackUrl: "/", // Auth.js handles redirects
     });
-
+  } catch {
+    // This only catches unexpected JS errors
+    setError("Something went wrong. Please try again.");
+  } finally {
     setLoading(false);
+  }
+};
 
-    if (result?.error) {
-      setError("Invalid email or password. Please try again.");
-      return;
-    }
-
-    if (result?.ok && result.url) {
-       toast.success("Login successful!", {
-        duration: 1500,
-        });
-
-        // wait for the toast to finish
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      window.location.href = result.url; // manual redirect
-    }
-  };
 
   return (
     <Card className="w-full max-w-sm bg-transparent border-0 shadow-none">
@@ -59,6 +48,7 @@ export function LoginForm() {
           Please enter your details.
         </p>
       </CardHeader>
+
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
@@ -67,6 +57,7 @@ export function LoginForm() {
             {...register("email", { required: true })}
             className="rounded-full border-[#ac9c81]"
           />
+
           <Input
             type="password"
             placeholder="Enter your password"
@@ -74,7 +65,9 @@ export function LoginForm() {
             className="rounded-full border-[#ac9c81]"
           />
 
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {error && (
+            <p className="text-red-600 text-sm text-center">{error}</p>
+          )}
 
           <div className="flex justify-end">
             <Link
@@ -84,6 +77,7 @@ export function LoginForm() {
               Forgot password?
             </Link>
           </div>
+
           <Button
             type="submit"
             disabled={loading}
@@ -91,6 +85,7 @@ export function LoginForm() {
           >
             {loading ? "Signing in..." : "Sign In"}
           </Button>
+
           <p className="text-center text-sm text-gray-600">
             Don’t have an account?{" "}
             <Link href="/register" className="underline">
@@ -116,7 +111,6 @@ export function LoginForm() {
             alt="Google logo"
             width={20}
             height={20}
-            quality={100}
           />
           <span>Google</span>
         </button>

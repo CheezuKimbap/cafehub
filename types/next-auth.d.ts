@@ -6,6 +6,7 @@ declare module "next-auth" {
       id: string;
       role: "CUSTOMER" | "ADMIN" | "BARISTA";
       customerId?: string | null;
+       emailVerified?: Date | null;
     } & DefaultSession["user"];
   }
 
@@ -14,6 +15,7 @@ declare module "next-auth" {
     role: "CUSTOMER" | "ADMIN" | "BARISTA";
     customerId?: string | null;
     password?: string | null;
+    emailVerified?: Date | null;
   }
 }
 
@@ -22,5 +24,6 @@ declare module "next-auth/jwt" {
     id: string;
     role: "CUSTOMER" | "ADMIN" | "BARISTA";
     customerId?: string | null;
+     emailVerified?: Date | null;
   }
 }

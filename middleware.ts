@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
-const ignoredPaths = ["/", "/menu", "/login", "/admin/login", "/barista/login"];
+const ignoredPaths = ["/", "/menu", "/login", "/admin/login", "/barista/login", "/verify-required", "/auth/error", 'verify-email']; // public paths
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;

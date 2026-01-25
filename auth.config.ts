@@ -46,6 +46,7 @@ export default {
           name: name,
           role: user.role,
           customerId: user.customerId,
+          isEmailVerified: !!user.emailVerified,
         };
       },
     }),
@@ -54,6 +55,7 @@ export default {
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
+    error: "/verify-required"
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
@@ -63,5 +65,20 @@ export default {
     async authorized({ auth }) {
       return !!auth;
     },
+    async signIn({ user }) {
+    if (!user?.id) return false;
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { emailVerified: true },
+    });
+
+    // 🚨 HARD BLOCK
+    if (!dbUser?.emailVerified) {
+      throw new Error("EMAIL_NOT_VERIFIED");
+    }
+
+    return true;
+  },
   },
 } satisfies NextAuthConfig;
