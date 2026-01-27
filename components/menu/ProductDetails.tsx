@@ -171,15 +171,16 @@ export function ProductDetails() {
       if (addon) totalPrice += addon.price * a.quantity;
     });
 
-    let discountAmount = 0;
+   let discountAmount = 0;
     const discount = discounts.find((d) => d.id === selectedDiscountId);
     if (discount) {
-      if (discount.type === "PERCENTAGE_OFF" && discount.discountAmount) {
+    if (discount.type === "PERCENTAGE_OFF" && discount.discountAmount) {
         discountAmount = (totalPrice * discount.discountAmount) / 100;
-      } else if (discount.type === "FIXED_AMOUNT" && discount.discountAmount) {
+    } else if (discount.type === "FIXED_AMOUNT" && discount.discountAmount) {
         discountAmount = Math.min(discount.discountAmount, totalPrice);
-      }
     }
+    }
+
 
     const finalTotal = totalPrice - discountAmount;
 
@@ -468,9 +469,15 @@ export function ProductDetails() {
 
       if (discount.type === "PERCENTAGE_OFF" && discount.discountAmount) {
         discountAmount = (total * discount.discountAmount) / 100;
-      } else if (discount.type === "FIXED_AMOUNT" && discount.discountAmount) {
+        }
+        else if (discount.type === "FIXED_AMOUNT" && discount.discountAmount) {
         discountAmount = Math.min(discount.discountAmount, total);
-      }
+        }
+    else if (discount.type === "FREE_ITEM") {
+        // Free main product only
+        discountAmount = (selectedVariant?.price ?? 0) * quantity;
+        }
+
 
       return (
         <div className="flex justify-between text-green-600">
@@ -482,26 +489,37 @@ export function ProductDetails() {
     return null;
   })()}
 
-  <div className="flex justify-between font-semibold text-lg">
-    <span>Total</span>
-    <span>
-      ₱{(() => {
-        let total = (selectedVariant?.price ?? 0) * quantity;
-        selectedAddons.forEach(a => {
-          const addon = addonsState.list.find(ad => ad.id === a.addonId);
-          if (addon) total += addon.price * a.quantity;
-        });
-        const discount = discounts.find(d => d.id === selectedDiscountId);
-        if (discount) {
-          if (discount.type === "PERCENTAGE_OFF" && discount.discountAmount)
-            total -= (total * discount.discountAmount) / 100;
-          else if (discount.type === "FIXED_AMOUNT" && discount.discountAmount)
-            total -= Math.min(discount.discountAmount, total);
+ <div className="flex justify-between font-semibold text-lg">
+  <span>Total</span>
+  <span>
+    ₱{(() => {
+      let total = (selectedVariant?.price ?? 0) * quantity;
+
+      selectedAddons.forEach(a => {
+        const addon = addonsState.list.find(ad => ad.id === a.addonId);
+        if (addon) total += addon.price * a.quantity;
+      });
+
+      const discount = discounts.find(d => d.id === selectedDiscountId);
+
+      if (discount) {
+        if (discount.type === "PERCENTAGE_OFF" && discount.discountAmount) {
+          total -= (total * discount.discountAmount) / 100;
         }
-        return total.toFixed(2);
-      })()}
-    </span>
-  </div>
+        else if (discount.type === "FIXED_AMOUNT" && discount.discountAmount) {
+          total -= Math.min(discount.discountAmount, total);
+        }
+        else if (discount.type === "FREE_ITEM") {
+          // remove main product price
+          total -= (selectedVariant?.price ?? 0) * quantity;
+        }
+      }
+
+      return Math.max(total, 0).toFixed(2);
+    })()}
+  </span>
+</div>
+
 </div>
 
 
