@@ -37,6 +37,7 @@ export async function GET(req: NextRequest, context: any) {
 }
 
 // PUT update order status and/or payment status
+// PUT update order status and/or payment status
 export async function PUT(req: NextRequest, context: any) {
   const { id } = context.params;
 
@@ -67,7 +68,7 @@ export async function PUT(req: NextRequest, context: any) {
       );
     }
 
-    // Update the order
+    // Update order
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: {
@@ -80,7 +81,11 @@ export async function PUT(req: NextRequest, context: any) {
         customer: true,
         orderItems: {
           include: {
-            variant: { include: { product: { include: { category: true } } } },
+            variant: {
+              include: {
+                product: { include: { category: true } },
+              },
+            },
             addons: { include: { addon: true } },
           },
         },
@@ -92,25 +97,33 @@ export async function PUT(req: NextRequest, context: any) {
       updatedOrder.status === OrderStatus.COMPLETED &&
       updatedOrder.paymentStatus === PaymentStatus.PAID
     ) {
-
+      // Mark payment success
       await prisma.paymentMethod.updateMany({
         where: { orderId: updatedOrder.id },
         data: { status: "SUCCESS", paidAt: new Date() },
-        });
-      // Calculate stamps earned from all order items
+      });
+
+      // Get stamps BEFORE increment
+      const customerBefore = await prisma.customer.findUnique({
+        where: { id: updatedOrder.customerId },
+        select: { currentStamps: true },
+      });
+
+      const previousStamps = customerBefore?.currentStamps ?? 0;
+
+      // Calculate stamps earned
       const stampsEarned = updatedOrder.orderItems.reduce((sum, item) => {
         const categoryName =
-            item.variant?.product?.category?.name;
+          item.variant?.product?.category?.name;
 
         if (categoryName === "Coffee Based Drinks") {
-            return sum + item.quantity;
+          return sum + item.quantity;
         }
 
         return sum;
-        }, 0);
+      }, 0);
 
-
-      // Atomic increment (prevents race condition)
+      // Increment stamps
       await prisma.customer.update({
         where: { id: updatedOrder.customerId },
         data: {
@@ -120,96 +133,85 @@ export async function PUT(req: NextRequest, context: any) {
         },
       });
 
-      // Fetch updated customer stamps AFTER increment
-      const updatedCustomer = await prisma.customer.findUnique({
-        where: { id: updatedOrder.customerId },
-        select: { currentStamps: true },
-      });
+      const newStampCount = previousStamps + stampsEarned;
 
-      const newStampCount = updatedCustomer?.currentStamps ?? 0;
-
-      // ---- Loyalty Program Lookup ----
+      // Load loyalty program dynamically
       const program = await prisma.loyaltyProgram.findFirst({
         where: { name: "Coffeessential Stamp" },
         include: { rewardTiers: true },
       });
 
-      if (program) {
-        // Check if new stamp total matches a tier
-        const matchedTier = program.rewardTiers.find(
-          (tier) => tier.stampNumber === newStampCount
+      if (program && stampsEarned > 0) {
+        // Sort tiers by stampNumber (safety)
+        const tiers = [...program.rewardTiers].sort(
+          (a, b) => a.stampNumber - b.stampNumber
         );
 
-        if (matchedTier) {
-          // Issue the reward
+        // Find crossed tiers
+        const crossedTiers = tiers.filter(
+          (tier) =>
+            tier.stampNumber > previousStamps &&
+            tier.stampNumber <= newStampCount
+        );
+
+        // Issue rewards for crossed tiers
+        for (const tier of crossedTiers) {
           await prisma.discount.create({
             data: {
               customerId: updatedOrder.customerId,
-              type: matchedTier.rewardType,
-              description: matchedTier.rewardDescription || "Reward Earned",
-              discountAmount: matchedTier.discountAmount ?? null,
+              type: tier.rewardType,
+              description: tier.rewardDescription || "Reward Earned",
+              discountAmount: tier.discountAmount ?? null,
               productId: null,
             },
           });
+        }
 
-          // Determine the highest tier safely
-          const highestTier =
-            program.rewardTiers.length > 0
-              ? Math.max(
-                  ...program.rewardTiers.map((t) => t.stampNumber)
-                )
-              : 0;
+        // Reset stamps if highest tier reached or exceeded
+        const highestTier = tiers[tiers.length - 1]?.stampNumber ?? 0;
 
-          // Reset stamps if customer hit max tier
-          if (matchedTier.stampNumber === highestTier) {
-            await prisma.customer.update({
-              where: { id: updatedOrder.customerId },
-              data: { currentStamps: 0 },
-            });
-          }
+        if (newStampCount >= highestTier) {
+          await prisma.customer.update({
+            where: { id: updatedOrder.customerId },
+            data: { currentStamps: 0 },
+          });
         }
       }
 
       // ---- Cup Stock Deduction ----
-        const stock = await prisma.stock.findFirst();
+      const stock = await prisma.stock.findFirst();
 
-        if (stock) {
+      if (stock) {
         let paperNeeded = 0;
         let plasticNeeded = 0;
 
-        // Count how many HOT and COLD cups are needed
         for (const item of updatedOrder.orderItems) {
-            if (item.variant?.servingType === "HOT") {
+          if (item.variant?.servingType === "HOT") {
             paperNeeded += item.quantity;
-            } else if (item.variant?.servingType === "COLD") {
+          } else if (item.variant?.servingType === "COLD") {
             plasticNeeded += item.quantity;
-            }
+          }
         }
 
         const updateData: any = {};
 
-        // Deduct paper cups ONLY if stock > 0
         if (stock.paperCupCount > 0) {
-            updateData.paperCupCount = {
+          updateData.paperCupCount = {
             decrement: Math.min(stock.paperCupCount, paperNeeded),
-            };
+          };
         }
 
-        // Deduct plastic cups ONLY if stock > 0
         if (stock.plasticCupCount > 0) {
-            updateData.plasticCupCount = {
+          updateData.plasticCupCount = {
             decrement: Math.min(stock.plasticCupCount, plasticNeeded),
-            };
+          };
         }
 
-        // Update stock only if any change is required
         if (Object.keys(updateData).length > 0) {
-            await prisma.stock.updateMany({ data: updateData });
+          await prisma.stock.updateMany({ data: updateData });
         }
-        }
-
+      }
     }
-
 
     return NextResponse.json(
       { message: "Order updated", order: updatedOrder },
@@ -223,6 +225,7 @@ export async function PUT(req: NextRequest, context: any) {
     );
   }
 }
+
 
 
 // DELETE (soft delete) order
