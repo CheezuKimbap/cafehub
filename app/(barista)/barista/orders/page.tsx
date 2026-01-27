@@ -130,13 +130,19 @@ export default function BaristaBoard() {
 
           {/* MAIN ORDERS */}
           {orders
-            .filter(o =>
-              col.key === "COMPLETED"
-                ? o.status === "COMPLETED" &&
-                  o.paymentStatus === "PAID" &&
-                  isToday(o.orderDate)
-                : o.status === col.key
-            )
+  .filter(o =>
+    col.key === "COMPLETED"
+      ? o.status === "COMPLETED" &&
+        o.paymentStatus === "PAID" &&
+        isToday(o.orderDate)
+      : o.status === col.key
+  )
+  .sort(
+    (a, b) =>
+      new Date(a.orderDate ?? 0).getTime() -
+      new Date(b.orderDate ?? 0).getTime()
+  )
+
             .map(order => {
               const expanded = activeOrderId === order.id;
               const subtotal = calculateSubtotal(order);
