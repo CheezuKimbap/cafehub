@@ -4,17 +4,31 @@ import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { buyProduct } from "@/redux/features/buyout/buyoutSlice";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 const STORE_OPEN = 9;
 const STORE_CLOSE = 22;
+
 const dayOptions = [
   { label: "Today", offset: 0 },
   { label: "Tomorrow", offset: 1 },
   { label: "Day After Tomorrow", offset: 2 },
 ];
 
-export function BuyNowForm({ product, quantity, selectedAddons, variantId, onCancel, customerId }: any) {
+export function BuyNowForm({
+  product,
+  quantity,
+  selectedAddons,
+  variantId,
+  onCancel,
+  customerId,
+}: any) {
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.buyout);
 
@@ -22,20 +36,50 @@ export function BuyNowForm({ product, quantity, selectedAddons, variantId, onCan
   const [pickUpDay, setPickUpDay] = useState<string>("0");
   const [pickUpTime, setPickUpTime] = useState<string | null>("ASAP");
 
-  const total =
-    (product.price + selectedAddons.reduce((acc: any, a: any) => acc + a.price, 0)) *
-    quantity;
+  /* ============================
+     PRICE + DISCOUNT LOGIC
+     ============================ */
 
-  // Reset time if today is selected
+  const addonsTotal = selectedAddons.reduce(
+    (acc: number, a: any) => acc + a.price,
+    0
+  );
+
+  const basePrice = product.price + addonsTotal;
+  const subtotal = basePrice * quantity;
+
+  const discountType = product.discountType?.toUpperCase();
+  const discountValue = Number(product.discountValue) || 0;
+
+  let discount = 0;
+
+  if (discountType === "PERCENT") {
+    discount = subtotal * (discountValue / 100);
+  } else if (discountType === "FIXED") {
+    discount = discountValue * quantity;
+  } else if (discountType === "FREE_PRODUCT") {
+    // Free main product, addons still paid
+    discount = product.price * quantity;
+  }
+
+  const total = Math.max(subtotal - discount, 0);
+
+  /* ============================
+     PICKUP TIME RESET
+     ============================ */
+
   useEffect(() => {
     if (Number(pickUpDay) === 0) setPickUpTime("ASAP");
     else setPickUpTime(null);
   }, [pickUpDay]);
 
+  /* ============================
+     BUY ACTION
+     ============================ */
+
   const handleBuyNow = async () => {
     if (!customerId) return alert("Please log in to buy.");
 
-    // Compute pickup timestamp
     const now = new Date();
     const pickupDate = new Date();
     pickupDate.setDate(now.getDate() + Number(pickUpDay));
@@ -52,8 +96,10 @@ export function BuyNowForm({ product, quantity, selectedAddons, variantId, onCan
         let hours = Number(match[1]);
         const minutes = Number(match[2]);
         const meridiem = match[3]?.toUpperCase();
+
         if (meridiem === "PM" && hours < 12) hours += 12;
         if (meridiem === "AM" && hours === 12) hours = 0;
+
         pickupDate.setHours(hours, minutes, 0, 0);
       } else {
         pickupDate.setHours(STORE_OPEN, 0, 0, 0);
@@ -68,33 +114,53 @@ export function BuyNowForm({ product, quantity, selectedAddons, variantId, onCan
           customerId,
           variantId,
           quantity,
-          addons: selectedAddons.map((a: any) => ({ addonId: a.id, quantity: a.quantity })),
+          addons: selectedAddons.map((a: any) => ({
+            addonId: a.id,
+            quantity: a.quantity,
+          })),
           paymentType: paymentMethod,
           paymentProvider: paymentMethod,
-          pickupTime: pickupDate.toISOString(), // ✅ include computed pickup time
+          pickupTime: pickupDate.toISOString(),
         })
       ).unwrap();
+
       onCancel();
     } catch (err) {
       console.error(err);
     }
   };
 
+  /* ============================
+     UI
+     ============================ */
+
   return (
     <div className="space-y-4">
       <p className="font-semibold">{product.name}</p>
-      <p>Total: ₱{total.toFixed(2)}</p>
+
+      <p>Subtotal: ₱{subtotal.toFixed(2)}</p>
+
+      {discount > 0 && (
+        <p className="text-green-600">
+          Discount ({product.discountName ?? "Promo"}): −₱
+          {discount.toFixed(2)}
+        </p>
+      )}
+
+      <p className="font-semibold">Total: ₱{total.toFixed(2)}</p>
 
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="block text-sm font-medium">Pickup Day</label>
           <Select value={pickUpDay} onValueChange={setPickUpDay}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger>
               <SelectValue placeholder="Select day" />
             </SelectTrigger>
             <SelectContent>
               {dayOptions.map((d) => (
-                <SelectItem key={d.label} value={String(d.offset)}>{d.label}</SelectItem>
+                <SelectItem key={d.label} value={String(d.offset)}>
+                  {d.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -103,7 +169,7 @@ export function BuyNowForm({ product, quantity, selectedAddons, variantId, onCan
         <div>
           <label className="block text-sm font-medium">Pickup Time</label>
           <Select value={pickUpTime ?? ""} onValueChange={setPickUpTime}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger>
               <SelectValue placeholder="Select time" />
             </SelectTrigger>
             <SelectContent>
@@ -115,21 +181,34 @@ export function BuyNowForm({ product, quantity, selectedAddons, variantId, onCan
                 baseDate.setSeconds(0);
                 baseDate.setMilliseconds(0);
 
-                if (Number(pickUpDay) === 0) slots.push(<SelectItem key="ASAP" value="ASAP">ASAP</SelectItem>);
+                if (Number(pickUpDay) === 0) {
+                  slots.push(
+                    <SelectItem key="ASAP" value="ASAP">
+                      ASAP
+                    </SelectItem>
+                  );
+                }
 
                 for (let hour = STORE_OPEN; hour < STORE_CLOSE; hour++) {
                   for (let minute of [0, 15, 30, 45]) {
                     const slot = new Date(baseDate);
-                    slot.setHours(hour);
-                    slot.setMinutes(minute);
+                    slot.setHours(hour, minute);
+
                     if (Number(pickUpDay) === 0 && slot <= now) continue;
+
+                    const time = slot.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+
                     slots.push(
-                      <SelectItem key={`${hour}-${minute}`} value={slot.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}>
-                        {slot.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      <SelectItem key={`${hour}-${minute}`} value={time}>
+                        {time}
                       </SelectItem>
                     );
                   }
                 }
+
                 return slots;
               })()}
             </SelectContent>
@@ -137,19 +216,17 @@ export function BuyNowForm({ product, quantity, selectedAddons, variantId, onCan
         </div>
       </div>
 
-      <div>
-        <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select payment method" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="CASH">Cash</SelectItem>
-            <SelectItem value="GCASH">GCash</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+        <SelectTrigger>
+          <SelectValue placeholder="Payment method" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="CASH">Cash</SelectItem>
+          <SelectItem value="GCASH">GCash</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <div className="flex justify-end gap-3 mt-4">
+      <div className="flex justify-end gap-3">
         <Button variant="outline" onClick={onCancel} disabled={loading}>
           Cancel
         </Button>
